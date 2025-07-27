@@ -43,12 +43,10 @@ export default function Navbar() {
             {/* Center Navigation Menu - visible only on large screens */}
             <div className="hidden lg:flex flex-1 justify-center items-center space-x-6">
               {[
-                { label: "Demo 1", href: "/demo1", color: "#F97316" },
-                { label: "Demo 2", href: "/demo2", color: "#EF4444" },
-                { label: "Demo 3", href: "/demo3", color: "#8B5CF6" },
-                { label: "Demo 4", href: "/demo4", color: "#3B82F6" },
-                { label: "Demo 5", href: "/demo5", color: "#F97316" },
-                { label: "Demo 6", href: "/demo6", color: "#EF4444" },
+                { label: "Home", href: "/Home ", color: "#EF4444" },
+                { label: "porfolio", href: "/portfolio", color: "#EF4444" },
+                { label: "about-us", href: "/aboutus", color: "#EF4444" },
+                { label: "contact-us", href: "/contactus", color: "#EF4444" },
               ].map(({ label, href, color }) => (
                 <Link
                   key={label}

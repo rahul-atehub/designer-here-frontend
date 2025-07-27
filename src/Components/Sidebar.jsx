@@ -23,9 +23,9 @@ const Sidebar = ({ isOpen, onToggle }) => {
         {/* Navigation Items */}
 
         {/* Sidebar Header with Close Button */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between px-4 py-3 border-b ">
           <h2 className="text-lg font-semibold text-black dark:text-white">
-            DASHBOARD
+            logo
           </h2>
           <button
             onClick={onToggle}
@@ -35,9 +35,9 @@ const Sidebar = ({ isOpen, onToggle }) => {
           </button>
         </div>
 
-        <nav className="flex-1 px-4 py-6 space-y-2">
+        <nav className="flex-1 px-4 py-6 space-y-2 hover:text-[#EF4444]">
           {/* Menu Items */}
-          <div className="space-y-1">
+          <div className="space-y-1 ">
             <SidebarItem icon={Home} label="Dashboard" />
             <SidebarItem icon={FileText} label="Documents" />
             <SidebarItem icon={MessageSquare} label="Messages" />
@@ -76,7 +76,7 @@ const SidebarItem = ({ icon: Icon, label, isActive = false }) => {
       className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors duration-200 ${
         isActive
           ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
-          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+          : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 "
       }`}
     >
       <Icon className="w-5 h-5" />
