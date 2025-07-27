@@ -1,4 +1,5 @@
 import React from "react";
+import { ThemeToggle } from "../components/ui/theme.toggle";
 import {
   Home,
   Settings,
@@ -24,7 +25,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
         {/* Sidebar Header with Close Button */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-black dark:text-white">
-            Sidebar
+            DASHBOARD
           </h2>
           <button
             onClick={onToggle}
@@ -44,11 +45,13 @@ const Sidebar = ({ isOpen, onToggle }) => {
             <SidebarItem icon={Star} label="Favorites" />
             <SidebarItem icon={Settings} label="Settings" />
           </div>
+
+          <ThemeToggle />
         </nav>
 
         {/* Bottom Section */}
         <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-3 p-3 rounded-lg bg-gray-50 dark:bg-neutral-800 border border-neutral-800 hover:bg-neutral-700 transition">
+          <div className="flex items-center space-x-3 p-3 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-neutral-800 dark:hover:bg-gray-800 border border-neutral-800   transition">
             <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
               <User className="w-4 h-4 text-white" />
             </div>

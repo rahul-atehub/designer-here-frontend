@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import { User, Menu, X, ChevronDown } from "lucide-react";
+import Link from "next/link";
+import { Heart } from "lucide-react";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -34,56 +36,43 @@ export default function Navbar() {
                 DESIGNER HERE
               </span>
             </div>
-
-            {/* Main Navigation Menu */}
-            <div className="hidden lg:flex items-center space-x-6">
-              <div className="flex items-center space-x-1 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] cursor-pointer transition-colors duration-200">
-                <span className="text-sm">Demo 1 </span>
-                <ChevronDown size={16} />
-              </div>
-              <div className="flex items-center space-x-1 text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] cursor-pointer transition-colors duration-200">
-                <span className="text-sm">Demo 2</span>
-                <ChevronDown size={16} />
-              </div>
-              <div className="flex items-center space-x-1 text-gray-600 dark:text-gray-300 hover:text-[#8B5CF6] dark:hover:text-[#8B5CF6] cursor-pointer transition-colors duration-200">
-                <span className="text-sm">Demo 3</span>
-                <ChevronDown size={16} />
-              </div>
-              <div className="flex items-center space-x-1 text-gray-600 dark:text-gray-300 hover:text-[#3B82F6] dark:hover:text-[#3B82F6] cursor-pointer transition-colors duration-200">
-                <span className="text-sm">Demo 4</span>
-                <ChevronDown size={16} />
-              </div>
-              <div className="flex items-center space-x-1 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] cursor-pointer transition-colors duration-200">
-                <span className="text-sm">Demo 5</span>
-                <ChevronDown size={16} />
-              </div>
-              <div className="flex items-center space-x-1 text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] cursor-pointer transition-colors duration-200">
-                <span className="text-sm">Demo 6</span>
-                <ChevronDown size={16} />
-              </div>
-            </div>
           </div>
 
           {/* Right Section - License, Pricing, CTA, Profile */}
           <div className="hidden lg:flex items-center space-x-4">
-            <a
-              href="/license"
-              className="text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] text-sm transition-colors duration-200"
-            >
-              DEMO 1
-            </a>
-            <a
-              href="/pricing"
-              className="text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] text-sm transition-colors duration-200"
-            >
-              DEMO 2
-            </a>
-            <button className="bg-green-500 hover:bg-green-600 text-black font-semibold py-2 px-4 rounded text-sm transition-colors duration-200">
-              SOMETHING SPECIAL
-            </button>
-            <button className="p-2 text-gray-600 dark:text-gray-300 hover:text-[#8B5CF6] dark:hover:text-[#8B5CF6] rounded-full transition-colors duration-200">
-              <User size={20} />
-            </button>
+            {/* Center Navigation Menu - visible only on large screens */}
+            <div className="hidden lg:flex flex-1 justify-center items-center space-x-6">
+              {[
+                { label: "Demo 1", href: "/demo1", color: "#F97316" },
+                { label: "Demo 2", href: "/demo2", color: "#EF4444" },
+                { label: "Demo 3", href: "/demo3", color: "#8B5CF6" },
+                { label: "Demo 4", href: "/demo4", color: "#3B82F6" },
+                { label: "Demo 5", href: "/demo5", color: "#F97316" },
+                { label: "Demo 6", href: "/demo6", color: "#EF4444" },
+              ].map(({ label, href, color }) => (
+                <Link
+                  key={label}
+                  href={href}
+                  className={`text-sm text-gray-600 dark:text-gray-300 hover:text-[${color}] dark:hover:text-[${color}] transition-colors duration-200`}
+                >
+                  {label}
+                </Link>
+              ))}
+            </div>
+            {/* Spacer between demo links and icons */}
+            <div className="w-6"></div>{" "}
+            {/* ← You can adjust width here (w-6 = 1.5rem) */}
+            {/* Heart and Profile Buttons */}
+            <div className="flex items-center space-x-4">
+              <Link href="/favorites" aria-label="Go to favorites">
+                <button className="relative flex items-center justify-center w-10 h-10 rounded-full text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444]">
+                  <Heart className="w-5 h-5" />
+                </button>
+              </Link>
+              <button className="p-2 text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] rounded-full transition-colors duration-200">
+                <User size={20} />
+              </button>
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
@@ -103,6 +92,8 @@ export default function Navbar() {
             <div>
               <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center space-x-2">
+                  {/* this is for the logo. so upload that logo later on the internet and can use that later from that space  */}
+
                   <div className="bg-green-500 p-1 rounded">
                     <svg
                       width="24"
