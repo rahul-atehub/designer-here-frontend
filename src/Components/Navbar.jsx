@@ -5,6 +5,7 @@ import Image from "next/image";
 import { User, Menu, X, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { Heart } from "lucide-react";
+import SearchBar from "../Components/SearchBar";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -16,53 +17,61 @@ export default function Navbar() {
   return (
     <nav className="w-full bg-[#f9f9f9] dark:bg-[#101010] shadow-lg border-b border-gray-200 dark:border-gray-800">
       <div className="max-w-full px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-14">
-          {/* Left Section - Logo and Main Navigation */}
-          <div className="flex items-center space-x-8">
+        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 items-center gap-4 py-2">
+          {/* Left Section - Logo + Toggle */}
+          <div className="flex items-center justify-between lg:justify-start space-x-4">
             {/* Logo */}
-            <div className="flex items-center space-x-2">
-              <div className="bg-green-500 p-1 rounded">
-                <svg
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="white" />
-                </svg>
-              </div>
+            <div className="flex items-center space-x-4">
+              <Image
+                src="https://res.cloudinary.com/dhsv1d1vn/image/upload/v1754996669/logo_1_jo4krf.png"
+                alt="My Logo"
+                width={40} // adjust size as needed
+                height={40}
+              />
               <span className="text-gray-900 dark:text-white font-semibold text-lg">
                 DESIGNER HERE
               </span>
             </div>
+
+            {/* Toggle Button */}
+            <div className="lg:hidden">
+              <button
+                onClick={toggleMobileMenu}
+                className="p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] transition-colors duration-200"
+              >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            </div>
           </div>
 
-          {/* Right Section - License, Pricing, CTA, Profile */}
-          <div className="hidden lg:flex items-center space-x-4">
-            {/* Center Navigation Menu - visible only on large screens */}
-            <div className="hidden lg:flex flex-1 justify-center items-center space-x-6">
+          {/* Center Section - SearchBar */}
+          <div className="w-full max-w-md mx-auto px-2">
+            <SearchBar />
+          </div>
+
+          {/* Right Section - Nav Links + Icons */}
+          <div className="hidden lg:flex items-center justify-end space-x-6">
+            {/* Nav Links */}
+            <div className="flex space-x-6">
               {[
-                { label: "Home", href: "/Home ", color: "#EF4444" },
-                { label: "porfolio", href: "/portfolio", color: "#EF4444" },
+                { label: "Home", href: "/Home", color: "#EF4444" },
+                { label: "portfolio", href: "/portfolio", color: "#EF4444" },
                 { label: "about-us", href: "/aboutus", color: "#EF4444" },
                 { label: "contact-us", href: "/contactus", color: "#EF4444" },
               ].map(({ label, href, color }) => (
                 <Link
                   key={label}
                   href={href}
-                  className={`text-sm text-gray-600 dark:text-gray-300 hover:text-[${color}] dark:hover:text-[${color}] transition-colors duration-200`}
+                  className={` lg:text-sm md:text-xs text-gray-600 dark:text-gray-300 hover:text-[${color}] dark:hover:text-[${color}] transition-colors duration-200`}
                 >
                   {label}
                 </Link>
               ))}
             </div>
-            {/* Spacer between demo links and icons */}
-            <div className="w-6"></div>{" "}
-            {/* ← You can adjust width here (w-6 = 1.5rem) */}
-            {/* Heart and Profile Buttons */}
+
+            {/* Icons */}
             <div className="flex items-center space-x-4">
-              <Link href="/favorites" aria-label="Go to favorites">
+              <Link href="/favorites">
                 <button className="relative flex items-center justify-center w-10 h-10 rounded-full text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444]">
                   <Heart className="w-5 h-5" />
                 </button>
@@ -71,16 +80,6 @@ export default function Navbar() {
                 <User size={20} />
               </button>
             </div>
-          </div>
-
-          {/* Mobile Menu Button */}
-          <div className="lg:hidden">
-            <button
-              onClick={toggleMobileMenu}
-              className="p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] transition-colors duration-200"
-            >
-              {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
           </div>
         </div>
 
@@ -118,12 +117,12 @@ export default function Navbar() {
               {/* Navigation Links */}
               <div className="space-y-2">
                 {[
-                  "Demo 1",
-                  "Demo 2",
-                  "Demo 3",
-                  "Demo 4",
-                  "Demo 5",
-                  "Demo 6",
+                  "Home ",
+                  "Portfolio",
+                  "About Us",
+                  "Contact Us",
+                  "Favorites",
+                  "Profile",
                 ].map((item) => (
                   <a
                     key={item}

@@ -22,7 +22,7 @@ export function ThemeToggle() {
   return (
     <button
       onClick={handleToggle}
-      className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors duration-200 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+      className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors duration-200 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
     >
       {isDark ? <FiMoon className="w-5 h-5" /> : <FiSun className="w-5 h-5" />}
       <span className="font-medium">Theme</span>

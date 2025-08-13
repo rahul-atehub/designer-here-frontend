@@ -1,11 +1,10 @@
 import LayoutWrapper from "../Components/LayoutWrapper";
+import Hero from "./HomeComponents/hero";
 
 export default function Home() {
   return (
     <LayoutWrapper>
-      <div>
-        <h1 className="text-black dark:text-white">hello world</h1>
-      </div>
+      <Hero />
     </LayoutWrapper>
   );
 }
