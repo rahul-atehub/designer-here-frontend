@@ -34,10 +34,10 @@ const LayoutWrapper = ({ children }) => {
       >
         {/* Toggle Button Area - only visible on sm and up */}
         <div className="hidden sm:flex bg-white dark:bg-neutral-950 border-r border-gray-200 dark:border-gray-700 justify-center">
-          <div className="px-4 py-3 h-[61px] flex items-center">
+          <div className="px-4 py-3 h-[61px] flex items-center ">
             <button
               onClick={toggleSidebar}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200 "
             >
               <Menu className="w-5 h-5 text-black dark:text-white" />
             </button>

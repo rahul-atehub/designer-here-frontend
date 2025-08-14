@@ -106,7 +106,7 @@ export default function ArtworkCard({
             {/* Dropdown menu */}
             {menuOpen && (
               <div
-                className={`absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-lg transform transition-all duration-200 ease-out origin-top ${
+                className={`absolute right-0 mt-2 w-40 rounded-lg dark:rounded-lg bg-white  shadow-lg transform transition-all duration-200 ease-out origin-top ${
                   menuOpen ? "scale-y-100 opacity-100" : "scale-y-0 opacity-0"
                 }`}
               >

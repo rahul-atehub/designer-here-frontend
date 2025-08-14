@@ -15,7 +15,7 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="w-full bg-[#f9f9f9] dark:bg-[#101010] shadow-lg border-b border-gray-200 dark:border-gray-800">
+    <nav className=" sticky top-0 z-50 w-full bg-[#f9f9f9] dark:bg-[#101010] shadow-lg border-b border-gray-200 dark:border-gray-800">
       <div className="max-w-full px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 items-center gap-4 py-2">
           {/* Left Section - Logo + Toggle */}
