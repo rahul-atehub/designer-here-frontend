@@ -8,11 +8,11 @@ export default function Hero() {
       <div className="grid md:grid-cols-2 items-center gap-10">
         {/* Left Text Block */}
         <div>
-          <h1 className="text-4xl sm:text-5xl font-bold text-gray-700">
+          <h1 className="text-4xl sm:text-5xl font-bold text-black dark:text-white">
             Start your journey <br /> with{" "}
             <span className="text-[#EF4444]">Designer Here</span>
           </h1>
-          <p className="mt-5 text-gray-600 text-lg">
+          <p className="mt-5 text-gray-600 dark:text-neutral-100 text-lg">
             Hand-picked professionals and expertly crafted components, designed
             for any kind of entrepreneur.
           </p>
@@ -39,25 +39,29 @@ export default function Hero() {
               <div className="flex items-center space-x-1 text-sm text-yellow-400">
                 <span>★★★★★</span>
               </div>
-              <p className="dark:text-gray-400 font-semibold mt-1">
+              <p className="text-neutral-700 dark:text-gray-400 font-semibold mt-1">
                 4.6{" "}
                 <span className="text-gray-500 font-normal">
                   /5 - from 12k reviews
                 </span>
               </p>
-              <p className="dark:text-gray-400 font-semibold">Google</p>
+              <p className=" text-neutral-700 dark:text-gray-400 font-semibold">
+                Google
+              </p>
             </div>
             <div>
               <div className="flex items-center space-x-1 text-sm text-yellow-400">
                 <span>★★★★☆</span>
               </div>
-              <p className="dark:text-gray-400 font-semibold mt-1">
+              <p className="text-neutral-700 dark:text-gray-400 font-semibold mt-1">
                 4.8{" "}
                 <span className="text-gray-500 font-normal">
                   /5 - from 5k reviews
                 </span>
               </p>
-              <p className="dark:text-gray-400 font-semibold">Forbes</p>
+              <p className="text-neutral-700 dark:text-gray-400 font-semibold">
+                Forbes
+              </p>
             </div>
           </div>
         </div>

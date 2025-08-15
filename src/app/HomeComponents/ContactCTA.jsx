@@ -3,7 +3,7 @@ import { Mail } from "lucide-react"; // or replace with any icon
 
 export default function ContactCTA() {
   return (
-    <section className=" flex justify-center mt-20 bg-white text-black dark:bg-neutral-950 dark:text-white rounded-xl shadow-lg overflow-hidden">
+    <section className=" flex justify-center mt-20 bg-white text-black dark:bg-neutral-950 dark:text-white rounded-xl  overflow-hidden">
       <div className="max-w-7xl mx-auto grid md:grid-cols-2 justify-center gap-8 p-8">
         {/* Text Section */}
         <div>
@@ -21,7 +21,7 @@ export default function ContactCTA() {
 
           <a
             href="/contact"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-[#EF4444] hover:bg-red-600 text-white font-medium rounded-lg transition-transform transform hover:scale-105 shadow-md"
+            className="inline-flex shadow-md items-center justify-center gap-2 px-6 py-3 bg-[#EF4444] hover:bg-red-600 text-white font-medium rounded-lg transition-transform transform hover:scale-105 "
           >
             <Mail size={18} /> Contact Us
           </a>
