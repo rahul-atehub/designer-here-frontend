@@ -28,7 +28,7 @@ export default function ContactCTA() {
         </div>
 
         {/* Image Section */}
-        <div className="flex justify-center">
+        <div className="flex justify-end">
           <img
             src="https://www.bigfootdigital.co.uk/wp-content/uploads/2020/07/image-optimisation-scaled.jpg" // replace with actual image path in public/
             alt="Contact"

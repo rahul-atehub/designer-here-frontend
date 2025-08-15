@@ -1,4 +1,6 @@
 import React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { ThemeToggle } from "../components/ui/theme.toggle";
 import {
   Home,
@@ -7,7 +9,6 @@ import {
   FileText,
   MessageSquare,
   Star,
-  Menu,
   X,
   Heart,
 } from "lucide-react";
@@ -21,10 +22,8 @@ const Sidebar = ({ isOpen, onToggle }) => {
     >
       {/* Sidebar Content */}
       <div className="flex flex-col h-full">
-        {/* Navigation Items */}
-
-        {/* Sidebar Header with Close Button */}
-        <div className="flex items-center justify-between px-4 py-3 pt-4 border-b ">
+        {/* Sidebar Header */}
+        <div className="flex items-center justify-between px-4 py-3 pt-4 border-b">
           <h2 className="text-lg font-semibold text-black dark:text-white">
             logo
           </h2>
@@ -36,15 +35,19 @@ const Sidebar = ({ isOpen, onToggle }) => {
           </button>
         </div>
 
-        <nav className="flex-1 px-4 py-6 space-y-2 ">
-          {/* Menu Items */}
-          <div className="space-y-1 ">
-            <SidebarItem icon={Home} label="Home" />
-            <SidebarItem icon={FileText} label="About-Us" />
-            <SidebarItem icon={MessageSquare} label="messages" />
-            <SidebarItem icon={User} label="Profile" />
-            <SidebarItem icon={Heart} label="Favorites" />
-            <SidebarItem icon={Settings} label="Settings" />
+        {/* Navigation */}
+        <nav className="flex-1 px-4 py-6 space-y-2">
+          <div className="space-y-1">
+            <SidebarItem icon={Home} label="Home" href="/" />
+            <SidebarItem icon={FileText} label="About-Us" href="/about" />
+            <SidebarItem
+              icon={MessageSquare}
+              label="Messages"
+              href="/messages"
+            />
+            <SidebarItem icon={User} label="Profile" href="/profile" />
+            <SidebarItem icon={Heart} label="Favorites" href="/favorites" />
+            <SidebarItem icon={Settings} label="Settings" href="/settings" />
           </div>
 
           <ThemeToggle />
@@ -52,7 +55,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
 
         {/* Bottom Section */}
         <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center space-x-3 p-3 rounded-lg bg-neutral-200 hover:bg-neutral-300 dark:bg-gray-800 dark:hover:bg-neutral-800 border border-neutral-800   transition">
+          <div className="flex items-center space-x-3 p-3 rounded-lg bg-neutral-200 hover:bg-neutral-300 dark:bg-gray-800 dark:hover:bg-neutral-800 border border-neutral-800 transition">
             <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
               <User className="w-4 h-4 text-white" />
             </div>
@@ -71,18 +74,23 @@ const Sidebar = ({ isOpen, onToggle }) => {
   );
 };
 
-const SidebarItem = ({ icon: Icon, label, isActive = false }) => {
+// Sidebar Item with Link & Active State
+const SidebarItem = ({ icon: Icon, label, href }) => {
+  const pathname = usePathname();
+  const isActive = pathname === href;
+
   return (
-    <button
+    <Link
+      href={href}
       className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors duration-200 ${
         isActive
-          ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300"
-          : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800 "
+          ? "text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-800"
+          : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
       }`}
     >
       <Icon className="w-5 h-5" />
       <span className="font-medium">{label}</span>
-    </button>
+    </Link>
   );
 };
 
