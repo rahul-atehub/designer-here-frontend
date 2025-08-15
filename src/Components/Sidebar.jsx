@@ -24,7 +24,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
         {/* Navigation Items */}
 
         {/* Sidebar Header with Close Button */}
-        <div className="flex items-center justify-between px-4 py-3 border-b ">
+        <div className="flex items-center justify-between px-4 py-3 pt-4 border-b ">
           <h2 className="text-lg font-semibold text-black dark:text-white">
             logo
           </h2>
