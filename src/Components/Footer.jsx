@@ -2,6 +2,10 @@
 
 import React from "react";
 import Link from "next/link";
+import { useState } from "react";
+import Modal from "../components/ui/modal";
+import PrivacyPolicyContent from "@/components/ui/PrivacyPolicyContent";
+import TermsOfServiceContent from "@/components/ui/TermsOfServiceContent";
 import {
   Mail,
   Phone,
@@ -13,6 +17,9 @@ import {
 } from "lucide-react";
 
 const Footer = () => {
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+
   return (
     <footer className="bg-white dark:bg-neutral-950 border-t border-gray-300 dark:border-gray-800 transition-colors duration-300">
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
@@ -142,27 +149,45 @@ const Footer = () => {
       </div>
 
       {/* Bottom Border */}
-      <div className=" w-full px-4 border-t border-gray-200 dark:border-gray-800 py-6">
+      <div className="w-full px-4 border-t border-gray-200 dark:border-gray-800 py-6">
         <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
           <p className="text-gray-500 dark:text-gray-400 text-sm">
             © 2024 Buuuk. All rights reserved.
           </p>
           <div className="flex space-x-6 text-sm">
-            <Link
-              href="#"
+            <button
+              onClick={() => setShowPrivacy(true)}
               className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200"
             >
               Privacy Policy
-            </Link>
-            <Link
-              href="#"
+            </button>
+            <button
+              onClick={() => setShowTerms(true)}
               className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200"
             >
               Terms of Service
-            </Link>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Privacy Policy Modal */}
+      <Modal
+        isOpen={showPrivacy}
+        onClose={() => setShowPrivacy(false)}
+        title="Privacy Policy"
+      >
+        <PrivacyPolicyContent />
+      </Modal>
+
+      {/* Terms of Service Modal */}
+      <Modal
+        isOpen={showTerms}
+        onClose={() => setShowTerms(false)}
+        title="Terms of Service"
+      >
+        <TermsOfServiceContent />
+      </Modal>
     </footer>
   );
 };

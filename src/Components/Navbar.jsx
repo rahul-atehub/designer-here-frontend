@@ -4,6 +4,8 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import SearchBar from "../Components/SearchBar";
+import { ThemeToggle } from "../components/ui/theme.toggle";
 import {
   User,
   Menu,
@@ -16,8 +18,6 @@ import {
   Mail,
   Images,
 } from "lucide-react";
-import SearchBar from "../Components/SearchBar";
-import { ThemeToggle } from "../components/ui/theme.toggle";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -34,17 +34,17 @@ export default function Navbar() {
 
   const moreLinks = [
     { icon: FileText, label: "About Us", href: "/about" },
-    { icon: Mail, label: "Contact Us", href: "/contactus" },
+    { icon: Mail, label: "Contact Us", href: "/contact" },
     { icon: User, label: "Profile", href: "/profile" },
     { icon: Settings, label: "Settings", href: "/settings" },
   ];
 
   // Desktop navbar links (unchanged)
   const links = [
-    { label: "Home", href: "/Home" },
+    { label: "Home", href: "/" },
     { label: "Portfolio", href: "/portfolio" },
     { label: "About Us", href: "/aboutus" },
-    { label: "Contact Us", href: "/contactus" },
+    { label: "Contact Us", href: "/contact" },
   ];
 
   return (
@@ -60,7 +60,7 @@ export default function Navbar() {
                 width={40}
                 height={40}
               />
-              <span className="text-gray-900 dark:text-white font-semibold text-lg">
+              <span className="text-[#EF4444] font-semibold text-lg">
                 DESIGNER HERE
               </span>
             </div>
