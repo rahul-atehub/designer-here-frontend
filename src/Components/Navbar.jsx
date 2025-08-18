@@ -99,7 +99,7 @@ export default function Navbar() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-[#EF4444]/20 to-[#F97316]/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-md"></div>
                 </div>
-                <span className="text-[#EF4444] font-bold text-lg bg-gradient-to-r from-[#EF4444] to-[#F97316] bg-clip-text text-transparent">
+                <span className="font-bold text-lg bg-gradient-to-r from-[#EF4444] to-[#F97316] bg-clip-text text-transparent">
                   DESIGNER HERE
                 </span>
               </div>
@@ -285,7 +285,7 @@ export default function Navbar() {
                   className="rounded-lg"
                 />
               </div>
-              <span className="text-gray-900 dark:text-white font-bold text-lg bg-gradient-to-r from-[#EF4444] to-[#F97316] bg-clip-text text-transparent">
+              <span className="font-bold text-lg bg-gradient-to-r from-[#EF4444] to-[#F97316] bg-clip-text text-transparent">
                 DESIGNER HERE
               </span>
             </div>

@@ -320,7 +320,7 @@ export default function ArtworkCard({
   return (
     <>
       <div
-        className={`group relative max-w-sm bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200/60 dark:border-gray-700/60 shadow-lg hover:shadow-2xl hover:shadow-blue-500/10 dark:hover:shadow-blue-500/5 rounded-2xl overflow-hidden transition-all duration-300 ease-out transform w-full max-w-xs cursor-pointer ${
+        className={`group relative  bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200/60 dark:border-gray-700/60 shadow-lg hover:shadow-2xl hover:shadow-blue-500/10 dark:hover:shadow-blue-500/5 rounded-2xl overflow-hidden transition-all duration-300 ease-out transform w-full max-w-xs cursor-pointer ${
           isDeleting
             ? "scale-95 opacity-0 translate-y-4"
             : "hover:-translate-y-2 hover:scale-[1.02] scale-100 opacity-100 translate-y-0"

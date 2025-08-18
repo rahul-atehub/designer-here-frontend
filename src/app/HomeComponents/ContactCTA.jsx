@@ -26,14 +26,18 @@ export default function ContactCTA() {
     setMousePosition({ x, y });
   };
 
-  // Floating particles animation
-  const particles = Array.from({ length: 20 }, (_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    delay: Math.random() * 2,
-    duration: 3 + Math.random() * 2,
-  }));
+  const [particles, setParticles] = useState([]);
+
+  useEffect(() => {
+    const generated = Array.from({ length: 20 }, (_, i) => ({
+      id: i,
+      x: Math.random() * 100,
+      y: Math.random() * 100,
+      delay: Math.random() * 2,
+      duration: 3 + Math.random() * 2,
+    }));
+    setParticles(generated);
+  }, []);
 
   // Stats counter animation
   const [stats, setStats] = useState({

@@ -2,64 +2,77 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LayoutWrapper from "@/Components/LayoutWrapper";
+
 import {
-  Heart,
+  Bookmark,
   Search,
   Filter,
   Grid,
   List,
-  Download,
-  Share2,
   Eye,
   Calendar,
+  Heart,
+  FolderOpen,
 } from "lucide-react";
 
-// Import the posts manager from ArtworkCard
-import { postsManager } from "@/components/ui/ArtworkCard"; // Adjust the path as needed
-
-const LikedPostsPage = () => {
+const SavedPostsPage = () => {
   const [viewMode, setViewMode] = useState("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
-  const [likedPosts, setLikedPosts] = useState([]);
+  const [savedPosts, setSavedPosts] = useState([]);
+  const [likedPostsSet, setLikedPostsSet] = useState(new Set());
   const [, forceUpdate] = useState({});
 
-  // Load liked posts from localStorage and subscribe to changes
+  // Load saved posts and liked posts from localStorage
   useEffect(() => {
-    const loadLikedPosts = () => {
+    const loadSavedPosts = () => {
       if (typeof window !== "undefined") {
         try {
-          const likedPostsData = JSON.parse(
-            window.localStorage.getItem("likedPostsData") || "[]"
+          const savedPostsData = JSON.parse(
+            window.localStorage.getItem("savedPostsData") || "[]"
           );
-          setLikedPosts(likedPostsData);
+          const likedPosts = JSON.parse(
+            window.localStorage.getItem("likedPosts") || "[]"
+          );
+          setSavedPosts(savedPostsData);
+          setLikedPostsSet(new Set(likedPosts));
         } catch (error) {
-          console.error("Error loading liked posts:", error);
-          setLikedPosts([]);
+          console.error("Error loading saved posts:", error);
+          setSavedPosts([]);
+          setLikedPostsSet(new Set());
         }
       }
     };
 
     // Initial load
-    loadLikedPosts();
+    loadSavedPosts();
 
-    // Subscribe to changes from the posts manager
-    const unsubscribe = postsManager.subscribe(() => {
-      loadLikedPosts();
-      forceUpdate({});
-    });
+    // Listen for storage changes (when posts are added/removed from other components)
+    const handleStorageChange = () => {
+      loadSavedPosts();
+    };
 
-    return unsubscribe;
+    window.addEventListener("storage", handleStorageChange);
+
+    // Custom event listener for real-time updates within the same tab
+    window.addEventListener("savedPostsUpdated", handleStorageChange);
+    window.addEventListener("likedPostsUpdated", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("savedPostsUpdated", handleStorageChange);
+      window.removeEventListener("likedPostsUpdated", handleStorageChange);
+    };
   }, []);
 
-  // Get unique categories from liked posts
+  // Get unique categories from saved posts
   const categories = [
     "all",
-    ...new Set(likedPosts.map((post) => post.category)),
+    ...new Set(savedPosts.map((post) => post.category)),
   ];
 
-  const filteredPosts = likedPosts.filter((post) => {
+  const filteredPosts = savedPosts.filter((post) => {
     const matchesSearch =
       post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       post.tags.some((tag) =>
@@ -78,6 +91,8 @@ const LikedPostsPage = () => {
         return b.likes - a.likes;
       case "views":
         return b.views - a.views;
+      case "title":
+        return a.title.localeCompare(b.title);
       default:
         return 0;
     }
@@ -105,17 +120,91 @@ const LikedPostsPage = () => {
     },
   };
 
-  const handleRemoveLike = (postId) => {
-    // Use the global posts manager to remove the like
-    const postData = likedPosts.find((post) => post.id === postId);
+  const handleRemoveSaved = (postId) => {
+    // Remove from localStorage
+    if (typeof window !== "undefined") {
+      try {
+        const savedPostsData = JSON.parse(
+          window.localStorage.getItem("savedPostsData") || "[]"
+        );
+        const updatedData = savedPostsData.filter((post) => post.id !== postId);
+        window.localStorage.setItem(
+          "savedPostsData",
+          JSON.stringify(updatedData)
+        );
+
+        // Update saved posts set
+        const savedPosts = JSON.parse(
+          window.localStorage.getItem("savedPosts") || "[]"
+        );
+        const updatedSavedPosts = savedPosts.filter((id) => id !== postId);
+        window.localStorage.setItem(
+          "savedPosts",
+          JSON.stringify(updatedSavedPosts)
+        );
+
+        // Trigger custom event for real-time updates
+        window.dispatchEvent(new CustomEvent("savedPostsUpdated"));
+
+        setSavedPosts(updatedData);
+      } catch (error) {
+        console.error("Error removing saved post:", error);
+      }
+    }
+  };
+
+  const handleLikeFromSaved = (postId) => {
+    // Toggle like status in localStorage
+    const postData = savedPosts.find((post) => post.id === postId);
     if (postData) {
-      postsManager.toggleLiked(postId, postData);
+      const currentLikedPosts = JSON.parse(
+        window.localStorage.getItem("likedPosts") || "[]"
+      );
+      const isCurrentlyLiked = currentLikedPosts.includes(postId);
+
+      let updatedLikedPosts;
+      if (isCurrentlyLiked) {
+        // Remove from liked
+        updatedLikedPosts = currentLikedPosts.filter((id) => id !== postId);
+        // Remove from liked posts data
+        const likedPostsData = JSON.parse(
+          window.localStorage.getItem("likedPostsData") || "[]"
+        );
+        const updatedLikedData = likedPostsData.filter(
+          (post) => post.id !== postId
+        );
+        window.localStorage.setItem(
+          "likedPostsData",
+          JSON.stringify(updatedLikedData)
+        );
+      } else {
+        // Add to liked
+        updatedLikedPosts = [...currentLikedPosts, postId];
+        // Add to liked posts data
+        const likedPostsData = JSON.parse(
+          window.localStorage.getItem("likedPostsData") || "[]"
+        );
+        likedPostsData.push(postData);
+        window.localStorage.setItem(
+          "likedPostsData",
+          JSON.stringify(likedPostsData)
+        );
+      }
+
+      window.localStorage.setItem(
+        "likedPosts",
+        JSON.stringify(updatedLikedPosts)
+      );
+      setLikedPostsSet(new Set(updatedLikedPosts));
+
+      // Trigger custom events for real-time updates
+      window.dispatchEvent(new CustomEvent("likedPostsUpdated"));
     }
   };
 
   return (
     <LayoutWrapper>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
+      <div className="min-h-screen dark:bg-neutral-950 transition-colors duration-300">
         {/* Header Section */}
         <motion.div
           className="relative overflow-hidden bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700"
@@ -123,24 +212,24 @@ const LikedPostsPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-orange-500/10 dark:from-purple-400/5 dark:via-pink-400/5 dark:to-orange-400/5"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 via-red-500/5 to-red-500/10"></div>
           <div className="relative max-w-7xl mx-auto px-6 py-12">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl">
-                <Heart className="w-8 h-8 text-white" fill="white" />
+              <div className="p-3 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl">
+                <Bookmark className="w-8 h-8 text-white" fill="white" />
               </div>
               <div>
                 <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-                  Liked Posts
+                  Saved Posts
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 mt-2">
-                  Your curated collection of inspiring designs
+                  Your personal collection of bookmarked designs
                 </p>
               </div>
             </div>
 
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              {sortedPosts.length} posts saved
+              {sortedPosts.length} posts bookmarked
             </div>
           </div>
         </motion.div>
@@ -158,10 +247,10 @@ const LikedPostsPage = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search designs..."
+                placeholder="Search saved designs..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-white"
+                className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-white"
               />
             </div>
 
@@ -173,7 +262,7 @@ const LikedPostsPage = () => {
                 <select
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
-                  className="pl-10 pr-8 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-white appearance-none cursor-pointer"
+                  className="pl-10 pr-8 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-white appearance-none cursor-pointer"
                 >
                   {categories.map((category) => (
                     <option key={category} value={category}>
@@ -187,9 +276,10 @@ const LikedPostsPage = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-white appearance-none cursor-pointer"
+                className="px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-white appearance-none cursor-pointer"
               >
-                <option value="recent">Most Recent</option>
+                <option value="recent">Recently Saved</option>
+                <option value="title">Alphabetical</option>
                 <option value="likes">Most Liked</option>
                 <option value="views">Most Viewed</option>
               </select>
@@ -200,7 +290,7 @@ const LikedPostsPage = () => {
                   onClick={() => setViewMode("grid")}
                   className={`p-2 rounded-lg transition-all duration-200 ${
                     viewMode === "grid"
-                      ? "bg-white dark:bg-gray-600 text-purple-500 shadow-sm"
+                      ? "bg-white dark:bg-gray-600 text-red-500 shadow-sm"
                       : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                   }`}
                 >
@@ -210,7 +300,7 @@ const LikedPostsPage = () => {
                   onClick={() => setViewMode("list")}
                   className={`p-2 rounded-lg transition-all duration-200 ${
                     viewMode === "list"
-                      ? "bg-white dark:bg-gray-600 text-purple-500 shadow-sm"
+                      ? "bg-white dark:bg-gray-600 text-red-500 shadow-sm"
                       : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                   }`}
                 >
@@ -259,31 +349,36 @@ const LikedPostsPage = () => {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
                         {/* Overlay Actions */}
-                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 lg:opacity-0 group-hover:opacity-100 md:opacity-100 sm:opacity-100 transition-opacity duration-300">
                           <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleRemoveLike(post.id);
+                              handleRemoveSaved(post.id);
                             }}
                             className="p-2 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors duration-200"
                           >
-                            <Heart className="w-4 h-4" fill="white" />
+                            <Bookmark className="w-4 h-4" fill="white" />
                           </motion.button>
                           <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
-                            className="p-2 bg-black/50 text-white rounded-full shadow-lg hover:bg-black/70 transition-colors duration-200"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleLikeFromSaved(post.id);
+                            }}
+                            className={`p-2 rounded-full shadow-lg transition-colors duration-200 ${
+                              likedPostsSet.has(post.id)
+                                ? "bg-red-500 text-white hover:bg-red-600"
+                                : "bg-black/50 text-white hover:bg-black/70"
+                            }`}
                           >
-                            <Share2 className="w-4 h-4" />
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            className="p-2 bg-black/50 text-white rounded-full shadow-lg hover:bg-black/70 transition-colors duration-200"
-                          >
-                            <Download className="w-4 h-4" />
+                            <Heart
+                              className={`w-4 h-4 ${
+                                likedPostsSet.has(post.id) ? "fill-current" : ""
+                              }`}
+                            />
                           </motion.button>
                         </div>
 
@@ -293,11 +388,22 @@ const LikedPostsPage = () => {
                             {post.category}
                           </span>
                         </div>
+
+                        {/* Saved Date Badge */}
+                        <div className="absolute bottom-4 left-4">
+                          <span className="px-2 py-1 bg-red-500/90 text-white text-xs font-medium rounded-md backdrop-blur-sm">
+                            Saved{" "}
+                            {new Date(post.dateAdded).toLocaleDateString(
+                              "en-US",
+                              { month: "short", day: "numeric" }
+                            )}
+                          </span>
+                        </div>
                       </div>
 
                       {/* Content */}
                       <div className="p-6">
-                        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-200">
+                        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors duration-200">
                           {post.title}
                         </h3>
 
@@ -313,12 +419,21 @@ const LikedPostsPage = () => {
                           </span>
                         </div>
 
+                        {/* Description Preview */}
+                        {post.description && (
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">
+                            {post.description.length > 80
+                              ? post.description.substring(0, 80) + "..."
+                              : post.description}
+                          </p>
+                        )}
+
                         {/* Tags */}
                         <div className="flex flex-wrap gap-2 mb-4">
                           {post.tags.slice(0, 3).map((tag) => (
                             <span
                               key={tag}
-                              className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded-md"
+                              className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-xs rounded-md"
                             >
                               #{tag}
                             </span>
@@ -340,7 +455,9 @@ const LikedPostsPage = () => {
                           <div className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
                             <span>
-                              {new Date(post.dateAdded).toLocaleDateString()}
+                              {new Date(
+                                post.uploadDate || post.dateAdded
+                              ).toLocaleDateString()}
                             </span>
                           </div>
                         </div>
@@ -361,7 +478,7 @@ const LikedPostsPage = () => {
                       <div className="flex-1 min-w-0 ml-6">
                         <div className="flex items-start justify-between">
                           <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-200 truncate">
+                            <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors duration-200 truncate">
                               {post.title}
                             </h3>
 
@@ -376,6 +493,13 @@ const LikedPostsPage = () => {
                               </span>
                               <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded-md">
                                 {post.category}
+                              </span>
+                              <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-xs rounded-md">
+                                Saved{" "}
+                                {new Date(post.dateAdded).toLocaleDateString(
+                                  "en-US",
+                                  { month: "short", day: "numeric" }
+                                )}
                               </span>
                             </div>
 
@@ -392,7 +516,7 @@ const LikedPostsPage = () => {
                                 <Calendar className="w-4 h-4" />
                                 <span>
                                   {new Date(
-                                    post.dateAdded
+                                    post.uploadDate || post.dateAdded
                                   ).toLocaleDateString()}
                                 </span>
                               </div>
@@ -406,25 +530,32 @@ const LikedPostsPage = () => {
                               whileTap={{ scale: 0.9 }}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleRemoveLike(post.id);
+                                handleRemoveSaved(post.id);
                               }}
                               className="p-2 bg-red-500 text-white rounded-lg shadow-sm hover:bg-red-600 transition-colors duration-200"
                             >
-                              <Heart className="w-4 h-4" fill="white" />
+                              <Bookmark className="w-4 h-4" fill="white" />
                             </motion.button>
                             <motion.button
                               whileHover={{ scale: 1.1 }}
                               whileTap={{ scale: 0.9 }}
-                              className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg shadow-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleLikeFromSaved(post.id);
+                              }}
+                              className={`p-2 rounded-lg shadow-sm transition-colors duration-200 ${
+                                likedPostsSet.has(post.id)
+                                  ? "bg-red-500 text-white hover:bg-red-600"
+                                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                              }`}
                             >
-                              <Share2 className="w-4 h-4" />
-                            </motion.button>
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg shadow-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
-                            >
-                              <Download className="w-4 h-4" />
+                              <Heart
+                                className={`w-4 h-4 ${
+                                  likedPostsSet.has(post.id)
+                                    ? "fill-current"
+                                    : ""
+                                }`}
+                              />
                             </motion.button>
                           </div>
                         </div>
@@ -444,16 +575,16 @@ const LikedPostsPage = () => {
               transition={{ duration: 0.5 }}
               className="text-center py-16"
             >
-              <div className="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-full flex items-center justify-center">
-                <Heart className="w-16 h-16 text-purple-400 dark:text-purple-300" />
+              <div className="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/30 dark:to-red-800/30 rounded-full flex items-center justify-center">
+                <FolderOpen className="w-16 h-16 text-red-500 dark:text-red-400" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-                No posts found
+                No saved posts found
               </h3>
               <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
                 {searchTerm || filterCategory !== "all"
-                  ? "Try adjusting your search or filters to find more designs."
-                  : "Start exploring and like some amazing designs to build your collection!"}
+                  ? "Try adjusting your search or filters to find more saved designs."
+                  : "Start exploring and bookmark some amazing designs to build your personal collection!"}
               </p>
             </motion.div>
           )}
@@ -466,7 +597,7 @@ const LikedPostsPage = () => {
           transition={{ duration: 0.5, delay: 0.8 }}
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          className="fixed bottom-6 right-6 lg:hidden w-14 h-14 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-full shadow-lg flex items-center justify-center"
+          className="fixed bottom-6 right-6 lg:hidden w-14 h-14 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full shadow-lg flex items-center justify-center"
         >
           <Search className="w-6 h-6" />
         </motion.button>
@@ -475,4 +606,4 @@ const LikedPostsPage = () => {
   );
 };
 
-export default LikedPostsPage;
+export default SavedPostsPage;

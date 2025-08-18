@@ -11,6 +11,7 @@ import {
   Star,
   X,
   Heart,
+  Save,
 } from "lucide-react";
 
 const Sidebar = ({ isOpen, onToggle }) => {
@@ -53,6 +54,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
             />
             <SidebarItem icon={User} label="Profile" href="/profile" />
             <SidebarItem icon={Heart} label="liked" href="/liked" />
+            <SidebarItem icon={Save} label="saved" href="/saved" />
             <SidebarItem icon={Settings} label="Settings" href="/settings" />
           </div>
           <div className="mt-4">
