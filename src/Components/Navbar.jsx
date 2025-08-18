@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -17,19 +17,47 @@ import {
   MessageSquare,
   Mail,
   Images,
+  ChevronDown,
+  Bell,
+  LogOut,
 } from "lucide-react";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [favorites, setFavorites] = useState(3); // Example count
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // false = not logged in
+
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const pathname = usePathname();
 
+  // Enhanced scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMobileMenuOpen && !event.target.closest(".mobile-menu-container")) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [isMobileMenuOpen]);
+
   // Sidebar-style items for mobile menu (grouped)
   const dashboardLinks = [
-    { icon: Home, label: "Home", href: "/" },
-    { icon: Images, label: "Portfolio", href: "/portfolio" },
-    { icon: Heart, label: "Favorites", href: "/favorites" },
-    { icon: MessageSquare, label: "Messages", href: "/messages" },
+    { icon: Home, label: "Home", href: "/", badge: null },
+    { icon: Images, label: "Portfolio", href: "/portfolio", badge: null },
+    { icon: Heart, label: "Favorites", href: "/favorites", badge: favorites },
+    { icon: MessageSquare, label: "Messages", href: "/messages", badge: 2 },
   ];
 
   const moreLinks = [
@@ -39,175 +67,339 @@ export default function Navbar() {
     { icon: Settings, label: "Settings", href: "/settings" },
   ];
 
-  // Desktop navbar links (unchanged)
+  // Desktop navbar links (enhanced with active states)
   const links = [
     { label: "Home", href: "/" },
     { label: "Portfolio", href: "/portfolio" },
-    { label: "About Us", href: "/aboutus" },
+    { label: "About Us", href: "/about" },
     { label: "Contact Us", href: "/contact" },
   ];
 
   return (
-    <nav className="sticky top-0 z-50 w-full bg-[#f9f9f9] dark:bg-[#101010] shadow-lg border-b border-gray-200 dark:border-gray-800">
-      <div className="max-w-full px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 items-center gap-4 py-2">
-          {/* Left Section: Logo + Mobile Toggle */}
-          <div className="flex items-center justify-between lg:justify-start space-x-4">
-            <div className="flex items-center space-x-4">
-              <Image
-                src="https://res.cloudinary.com/dhsv1d1vn/image/upload/v1754996669/logo_1_jo4krf.png"
-                alt="My Logo"
-                width={40}
-                height={40}
-              />
-              <span className="text-[#EF4444] font-semibold text-lg">
-                DESIGNER HERE
-              </span>
-            </div>
-            <div className="lg:hidden">
-              <button
-                onClick={toggleMobileMenu}
-                className="p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] transition-colors duration-200"
-              >
-                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
-            </div>
-          </div>
+    <>
+      <nav
+        className={`sticky top-0 z-50 w-full transition-all duration-300 ${
+          isScrolled
+            ? "bg-white/95 dark:bg-[#101010]/95 backdrop-blur-xl shadow-xl border-b border-gray-200/50 dark:border-gray-800/50"
+            : "bg-[#f9f9f9] dark:bg-[#101010] shadow-lg border-b border-gray-200 dark:border-gray-800"
+        }`}
+      >
+        <div className="max-w-full px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 items-center gap-4 py-2">
+            {/* Left Section: Logo + Mobile Toggle */}
+            <div className="flex items-center justify-between lg:justify-start space-x-4">
+              <div className="flex items-center space-x-4 group">
+                <div className="relative">
+                  <Image
+                    src="https://res.cloudinary.com/dhsv1d1vn/image/upload/v1754996669/logo_1_jo4krf.png"
+                    alt="My Logo"
+                    width={40}
+                    height={40}
+                    className="transition-transform duration-200 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#EF4444]/20 to-[#F97316]/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-md"></div>
+                </div>
+                <span className="text-[#EF4444] font-bold text-lg bg-gradient-to-r from-[#EF4444] to-[#F97316] bg-clip-text text-transparent">
+                  DESIGNER HERE
+                </span>
+              </div>
 
-          {/* Center Section: Search */}
-          <div className="w-full max-w-md mx-auto px-2">
-            <SearchBar />
-          </div>
-
-          {/* Right Section: Nav Links + Icons */}
-          <div className="hidden lg:flex items-center justify-end space-x-6">
-            <div className="flex space-x-6">
-              {links.map(({ label, href }) => (
-                <Link
-                  key={label}
-                  href={href}
-                  className="lg:text-sm md:text-xs text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] transition-colors duration-200"
+              <div className="lg:hidden">
+                <button
+                  onClick={toggleMobileMenu}
+                  className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl group"
                 >
-                  {label}
-                </Link>
-              ))}
+                  <div className="relative w-6 h-6">
+                    <Menu
+                      size={24}
+                      className={`absolute inset-0 transition-all duration-300 ${
+                        isMobileMenuOpen
+                          ? "rotate-180 opacity-0"
+                          : "rotate-0 opacity-100"
+                      }`}
+                    />
+                    <X
+                      size={24}
+                      className={`absolute inset-0 transition-all duration-300 ${
+                        isMobileMenuOpen
+                          ? "rotate-0 opacity-100"
+                          : "rotate-180 opacity-0"
+                      }`}
+                    />
+                  </div>
+                </button>
+              </div>
             </div>
 
-            {/* Icons */}
-            <div className="flex items-center space-x-4">
-              <Link href="/favorites">
-                <button className="relative flex items-center justify-center w-10 h-10 rounded-full text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444]">
-                  <Heart className="w-5 h-5" />
-                </button>
-              </Link>
-              <button className="p-2 text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] rounded-full transition-colors duration-200">
-                <User size={20} />
-              </button>
+            {/* Center Section: Search */}
+            <div className="w-full max-w-md mx-auto px-2">
+              <div className="relative group">
+                <SearchBar />
+              </div>
+            </div>
+
+            {/* Right Section: Nav Links + Icons */}
+            <div className="hidden lg:flex items-center justify-end space-x-6">
+              <div className="flex space-x-6">
+                {links.map(({ label, href }) => {
+                  const isActive = pathname === href;
+                  return (
+                    <Link
+                      key={label}
+                      href={href}
+                      className={`relative lg:text-sm md:text-xs transition-all duration-200 group ${
+                        isActive
+                          ? "text-[#EF4444] font-semibold"
+                          : "text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444]"
+                      }`}
+                    >
+                      {label}
+                      <span
+                        className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#EF4444] to-[#F97316] transition-all duration-300 group-hover:w-full ${
+                          isActive ? "w-full" : ""
+                        }`}
+                      ></span>
+                    </Link>
+                  );
+                })}
+              </div>
+
+              {/* Enhanced Icons */}
+              <div className="flex items-center space-x-3">
+                {/* Enhanced Profile Dropdown */}
+                <div className="relative">
+                  <button
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className="flex items-center space-x-2 p-2 text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+                  >
+                    <div className="w-8 h-8 bg-gradient-to-r from-[#EF4444] to-[#F97316] rounded-full flex items-center justify-center">
+                      <User size={16} className="text-white" />
+                    </div>
+                    <ChevronDown
+                      size={16}
+                      className={`transition-transform duration-200 ${
+                        isProfileOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {/* Profile Dropdown */}
+                  {isProfileOpen && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
+                      {isLoggedIn ? (
+                        <>
+                          {/* Logged-in Menu */}
+                          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                              John Doe
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              john@example.com
+                            </p>
+                          </div>
+                          <Link
+                            href="/profile"
+                            className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <User size={16} />
+                            <span>Profile</span>
+                          </Link>
+                          <Link
+                            href="/settings"
+                            className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <Settings size={16} />
+                            <span>Settings</span>
+                          </Link>
+                          <hr className="my-2 border-gray-200 dark:border-gray-700" />
+                          <button className="flex items-center space-x-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left">
+                            <LogOut size={16} />
+                            <span>Sign Out</span>
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          {/* Logged-out Menu */}
+                          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                            <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                              Welcome Guest
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              Please log in to continue
+                            </p>
+                          </div>
+                          <Link
+                            href="/auth?mode=login"
+                            className="flex items-center space-x-3 px-4 py-2 text-sm text-[#EF4444] dark:text-[#EF4444] hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <User size={16} />
+                            <span>Login</span>
+                          </Link>
+                          <Link
+                            href="/auth?mode=signup"
+                            className="flex items-center space-x-3 px-4 py-2 text-sm text-[#F97316] dark:text-[#F97316] hover:bg-gray-100 dark:hover:bg-gray-700"
+                          >
+                            <User size={16} />
+                            <span>Sign Up</span>
+                          </Link>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
+      </nav>
 
-        {/* Mobile Menu */}
-        {isMobileMenuOpen && (
-          <div className="fixed inset-0 z-50 bg-white dark:bg-neutral-900 flex flex-col justify-between h-full pt-4 overflow-y-auto lg:hidden">
-            {/* Top: Logo + Close */}
-            <div className="flex justify-between items-center mb-6">
-              <div className="flex items-center space-x-2">
+      {/* Enhanced Mobile Menu */}
+      <div
+        className={`mobile-menu-container fixed inset-0 z-50 lg:hidden transition-all duration-300 ${
+          isMobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
+        }`}
+      >
+        {/* Backdrop */}
+        <div
+          className={`absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${
+            isMobileMenuOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={toggleMobileMenu}
+        ></div>
+
+        {/* Menu Panel */}
+        <div
+          className={`relative bg-white dark:bg-neutral-900 w-full h-full flex flex-col shadow-2xl transform transition-transform duration-300 ${
+            isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          {/* Enhanced Header */}
+          <div className="flex justify-between items-center p-6 bg-gradient-to-r from-[#EF4444]/10 to-[#F97316]/10 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center space-x-3">
+              <div className="relative">
                 <Image
                   src="https://res.cloudinary.com/dhsv1d1vn/image/upload/v1754996669/logo_1_jo4krf.png"
                   alt="My Logo"
                   width={40}
                   height={40}
+                  className="rounded-lg"
                 />
-                <span className="text-gray-900 dark:text-white font-semibold text-lg">
-                  DESIGNER HERE
-                </span>
               </div>
-              <button
-                onClick={toggleMobileMenu}
-                className="p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316]"
-              >
-                <X size={24} />
-              </button>
+              <span className="text-gray-900 dark:text-white font-bold text-lg bg-gradient-to-r from-[#EF4444] to-[#F97316] bg-clip-text text-transparent">
+                DESIGNER HERE
+              </span>
             </div>
+            <button
+              onClick={toggleMobileMenu}
+              className="p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+            >
+              <X size={24} />
+            </button>
+          </div>
 
-            <div className="flex-1 px-4">
-              <div className="space-y-6">
-                {/* Dashboard Section */}
-                <div>
-                  <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                    Dashboard
-                  </p>
-                  <div className="space-y-2">
-                    {dashboardLinks.map(({ icon: Icon, label, href }) => {
-                      const isActive = pathname === href;
-                      return (
-                        <Link
-                          key={label}
-                          href={href}
-                          className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors duration-200 ${
-                            isActive
-                              ? "text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-800"
-                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
-                          }`}
-                        >
+          <div className="flex-1 px-6 py-4 overflow-y-auto">
+            <div className="space-y-8">
+              {/* Dashboard Section */}
+              <div>
+                <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
+                  Dashboard
+                </p>
+                <div className="space-y-2">
+                  {dashboardLinks.map(({ icon: Icon, label, href, badge }) => {
+                    const isActive = pathname === href;
+                    return (
+                      <Link
+                        key={label}
+                        href={href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`relative w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all duration-200 group ${
+                          isActive
+                            ? "text-white bg-gradient-to-r from-[#EF4444] to-[#F97316] shadow-lg"
+                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
                           <Icon className="w-5 h-5" />
                           <span className="font-medium">{label}</span>
-                        </Link>
-                      );
-                    })}
-                  </div>
+                        </div>
+                        {badge && (
+                          <span
+                            className={`text-xs px-2 py-1 rounded-full ${
+                              isActive
+                                ? "bg-white/20 text-white"
+                                : "bg-[#EF4444] text-white"
+                            }`}
+                          >
+                            {badge}
+                          </span>
+                        )}
+                      </Link>
+                    );
+                  })}
                 </div>
+              </div>
 
-                {/* More Section */}
-                <div>
-                  <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                    More
-                  </p>
-                  <div className="space-y-2">
-                    {moreLinks.map(({ icon: Icon, label, href }) => {
-                      const isActive = pathname === href;
-                      return (
-                        <Link
-                          key={label}
-                          href={href}
-                          className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors duration-200 ${
-                            isActive
-                              ? "text-gray-700 dark:text-gray-300 bg-gray-200 dark:bg-gray-800"
-                              : "text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800"
-                          }`}
-                        >
-                          <Icon className="w-5 h-5" />
-                          <span className="font-medium">{label}</span>
-                        </Link>
-                      );
-                    })}
-                  </div>
+              {/* More Section */}
+              <div>
+                <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
+                  More
+                </p>
+                <div className="space-y-2">
+                  {moreLinks.map(({ icon: Icon, label, href }) => {
+                    const isActive = pathname === href;
+                    return (
+                      <Link
+                        key={label}
+                        href={href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
+                          isActive
+                            ? "text-white bg-gradient-to-r from-[#EF4444] to-[#F97316] shadow-lg"
+                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span className="font-medium">{label}</span>
+                      </Link>
+                    );
+                  })}
                 </div>
+              </div>
 
+              {/* Theme Toggle Section */}
+              <div className="pt-4">
                 <ThemeToggle />
               </div>
             </div>
+          </div>
 
-            {/* Bottom Section (unchanged) */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-              <div className="flex items-center space-x-3 p-3 rounded-lg bg-neutral-200 hover:bg-neutral-300 dark:bg-gray-800 dark:hover:bg-neutral-800 border border-neutral-800 transition">
-                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                  <User className="w-4 h-4 text-white" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-black dark:text-white truncate">
-                    John Doe
-                  </p>
-                  <p className="text-xs text-gray-500 dark:text-neutral-400 truncate">
-                    john@example.com
-                  </p>
-                </div>
+          {/* Enhanced Bottom Section */}
+          <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+            <div className="flex items-center space-x-4 p-4 rounded-xl bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-gray-200 dark:border-gray-700 transition-all duration-200 group cursor-pointer">
+              <div className="w-12 h-12 bg-gradient-to-r from-[#EF4444] to-[#F97316] rounded-full flex items-center justify-center shadow-lg">
+                <User className="w-6 h-6 text-white" />
               </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-black dark:text-white truncate group-hover:text-[#EF4444] transition-colors duration-200">
+                  John Doe
+                </p>
+                <p className="text-xs text-gray-500 dark:text-neutral-400 truncate">
+                  john@example.com
+                </p>
+              </div>
+              <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-[#EF4444] transition-colors duration-200" />
             </div>
           </div>
-        )}
+        </div>
       </div>
-    </nav>
+
+      {/* Click outside handler for profile dropdown */}
+      {isProfileOpen && (
+        <div
+          className="fixed inset-0 z-30"
+          onClick={() => setIsProfileOpen(false)}
+        />
+      )}
+    </>
   );
 }
