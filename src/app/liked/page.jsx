@@ -13,107 +13,49 @@ import {
   Calendar,
 } from "lucide-react";
 
+// Import the posts manager from ArtworkCard
+import { postsManager } from "@/components/ui/ArtworkCard"; // Adjust the path as needed
+
 const LikedPostsPage = () => {
   const [viewMode, setViewMode] = useState("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
+  const [likedPosts, setLikedPosts] = useState([]);
+  const [, forceUpdate] = useState({});
 
-  // Mock data - replace with actual API calls later
-  const [likedPosts, setLikedPosts] = useState([
-    {
-      id: 1,
-      title: "Minimalist Brand Identity Design",
-      category: "Branding",
-      author: "Alex Chen",
-      authorAvatar:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face",
-      image:
-        "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400&h=300&fit=crop",
-      likes: 234,
-      views: 1200,
-      dateAdded: "2024-03-15",
-      tags: ["minimalist", "branding", "logo"],
-    },
-    {
-      id: 2,
-      title: "3D Typography Exploration",
-      category: "Typography",
-      author: "Maria Rodriguez",
-      authorAvatar:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=40&h=40&fit=crop&crop=face",
-      image:
-        "https://images.unsplash.com/photo-1561070791-2526d30994b5?w=400&h=300&fit=crop",
-      likes: 189,
-      views: 890,
-      dateAdded: "2024-03-12",
-      tags: ["3d", "typography", "experimental"],
-    },
-    {
-      id: 3,
-      title: "Neon Cyberpunk Poster Series",
-      category: "Poster Design",
-      author: "Jake Thompson",
-      authorAvatar:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=40&h=40&fit=crop&crop=face",
-      image:
-        "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop",
-      likes: 456,
-      views: 2100,
-      dateAdded: "2024-03-10",
-      tags: ["neon", "cyberpunk", "poster"],
-    },
-    {
-      id: 4,
-      title: "Organic Shape Illustrations",
-      category: "Illustration",
-      author: "Sophie Kim",
-      authorAvatar:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=40&h=40&fit=crop&crop=face",
-      image:
-        "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=400&h=300&fit=crop",
-      likes: 312,
-      views: 1450,
-      dateAdded: "2024-03-08",
-      tags: ["organic", "illustration", "abstract"],
-    },
-    {
-      id: 5,
-      title: "Modern Web Interface Design",
-      category: "UI/UX",
-      author: "David Park",
-      authorAvatar:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=40&h=40&fit=crop&crop=face",
-      image:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop",
-      likes: 278,
-      views: 980,
-      dateAdded: "2024-03-05",
-      tags: ["ui", "ux", "web", "interface"],
-    },
-    {
-      id: 6,
-      title: "Retro Gaming Logo Collection",
-      category: "Branding",
-      author: "Emma Wilson",
-      authorAvatar:
-        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=40&h=40&fit=crop&crop=face",
-      image:
-        "https://images.unsplash.com/photo-1493711662062-fa541adb3fc8?w=400&h=300&fit=crop",
-      likes: 167,
-      views: 720,
-      dateAdded: "2024-03-02",
-      tags: ["retro", "gaming", "logo", "collection"],
-    },
-  ]);
+  // Load liked posts from localStorage and subscribe to changes
+  useEffect(() => {
+    const loadLikedPosts = () => {
+      if (typeof window !== "undefined") {
+        try {
+          const likedPostsData = JSON.parse(
+            window.localStorage.getItem("likedPostsData") || "[]"
+          );
+          setLikedPosts(likedPostsData);
+        } catch (error) {
+          console.error("Error loading liked posts:", error);
+          setLikedPosts([]);
+        }
+      }
+    };
 
+    // Initial load
+    loadLikedPosts();
+
+    // Subscribe to changes from the posts manager
+    const unsubscribe = postsManager.subscribe(() => {
+      loadLikedPosts();
+      forceUpdate({});
+    });
+
+    return unsubscribe;
+  }, []);
+
+  // Get unique categories from liked posts
   const categories = [
     "all",
-    "Branding",
-    "Typography",
-    "Poster Design",
-    "Illustration",
-    "UI/UX",
+    ...new Set(likedPosts.map((post) => post.category)),
   ];
 
   const filteredPosts = likedPosts.filter((post) => {
@@ -163,7 +105,11 @@ const LikedPostsPage = () => {
   };
 
   const handleRemoveLike = (postId) => {
-    setLikedPosts((prev) => prev.filter((post) => post.id !== postId));
+    // Use the global posts manager to remove the like
+    const postData = likedPosts.find((post) => post.id === postId);
+    if (postData) {
+      postsManager.toggleLiked(postId, postData);
+    }
   };
 
   return (
