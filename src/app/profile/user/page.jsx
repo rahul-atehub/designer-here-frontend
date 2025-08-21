@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-
+import LayoutWrapper from "@/Components/LayoutWrapper";
 import { Settings, Bookmark, Heart, User } from "lucide-react";
 
 export default function UserProfile() {
@@ -115,125 +115,127 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-neutral-950 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Profile Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white dark:bg-neutral-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-neutral-800 mb-8"
-        >
-          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
-            {/* Profile Picture */}
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2 }}
-              className="relative"
-            >
-              {user?.profilePicture ? (
-                <img
-                  src={user.profilePicture}
-                  alt={user.name}
-                  className="w-24 h-24 rounded-full object-cover ring-4 ring-red-500/20"
-                />
-              ) : (
-                <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-violet-600 rounded-full flex items-center justify-center">
-                  <span className="text-white text-2xl font-bold">
-                    {user?.name?.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )}
-            </motion.div>
-
-            {/* User Info */}
-            <div className="flex-1 text-center md:text-left">
-              <motion.h1
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-3xl font-bold text-gray-900 dark:text-white mb-2"
+    <LayoutWrapper>
+      <div className="min-h-screen bg-white dark:bg-neutral-950 py-8 px-4">
+        <div className="max-w-4xl mx-auto">
+          {/* Profile Header */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white dark:bg-neutral-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-neutral-800 mb-8"
+          >
+            <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+              {/* Profile Picture */}
+              <motion.div
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="relative"
               >
-                {user?.name || "User"}
-              </motion.h1>
+                {user?.profilePicture ? (
+                  <img
+                    src={user.profilePicture}
+                    alt={user.name}
+                    className="w-24 h-24 rounded-full object-cover ring-4 ring-red-500/20"
+                  />
+                ) : (
+                  <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-violet-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-2xl font-bold">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                )}
+              </motion.div>
 
-              <motion.p
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.4 }}
-                className="text-gray-600 dark:text-gray-400 mb-4"
+              {/* User Info */}
+              <div className="flex-1 text-center md:text-left">
+                <motion.h1
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-3xl font-bold text-gray-900 dark:text-white mb-2"
+                >
+                  {user?.name || "User"}
+                </motion.h1>
+
+                <motion.p
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="text-gray-600 dark:text-gray-400 mb-4"
+                >
+                  {user?.email}
+                </motion.p>
+              </div>
+
+              {/* Settings Button */}
+              <motion.button
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 }}
+                whileHover={{ scale: 1.1, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={handleSettingsToggle}
+                className="p-3 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-full transition-colors duration-200"
               >
-                {user?.email}
-              </motion.p>
+                <Settings className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              </motion.button>
             </div>
+          </motion.div>
 
-            {/* Settings Button */}
+          {/* Action Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          >
+            {/* Saved Posts */}
             <motion.button
-              initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5 }}
-              whileHover={{ scale: 1.1, rotate: 90 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={handleSettingsToggle}
-              className="p-3 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-full transition-colors duration-200"
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleSavedPosts}
+              className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl p-6 text-left hover:shadow-lg transition-all duration-200 group"
             >
-              <Settings className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-violet-100 dark:bg-violet-900/20 rounded-lg group-hover:bg-violet-200 dark:group-hover:bg-violet-900/30 transition-colors duration-200">
+                  <Bookmark className="w-6 h-6 text-violet-600 dark:text-violet-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                    Saved Posts
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    View your bookmarked artworks
+                  </p>
+                </div>
+              </div>
             </motion.button>
-          </div>
-        </motion.div>
 
-        {/* Action Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6"
-        >
-          {/* Saved Posts */}
-          <motion.button
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleSavedPosts}
-            className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl p-6 text-left hover:shadow-lg transition-all duration-200 group"
-          >
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-violet-100 dark:bg-violet-900/20 rounded-lg group-hover:bg-violet-200 dark:group-hover:bg-violet-900/30 transition-colors duration-200">
-                <Bookmark className="w-6 h-6 text-violet-600 dark:text-violet-400" />
+            {/* Liked Posts */}
+            <motion.button
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleLikedPosts}
+              className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl p-6 text-left hover:shadow-lg transition-all duration-200 group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-red-100 dark:bg-red-900/20 rounded-lg group-hover:bg-red-200 dark:group-hover:bg-red-900/30 transition-colors duration-200">
+                  <Heart className="w-6 h-6 text-red-500" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                    Liked Posts
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    Your favorite artworks
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-                  Saved Posts
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">
-                  View your bookmarked artworks
-                </p>
-              </div>
-            </div>
-          </motion.button>
-
-          {/* Liked Posts */}
-          <motion.button
-            whileHover={{ scale: 1.02, y: -2 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleLikedPosts}
-            className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl p-6 text-left hover:shadow-lg transition-all duration-200 group"
-          >
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-red-100 dark:bg-red-900/20 rounded-lg group-hover:bg-red-200 dark:group-hover:bg-red-900/30 transition-colors duration-200">
-                <Heart className="w-6 h-6 text-red-500" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-                  Liked Posts
-                </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm">
-                  Your favorite artworks
-                </p>
-              </div>
-            </div>
-          </motion.button>
-        </motion.div>
+            </motion.button>
+          </motion.div>
+        </div>
       </div>
-    </div>
+    </LayoutWrapper>
   );
 }

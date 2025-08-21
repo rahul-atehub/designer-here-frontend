@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { Search, X, TrendingUp, Clock, ArrowUpRight } from "lucide-react";
+import { Search, X, ArrowUpRight } from "lucide-react";
 
 export default function SearchBar() {
   const [query, setQuery] = useState("");
@@ -20,17 +20,8 @@ export default function SearchBar() {
     };
   };
 
-  // Mock recent searches and trending
-  const recentSearches = [
-    "React hooks tutorial",
-    "Next.js deployment",
-    "CSS animations",
-  ];
-  const trendingSearches = [
-    "AI tools 2025",
-    "JavaScript frameworks",
-    "Web3 development",
-  ];
+  // Recent searches (start empty, fill from API/local later)
+  const [recentSearches, setRecentSearches] = useState([]);
 
   // Debounced API call with mock data
   const fetchResults = debounce(async (searchTerm) => {
@@ -240,49 +231,27 @@ export default function SearchBar() {
           {!query && (
             <div className="p-6 space-y-6">
               {/* Recent Searches */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <Clock className="w-4 h-4 text-gray-400" />
-                  <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                    Recent
-                  </span>
+              {recentSearches.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Clock className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                      Recent
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    {recentSearches.map((search, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleQuickSearch(search)}
+                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all duration-200 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                      >
+                        {search}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  {recentSearches.map((search, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleQuickSearch(search)}
-                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all duration-200 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                    >
-                      {search}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Trending Searches */}
-              <div>
-                <div className="flex items-center gap-2 mb-3">
-                  <TrendingUp className="w-4 h-4 text-red-500" />
-                  <span className="text-sm font-semibold text-red-600 dark:text-red-400 uppercase tracking-wide">
-                    Trending
-                  </span>
-                </div>
-                <div className="space-y-1">
-                  {trendingSearches.map((search, index) => (
-                    <button
-                      key={index}
-                      onClick={() => handleQuickSearch(search)}
-                      className="w-full text-left px-3 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all duration-200 text-gray-700 dark:text-gray-300 hover:text-red-700 dark:hover:text-red-400 group"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span>{search}</span>
-                        <ArrowUpRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
+              )}
             </div>
           )}
 
@@ -300,9 +269,6 @@ export default function SearchBar() {
                 <div className="p-8 text-center space-y-2">
                   <div className="text-gray-500 dark:text-gray-400 font-medium">
                     No results found for "{query}"
-                  </div>
-                  <div className="text-xs text-gray-400 dark:text-gray-600">
-                    Try adjusting your search terms or browse trending topics
                   </div>
                 </div>
               ) : (
@@ -348,13 +314,13 @@ export default function SearchBar() {
         </div>
       )}
 
-      {/* Mobile backdrop */}
+      {/* Mobile backdrop
       {showResults && (
         <div
           className="fixed inset-0 bg-black/20 dark:bg-black/40 z-40 md:hidden backdrop-blur-sm"
           onClick={() => setShowResults(false)}
         />
-      )}
+      )} */}
     </div>
   );
 }
