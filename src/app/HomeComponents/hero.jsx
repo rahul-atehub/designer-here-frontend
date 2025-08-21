@@ -249,7 +249,7 @@ export default function Hero() {
             <div className="absolute inset-0 bg-gradient-to-tr from-red-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
 
             <Image
-              src="https://www.bigfootdigital.co.uk/wp-content/uploads/2020/07/image-optimisation-scaled.jpg"
+              src="https://res.cloudinary.com/dhsv1d1vn/image/upload/v1755348117/pngtree-red-wave-vector-png-image_4742967_ksbvjs.png"
               alt="Happy customers working with modern design tools"
               width={600}
               height={600}
@@ -270,7 +270,7 @@ export default function Hero() {
                   <p className="text-sm font-semibold text-gray-800 dark:text-white">
                     Active Projects
                   </p>
-                  <p className="text-2xl font-bold text-blue-500">150+</p>
+                  <p className="text-2xl font-bold text-blue-500">8+</p>
                 </div>
               </div>
             </div>

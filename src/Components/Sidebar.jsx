@@ -1,18 +1,9 @@
 import React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "../components/ui/theme.toggle";
-import {
-  Home,
-  Settings,
-  User,
-  FileText,
-  MessageSquare,
-  Star,
-  X,
-  Heart,
-  Save,
-} from "lucide-react";
+import { Settings, User, MessageSquare, X, Heart, Save } from "lucide-react";
 
 const Sidebar = ({ isOpen, onToggle }) => {
   return (
@@ -26,11 +17,17 @@ const Sidebar = ({ isOpen, onToggle }) => {
         {/* Sidebar Header */}
         <div className="flex items-center justify-between px-4 py-3 pt-4 border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-blue-50/50 to-red-50/50 dark:from-blue-950/20 dark:to-red-950/20">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-#EF4444 rounded-lg flex items-center justify-center shadow-sm">
-              <span className="text-white font-bold text-sm">L</span>
+            <div className="relative">
+              <Image
+                src="https://res.cloudinary.com/dhsv1d1vn/image/upload/v1754996669/logo_1_jo4krf.png"
+                alt="My Logo"
+                width={40}
+                height={40}
+                className="rounded-lg"
+              />
             </div>
-            <h2 className="text-lg font-semibold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
-              logo
+            <h2 className="font-bold text-lg bg-gradient-to-r from-[#EF4444] to-[#F97316] bg-clip-text text-transparent">
+              Designer Here
             </h2>
           </div>
           <button
@@ -44,21 +41,18 @@ const Sidebar = ({ isOpen, onToggle }) => {
         {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-2">
           <div className="space-y-1">
-            <SidebarItem icon={Home} label="Home" href="/" />
-            <SidebarItem icon={FileText} label="About-Us" href="/about" />
             <SidebarItem
               icon={MessageSquare}
               label="Messages"
               href="/messages"
-              badge="3"
             />
             <SidebarItem icon={User} label="Profile" href="/profile" />
             <SidebarItem icon={Heart} label="liked" href="/liked" />
             <SidebarItem icon={Save} label="saved" href="/saved" />
             <SidebarItem icon={Settings} label="Settings" href="/settings" />
-          </div>
-          <div className="mt-4">
-            <ThemeToggle />
+            <div className="mt-4">
+              <ThemeToggle />
+            </div>
           </div>
         </nav>
 

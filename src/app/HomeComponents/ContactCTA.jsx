@@ -9,23 +9,6 @@ export default function ContactCTA() {
   const [isHovered, setIsHovered] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
 
-  // Mouse tracking for interactive effects
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
-
-  const rotateX = useTransform(mouseY, [-300, 300], [10, -10]);
-  const rotateY = useTransform(mouseX, [-300, 300], [-10, 10]);
-
-  const handleMouseMove = (event) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left - rect.width / 2;
-    const y = event.clientY - rect.top - rect.height / 2;
-
-    mouseX.set(x);
-    mouseY.set(y);
-    setMousePosition({ x, y });
-  };
-
   const [particles, setParticles] = useState([]);
 
   useEffect(() => {
@@ -138,14 +121,11 @@ export default function ContactCTA() {
   return (
     <motion.section
       ref={ref}
-      className="flex justify-center mt-20 relative overflow-hidden"
+      className="flex justify-center relative overflow-hidden"
       initial="hidden"
       animate={isInView ? "visible" : "hidden"}
       variants={containerVariants}
     >
-      {/* Animated Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-red-50 to-blue-50 dark:from-neutral-950/20 dark:to-blue-950/20 rounded-xl"></div>
-
       {/* Floating Particles */}
       <div className="absolute inset-0 overflow-hidden rounded-xl">
         {particles.map((particle) => (
@@ -171,15 +151,7 @@ export default function ContactCTA() {
       </div>
 
       {/* Main Container */}
-      <motion.div
-        className="max-w-7xl mx-auto grid md:grid-cols-2 justify-center gap-8 p-8 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-800/50 shadow-xl relative z-10"
-        onMouseMove={handleMouseMove}
-        style={{
-          rotateX,
-          rotateY,
-          transformStyle: "preserve-3d",
-        }}
-      >
+      <div className="max-w-7xl mx-auto grid md:grid-cols-2 justify-center gap-8 my-20 p-8 bg-white/80 dark:bg-neutral-950/80 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-gray-800/50 shadow-xl relative z-10">
         {/* Text Section */}
         <motion.div variants={itemVariants} className="space-y-6">
           {/* Badge */}
@@ -351,10 +323,6 @@ export default function ContactCTA() {
               <Award size={16} className="text-blue-500" />
               <span>Quality Guaranteed</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-              <Clock size={16} className="text-purple-500" />
-              <span>Fast Delivery</span>
-            </div>
           </motion.div>
         </motion.div>
 
@@ -413,7 +381,7 @@ export default function ContactCTA() {
             />
 
             <motion.img
-              src="https://www.bigfootdigital.co.uk/wp-content/uploads/2020/07/image-optimisation-scaled.jpg"
+              src="https://res.cloudinary.com/dhsv1d1vn/image/upload/v1755348139/pngtree-empty-plot-concrete-monochrome-with-shadows-and-graphic-structures-featuring-red-contrasts-photo-photo-image_65596080_zgkhvn.webp"
               alt="Professional team collaboration and creative design process"
               className="rounded-2xl shadow-lg max-h-72 object-cover transform group-hover:scale-105 transition-transform duration-700"
               whileHover={{ filter: "brightness(1.1)" }}
@@ -452,7 +420,7 @@ export default function ContactCTA() {
             </motion.div>
           </motion.div>
         </motion.div>
-      </motion.div>
+      </div>
     </motion.section>
   );
 }

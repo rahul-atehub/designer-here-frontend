@@ -172,7 +172,7 @@ const Footer = () => {
           <div className="flex flex-col sm:flex-row justify-between items-center space-y-6 sm:space-y-0">
             <div className="flex items-center space-x-4">
               <p className="text-gray-600 dark:text-gray-400 text-sm">
-                © 2024 Buuuk. All rights reserved.
+                © 2024 Designer Here. All rights reserved.
               </p>
               <div className="hidden sm:block w-1 h-4 bg-gradient-to-b from-blue-500 to-#EF4444 rounded-full"></div>
               <p className="hidden sm:block text-gray-500 dark:text-gray-500 text-xs">

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import Footer from "@/Components/Footer";
+import Link from "next/link";
 import {
   Palette,
   Users,
@@ -79,12 +80,12 @@ const AboutPage = () => {
       description: "Leading creative vision with 8+ years in brand design",
     },
     {
-      name: "Sarah Chen",
-      role: "UI/UX Designer",
+      name: "Rahul Choudhary",
+      role: "UI/UX Designer & Developer",
       image:
         "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face",
       description:
-        "Specializing in user-centered design and digital experiences",
+        "Specializing in user-centered design and digital experiences with full-stack expertise",
     },
     {
       name: "Marcus Johnson",
@@ -143,24 +144,28 @@ const AboutPage = () => {
               variants={itemVariants}
               className="flex flex-col sm:flex-row gap-4 justify-center"
             >
-              <motion.button
-                whileHover={{
-                  scale: 1.05,
-                  boxShadow: "0 20px 40px rgba(239, 68, 68, 0.3)",
-                }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-[#EF4444] text-white px-8 py-4 rounded-full font-semibold text-lg flex items-center justify-center gap-2 hover:bg-[#DC2626] transition-colors"
-              >
-                Start Your Project
-                <ArrowRight className="w-5 h-5" />
-              </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-8 py-4 rounded-full font-semibold text-lg border-2 transition-all border-gray-300 text-gray-900 hover:border-blue-500 hover:text-blue-500 dark:border-neutral-700 dark:text-white dark:hover:border-blue-500 dark:hover:text-blue-500"
-              >
-                View Our Work
-              </motion.button>
+              <Link href="/contact">
+                <motion.button
+                  whileHover={{
+                    scale: 1.05,
+                    boxShadow: "0 20px 40px rgba(239, 68, 68, 0.3)",
+                  }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-[#EF4444] text-white px-8 py-4 rounded-full font-semibold text-lg flex items-center justify-center gap-2 hover:bg-[#DC2626] transition-colors"
+                >
+                  Start Your Project
+                  <ArrowRight className="w-5 h-5" />
+                </motion.button>
+              </Link>
+              <Link href="/portfolio">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-8 py-4 rounded-full font-semibold text-lg border-2 transition-all border-gray-300 text-gray-900 hover:border-blue-500 hover:text-blue-500 dark:border-neutral-700 dark:text-white dark:hover:border-blue-500 dark:hover:text-blue-500"
+                >
+                  View Our Work
+                </motion.button>
+              </Link>
             </motion.div>
           </div>
         </motion.section>
@@ -226,14 +231,6 @@ const AboutPage = () => {
                     excellence.
                   </p>
                 </div>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-blue-500 text-white px-6 py-3 rounded-full font-semibold flex items-center gap-2 hover:bg-blue-600 transition-colors"
-                >
-                  Learn More About Us
-                  <ArrowRight className="w-4 h-4" />
-                </motion.button>
               </motion.div>
 
               <motion.div variants={itemVariants} className="relative">
@@ -369,17 +366,19 @@ const AboutPage = () => {
                   Let's collaborate to bring your vision to life with design
                   that makes an impact.
                 </p>
-                <motion.button
-                  whileHover={{
-                    scale: 1.05,
-                    boxShadow: "0 20px 40px rgba(239, 68, 68, 0.3)",
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-[#EF4444] text-white px-12 py-4 rounded-full font-bold text-lg flex items-center gap-3 mx-auto hover:bg-[#DC2626] transition-colors"
-                >
-                  Get Started Today
-                  <ArrowRight className="w-5 h-5" />
-                </motion.button>
+                <Link href="/messages">
+                  <motion.button
+                    whileHover={{
+                      scale: 1.05,
+                      boxShadow: "0 20px 40px rgba(239, 68, 68, 0.3)",
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    className="bg-[#EF4444] text-white px-12 py-4 rounded-full font-bold text-lg flex items-center gap-3 mx-auto hover:bg-[#DC2626] transition-colors"
+                  >
+                    Get Started Today
+                    <ArrowRight className="w-5 h-5" />
+                  </motion.button>
+                </Link>
               </div>
             </motion.div>
           </div>

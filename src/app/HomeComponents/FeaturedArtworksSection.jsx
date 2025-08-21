@@ -244,9 +244,9 @@ export default function Page({ userRole = "user" }) {
       },
     },
   };
-
+  // bg-gradient-to-br from-gray-50 to-gray-100 dark:from-neutral-950 dark:to-neutral-900
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-neutral-950 dark:to-neutral-900">
+    <div className="min-h-screen ">
       {/* Animated Background Elements */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -552,7 +552,7 @@ export default function Page({ userRole = "user" }) {
           ref={galleryRef}
           className={`grid gap-8 ${
             viewMode === "grid"
-              ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+              ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
               : "grid-cols-1 max-w-4xl mx-auto"
           }`}
           variants={containerVariants}

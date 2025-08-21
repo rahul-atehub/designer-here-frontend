@@ -204,7 +204,7 @@ const SavedPostsPage = () => {
 
   return (
     <LayoutWrapper>
-      <div className="min-h-screen dark:bg-neutral-950 transition-colors duration-300">
+      <div className="min-h-screen dark:bg-gray-800 transition-colors duration-300">
         {/* Header Section */}
         <motion.div
           className="relative overflow-hidden bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700"

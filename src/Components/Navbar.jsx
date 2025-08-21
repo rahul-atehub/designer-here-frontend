@@ -14,6 +14,7 @@ import {
   Home,
   Settings,
   FileText,
+  Save,
   MessageSquare,
   Mail,
   Images,
@@ -26,7 +27,7 @@ export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [favorites, setFavorites] = useState(3); // Example count
+
   const [isLoggedIn, setIsLoggedIn] = useState(false); // false = not logged in
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -56,15 +57,16 @@ export default function Navbar() {
   const dashboardLinks = [
     { icon: Home, label: "Home", href: "/", badge: null },
     { icon: Images, label: "Portfolio", href: "/portfolio", badge: null },
-    { icon: Heart, label: "Favorites", href: "/favorites", badge: favorites },
-    { icon: MessageSquare, label: "Messages", href: "/messages", badge: 2 },
+    { icon: FileText, label: "About Us", href: "/about", badge: null },
+    { icon: Mail, label: "Contact Us", href: "/contact", badge: null },
   ];
 
   const moreLinks = [
-    { icon: FileText, label: "About Us", href: "/about" },
-    { icon: Mail, label: "Contact Us", href: "/contact" },
-    { icon: User, label: "Profile", href: "/profile" },
-    { icon: Settings, label: "Settings", href: "/settings" },
+    { icon: Heart, label: "Liked", href: "/liked", badge: null },
+    { icon: Save, label: "Saved", href: "/saved", badge: null },
+    { icon: MessageSquare, label: "Messages", href: "/messages", badge: null },
+    { icon: User, label: "Profile", href: "/profile", badge: null },
+    { icon: Settings, label: "Settings", href: "/settings", badge: null },
   ];
 
   // Desktop navbar links (enhanced with active states)

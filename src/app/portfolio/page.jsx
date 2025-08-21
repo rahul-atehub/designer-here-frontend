@@ -17,7 +17,6 @@ import {
   List,
   Search,
   SlidersHorizontal,
-  ArrowUp,
   X,
   Eye,
   Download,
@@ -38,7 +37,6 @@ const GraphicDesignPortfolio = () => {
   const [designs, setDesigns] = useState([]);
   const [filteredDesigns, setFilteredDesigns] = useState([]);
   const [isAdmin, setIsAdmin] = useState(true);
-  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const containerRef = useRef(null);
   const { scrollY } = useScroll();
@@ -182,15 +180,6 @@ const GraphicDesignPortfolio = () => {
     setFilteredDesigns(mockDesigns);
   }, []);
 
-  // Scroll functionality
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 300);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   // Filter and search logic
   useEffect(() => {
     let filtered = [...designs];
@@ -253,10 +242,6 @@ const GraphicDesignPortfolio = () => {
     { value: "most-viewed", label: "Most Viewed" },
     { value: "alphabetical", label: "A-Z" },
   ];
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
 
   const totalStats = {
     totalViews: designs.reduce((sum, design) => sum + design.views, 0),
@@ -541,7 +526,7 @@ const GraphicDesignPortfolio = () => {
                   </span>
                   {searchQuery && (
                     <span className="ml-3 text-sm">
-                      matching "
+                      matching"
                       <span className="text-red-500 font-semibold">
                         {searchQuery}
                       </span>
@@ -692,32 +677,13 @@ const GraphicDesignPortfolio = () => {
           )}
         </motion.section>
 
-        {/* Scroll to Top Button */}
-        <AnimatePresence>
-          {showScrollTop && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: 20 }}
-              whileHover={{
-                scale: 1.1,
-                boxShadow: "0 10px 30px -10px rgba(239, 68, 68, 0.4)",
-              }}
-              whileTap={{ scale: 0.9 }}
-              onClick={scrollToTop}
-              className="fixed bottom-8 right-8 z-50 w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-2xl shadow-2xl shadow-red-500/25 flex items-center justify-center transition-all duration-300 backdrop-blur-xl"
-            >
-              <ArrowUp size={24} />
-            </motion.button>
-          )}
-        </AnimatePresence>
-
         {/* Background Pattern */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
           <div className="absolute top-1/4 left-10 w-96 h-96 bg-gradient-to-r from-red-500/5 to-transparent rounded-full blur-3xl" />
           <div className="absolute bottom-1/4 right-10 w-96 h-96 bg-gradient-to-l from-red-400/5 to-transparent rounded-full blur-3xl" />
         </div>
       </div>
+
       {/* Footer */}
       <Footer />
     </LayoutWrapper>
