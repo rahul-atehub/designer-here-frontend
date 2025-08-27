@@ -393,7 +393,7 @@ export default function Home() {
                         conversation.
                       </motion.p>
 
-                      <motion.p
+                      <motion.div
                         className="text-gray-500 dark:text-gray-400"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -408,7 +408,7 @@ export default function Home() {
                           Publius@mail.com
                           <motion.div className="absolute -bottom-0.5 left-0 w-0 h-0.5 bg-blue-500 group-hover:w-full transition-all duration-300" />
                         </motion.a>
-                      </motion.p>
+                      </motion.div>
                     </motion.div>
                   </motion.div>
 
@@ -758,31 +758,6 @@ export default function Home() {
 
                     {/* Gradient Overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
-
-                    {/* Floating Elements */}
-                    <div className="absolute inset-0 pointer-events-none">
-                      {[...Array(8)].map((_, i) => (
-                        <motion.div
-                          key={i}
-                          className="absolute w-2 h-2 bg-white/30 rounded-full"
-                          style={{
-                            left: `${20 + Math.random() * 60}%`,
-                            top: `${20 + Math.random() * 60}%`,
-                          }}
-                          animate={{
-                            y: [0, -20, 0],
-                            opacity: [0.3, 0.8, 0.3],
-                            scale: [1, 1.2, 1],
-                          }}
-                          transition={{
-                            duration: 3 + Math.random() * 2,
-                            repeat: Infinity,
-                            delay: Math.random() * 2,
-                            ease: "easeInOut",
-                          }}
-                        />
-                      ))}
-                    </div>
 
                     {/* Content Overlay */}
                     <motion.div

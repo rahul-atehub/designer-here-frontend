@@ -34,10 +34,21 @@ const AuthPage = () => {
       [e.target.name]: e.target.value,
     });
   };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+
+    try {
+      const response = await fetch(isLogin ? "/api/login" : "/api/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+      console.log("Response from backend:", data);
+    } catch (error) {
+      console.error("Error:", error);
+    }
   };
 
   const containerVariants = {
@@ -62,11 +73,11 @@ const AuthPage = () => {
     },
   };
 
-  const floatingShapes = Array.from({ length: 6 }, (_, i) => (
-    <motion.div
-      key={i}
-      className="absolute rounded-full opacity-10"
-      style={{
+  const [floatingShapes, setFloatingShapes] = useState([]);
+
+  useEffect(() => {
+    const shapes = Array.from({ length: 6 }, (_, i) => ({
+      style: {
         background: `linear-gradient(45deg, ${
           i % 2 === 0 ? "#3B82F6" : "#8B5CF6"
         }, ${i % 3 === 0 ? "#EF4444" : "#06B6D4"})`,
@@ -74,28 +85,38 @@ const AuthPage = () => {
         height: Math.random() * 100 + 50,
         top: `${Math.random() * 100}%`,
         left: `${Math.random() * 100}%`,
-      }}
-      animate={{
+      },
+      animate: {
         x: [0, Math.random() * 100 - 50],
         y: [0, Math.random() * 100 - 50],
         scale: [1, 1.2, 1],
         rotate: [0, 180, 360],
-      }}
-      transition={{
+      },
+      transition: {
         duration: Math.random() * 10 + 10,
         repeat: Infinity,
         repeatType: "reverse",
         ease: "easeInOut",
-      }}
-    />
-  ));
+      },
+    }));
+
+    setFloatingShapes(shapes);
+  }, []);
 
   return (
     <LayoutWrapper>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-violet-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 transition-all duration-500 relative overflow-hidden">
         {/* Animated Background Shapes */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {floatingShapes}
+          {floatingShapes.map((shape, i) => (
+            <motion.div
+              key={i}
+              className="absolute rounded-full opacity-10"
+              style={shape.style}
+              animate={shape.animate}
+              transition={shape.transition}
+            />
+          ))}
 
           {/* Gradient Orbs */}
           <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-r from-blue-400 to-violet-600 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>

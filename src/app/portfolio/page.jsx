@@ -1,7 +1,8 @@
 "use client";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import Footer from "@/Components/Footer";
+import ArtworkCard from "@/components/ui/ArtworkCard";
 import {
   motion,
   useScroll,
@@ -26,6 +27,7 @@ import {
   Sparkles,
   MousePointer,
   Pen,
+  Loader2,
 } from "lucide-react";
 
 const GraphicDesignPortfolio = () => {
@@ -34,9 +36,18 @@ const GraphicDesignPortfolio = () => {
   const [viewMode, setViewMode] = useState("grid");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [designs, setDesigns] = useState([]);
-  const [filteredDesigns, setFilteredDesigns] = useState([]);
-  const [isAdmin, setIsAdmin] = useState(true);
+  const [artworks, setArtworks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Admin mode detection
+  const [isAdminMode, setIsAdminMode] = useState(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.has("admin") && urlParams.get("admin") === "true";
+    }
+    return false;
+  });
 
   const containerRef = useRef(null);
   const { scrollY } = useScroll();
@@ -44,186 +55,7 @@ const GraphicDesignPortfolio = () => {
   const headerOpacity = useTransform(scrollY, [0, 100], [1, 0.95]);
   const parallaxY = useTransform(scrollY, [0, 500], [0, -100]);
 
-  // Mock graphic design data
-  useEffect(() => {
-    const mockDesigns = [
-      {
-        id: 1,
-        title: "Brand Identity System",
-        category: "Branding",
-        likes: 2847,
-        views: 15420,
-        uploadDate: "2024-08-15",
-        image:
-          "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=800",
-        description:
-          "Complete brand identity system including logo design, typography, and color palette for a modern tech startup",
-        tags: ["branding", "logo design", "identity", "tech"],
-        software: ["Adobe Illustrator", "Figma"],
-        dimensions: "Various",
-        client: "TechFlow Inc.",
-      },
-      {
-        id: 2,
-        title: "Mobile App UI Design",
-        category: "UI/UX Design",
-        likes: 1923,
-        views: 8750,
-        uploadDate: "2024-08-12",
-        image:
-          "https://images.unsplash.com/photo-1512486130939-2c4f79935e4f?w=800",
-        description:
-          "Clean and intuitive mobile app interface design focusing on user experience and modern aesthetics",
-        tags: ["mobile", "ui design", "app", "user interface"],
-        software: ["Figma", "Sketch"],
-        dimensions: "375x812px",
-        client: "Personal Project",
-      },
-      {
-        id: 3,
-        title: "Poster Design Collection",
-        category: "Print Design",
-        likes: 3156,
-        views: 12340,
-        uploadDate: "2024-08-08",
-        image:
-          "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800",
-        description:
-          "Creative poster designs for music festival featuring bold typography and vibrant color schemes",
-        tags: ["poster", "typography", "print", "festival"],
-        software: ["Adobe Photoshop", "Adobe Illustrator"],
-        dimensions: "24x36 inches",
-        client: "Music Fest 2024",
-      },
-      {
-        id: 4,
-        title: "E-commerce Website Design",
-        category: "Web Design",
-        likes: 2645,
-        views: 18920,
-        uploadDate: "2024-08-05",
-        image:
-          "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800",
-        description:
-          "Modern e-commerce website design with focus on conversion optimization and user experience",
-        tags: ["web design", "ecommerce", "landing page", "conversion"],
-        software: ["Figma", "Adobe XD"],
-        dimensions: "1440x900px",
-        client: "Fashion Boutique",
-      },
-      {
-        id: 5,
-        title: "Packaging Design Series",
-        category: "Packaging",
-        likes: 1789,
-        views: 9560,
-        uploadDate: "2024-08-01",
-        image:
-          "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=800",
-        description:
-          "Sustainable packaging design for organic food products with eco-friendly materials and design approach",
-        tags: ["packaging", "sustainable", "organic", "product design"],
-        software: ["Adobe Illustrator", "Cinema 4D"],
-        dimensions: "Various Sizes",
-        client: "EcoFresh Foods",
-      },
-      {
-        id: 6,
-        title: "Social Media Campaign",
-        category: "Digital Marketing",
-        likes: 2234,
-        views: 14580,
-        uploadDate: "2024-07-28",
-        image:
-          "https://images.unsplash.com/photo-1611926653458-09294b3142bf?w=800",
-        description:
-          "Comprehensive social media campaign design including posts, stories, and ad creatives for fashion brand",
-        tags: ["social media", "campaign", "fashion", "digital"],
-        software: ["Adobe Photoshop", "Canva Pro"],
-        dimensions: "Multiple Formats",
-        client: "StyleCo Fashion",
-      },
-      {
-        id: 7,
-        title: "Magazine Layout Design",
-        category: "Editorial Design",
-        likes: 1567,
-        views: 7230,
-        uploadDate: "2024-07-25",
-        image:
-          "https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=900",
-        description:
-          "Editorial magazine layout design with sophisticated typography and visual hierarchy for lifestyle publication",
-        tags: ["editorial", "magazine", "layout", "typography"],
-        software: ["Adobe InDesign", "Adobe Photoshop"],
-        dimensions: "8.5x11 inches",
-        client: "Lifestyle Quarterly",
-      },
-      {
-        id: 8,
-        title: "Motion Graphics Storyboard",
-        category: "Motion Design",
-        likes: 2987,
-        views: 16750,
-        uploadDate: "2024-07-20",
-        image:
-          "https://images.unsplash.com/photo-1611224923853-80b023f02d71?w=900",
-        description:
-          "Storyboard and style frames for animated explainer video showcasing complex data in simple visual format",
-        tags: ["motion graphics", "animation", "explainer", "storyboard"],
-        software: ["After Effects", "Adobe Illustrator"],
-        dimensions: "1920x1080px",
-        client: "DataViz Corp",
-      },
-    ];
-    setDesigns(mockDesigns);
-    setFilteredDesigns(mockDesigns);
-  }, []);
-
-  // Filter and search logic
-  useEffect(() => {
-    let filtered = [...designs];
-
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (design) =>
-          design.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          design.description
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          design.tags.some((tag) =>
-            tag.toLowerCase().includes(searchQuery.toLowerCase())
-          ) ||
-          design.client.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    if (filterBy !== "all") {
-      filtered = filtered.filter(
-        (design) => design.category.toLowerCase() === filterBy.toLowerCase()
-      );
-    }
-
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case "newest":
-          return new Date(b.uploadDate) - new Date(a.uploadDate);
-        case "oldest":
-          return new Date(a.uploadDate) - new Date(b.uploadDate);
-        case "most-liked":
-          return b.likes - a.likes;
-        case "most-viewed":
-          return b.views - a.views;
-        case "alphabetical":
-          return a.title.localeCompare(b.title);
-        default:
-          return 0;
-      }
-    });
-
-    setFilteredDesigns(filtered);
-  }, [designs, filterBy, sortBy, searchQuery]);
-
+  // Categories for filtering
   const categories = [
     "all",
     "branding",
@@ -234,20 +66,251 @@ const GraphicDesignPortfolio = () => {
     "digital marketing",
     "editorial design",
     "motion design",
+    "logo",
+    "illustration",
+    "music",
   ];
+
   const sortOptions = [
     { value: "newest", label: "Latest Projects" },
     { value: "oldest", label: "Earliest Work" },
     { value: "most-liked", label: "Most Appreciated" },
     { value: "most-viewed", label: "Most Viewed" },
     { value: "alphabetical", label: "A-Z" },
+    { value: "popular", label: "Most Popular" },
   ];
 
+  // Fetch artworks from backend
+  useEffect(() => {
+    const fetchArtworks = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/artworks");
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch artworks");
+        }
+
+        const data = await response.json();
+        setArtworks(data.artworks || []);
+      } catch (error) {
+        console.error("Error fetching artworks:", error);
+        setArtworks([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArtworks();
+  }, []);
+
+  // Filter and search functionality
+  const filteredArtworks = useMemo(() => {
+    let filtered = artworks;
+
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (artwork) =>
+          artwork.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          artwork.description
+            ?.toLowerCase()
+            .includes(searchQuery.toLowerCase()) ||
+          artwork.author?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          artwork.client?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          artwork.tags?.some((tag) =>
+            tag.toLowerCase().includes(searchQuery.toLowerCase())
+          )
+      );
+    }
+
+    // Apply category filter
+    if (filterBy !== "all") {
+      filtered = filtered.filter(
+        (artwork) => artwork.category?.toLowerCase() === filterBy.toLowerCase()
+      );
+    }
+
+    // Apply sorting
+    switch (sortBy) {
+      case "newest":
+        filtered.sort(
+          (a, b) =>
+            new Date(b.uploadDate || b.createdAt) -
+            new Date(a.uploadDate || a.createdAt)
+        );
+        break;
+      case "oldest":
+        filtered.sort(
+          (a, b) =>
+            new Date(a.uploadDate || a.createdAt) -
+            new Date(b.uploadDate || b.createdAt)
+        );
+        break;
+      case "most-liked":
+      case "popular":
+        filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+        break;
+      case "most-viewed":
+        filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+        break;
+      case "alphabetical":
+        filtered.sort((a, b) => a.title?.localeCompare(b.title));
+        break;
+      default:
+        break;
+    }
+
+    return filtered;
+  }, [artworks, filterBy, sortBy, searchQuery]);
+
   const totalStats = {
-    totalViews: designs.reduce((sum, design) => sum + design.views, 0),
-    totalLikes: designs.reduce((sum, design) => sum + design.likes, 0),
-    totalProjects: designs.length,
+    totalViews: artworks.reduce(
+      (sum, artwork) => sum + (artwork.views || 0),
+      0
+    ),
+    totalLikes: artworks.reduce(
+      (sum, artwork) => sum + (artwork.likes || 0),
+      0
+    ),
+    totalProjects: artworks.length,
   };
+
+  // Early access email subscription component
+  const EarlyAccessMessage = () => {
+    const [email, setEmail] = useState("");
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      if (!email) return;
+
+      setIsSubmitting(true);
+      try {
+        // Send to your message functionality instead of early-access endpoint
+        const response = await fetch("/api/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email,
+            message: `Early access request: ${email}`,
+            type: "early_access",
+          }),
+        });
+
+        if (response.ok) {
+          setIsSubmitted(true);
+          setEmail("");
+        }
+      } catch (error) {
+        console.error("Error submitting email:", error);
+      } finally {
+        setIsSubmitting(false);
+      }
+    };
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.6 }}
+        className="text-center py-24"
+      >
+        <div className="relative mb-8">
+          <div className="w-32 h-32 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-950/50 dark:to-red-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Pen size={48} className="text-red-500" />
+          </div>
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            className="absolute top-0 right-1/2 translate-x-1/2 w-4 h-4 bg-red-500 rounded-full"
+          />
+        </div>
+
+        <h3 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
+          Want Early Access?
+        </h3>
+        <p className="text-xl text-gray-600 dark:text-neutral-400 max-w-2xl mx-auto mb-8">
+          We're curating incredible artworks for you. Drop your email and be the
+          first to see our collection when it goes live.
+        </p>
+
+        {!isSubmitted ? (
+          <motion.form
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            onSubmit={handleSubmit}
+            className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto"
+          >
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Enter your email"
+              className="flex-1 px-6 py-4 bg-gray-50/80 dark:bg-neutral-800/80 border border-gray-200 dark:border-neutral-700 rounded-2xl focus:ring-0 focus:border-red-500 transition-all duration-300 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-neutral-400 text-lg backdrop-blur-sm outline-none"
+              required
+            />
+            <motion.button
+              whileHover={{
+                scale: 1.05,
+                boxShadow: "0 10px 30px -10px rgba(239, 68, 68, 0.4)",
+              }}
+              whileTap={{ scale: 0.95 }}
+              type="submit"
+              disabled={isSubmitting}
+              className="px-8 py-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-2xl font-bold transition-all duration-300 shadow-xl shadow-red-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+              {isSubmitting ? "Submitting..." : "Notify Me"}
+            </motion.button>
+          </motion.form>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="max-w-md mx-auto p-8 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/50 rounded-3xl border border-green-200/50 dark:border-green-800/50"
+          >
+            <div className="text-green-600 dark:text-green-400 text-2xl font-bold mb-2">
+              ✓ You're on the list!
+            </div>
+            <p className="text-green-700 dark:text-green-300 text-lg">
+              We'll notify you as soon as our gallery goes live.
+            </p>
+          </motion.div>
+        )}
+      </motion.div>
+    );
+  };
+
+  // Loading skeleton component
+  const LoadingSkeleton = () => (
+    <div className="grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {Array.from({ length: 8 }).map((_, index) => (
+        <motion.div
+          key={index}
+          initial={{ opacity: 0, y: 40, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.6, delay: index * 0.1, ease: "easeOut" }}
+          className="group relative bg-white/70 dark:bg-neutral-900/70 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-neutral-800/50 shadow-xl shadow-black/5 overflow-hidden p-6"
+        >
+          <div className="text-center text-gray-500 dark:text-neutral-400 py-12">
+            <div className="w-16 h-16 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-950/50 dark:to-red-900/50 rounded-2xl mb-4 mx-auto animate-pulse" />
+            <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse" />
+            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto mb-3 animate-pulse" />
+            <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto mb-4 animate-pulse" />
+            <div className="flex items-center justify-center gap-4">
+              <div className="h-3 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+              <div className="h-3 w-12 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
 
   return (
     <LayoutWrapper>
@@ -391,7 +454,7 @@ const GraphicDesignPortfolio = () => {
                   />
                   <input
                     type="text"
-                    placeholder="Search designs, clients, or creative concepts..."
+                    placeholder="Search designs, clients, artists, or creative concepts..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pl-14 pr-5 py-5 bg-gray-50/80 dark:bg-neutral-800/80 border border-gray-200 dark:border-neutral-700 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-neutral-400 text-lg backdrop-blur-sm"
@@ -413,6 +476,20 @@ const GraphicDesignPortfolio = () => {
 
               {/* Filter Controls */}
               <div className="flex flex-wrap gap-4">
+                {/* Admin Mode Indicator */}
+                {isAdminMode && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-red-500/10 to-red-600/10 border border-red-500/20 rounded-2xl backdrop-blur-sm"
+                  >
+                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-semibold text-red-500 dark:text-red-400">
+                      Admin Mode
+                    </span>
+                  </motion.div>
+                )}
+
                 {/* Category Filter */}
                 <div className="relative">
                   <motion.button
@@ -519,14 +596,14 @@ const GraphicDesignPortfolio = () => {
               <div className="flex items-center gap-6">
                 <div className="text-gray-600 dark:text-neutral-400">
                   <span className="font-bold text-2xl text-gray-900 dark:text-white">
-                    {filteredDesigns.length}
+                    {filteredArtworks.length}
                   </span>
                   <span className="ml-2 font-medium">
-                    design{filteredDesigns.length !== 1 ? "s" : ""}
+                    design{filteredArtworks.length !== 1 ? "s" : ""}
                   </span>
                   {searchQuery && (
                     <span className="ml-3 text-sm">
-                      matching"
+                      matching "
                       <span className="text-red-500 font-semibold">
                         {searchQuery}
                       </span>
@@ -538,15 +615,15 @@ const GraphicDesignPortfolio = () => {
               <div className="flex items-center gap-6 text-sm font-medium text-gray-500 dark:text-neutral-500">
                 <div className="flex items-center gap-2">
                   <Eye size={16} />
-                  {filteredDesigns
-                    .reduce((sum, design) => sum + design.views, 0)
+                  {filteredArtworks
+                    .reduce((sum, artwork) => sum + (artwork.views || 0), 0)
                     .toLocaleString()}{" "}
                   views
                 </div>
                 <div className="flex items-center gap-2">
                   <Heart size={16} />
-                  {filteredDesigns
-                    .reduce((sum, design) => sum + design.likes, 0)
+                  {filteredArtworks
+                    .reduce((sum, artwork) => sum + (artwork.likes || 0), 0)
                     .toLocaleString()}{" "}
                   likes
                 </div>
@@ -555,7 +632,7 @@ const GraphicDesignPortfolio = () => {
           </div>
         </motion.section>
 
-        {/* Design Gallery - Your Custom Cards Go Here */}
+        {/* Design Gallery */}
         <motion.section
           ref={containerRef}
           initial={{ opacity: 0 }}
@@ -563,116 +640,174 @@ const GraphicDesignPortfolio = () => {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-20"
         >
-          <div
-            className={`${
-              viewMode === "grid"
-                ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
-                : "space-y-8"
-            }`}
-          >
-            {filteredDesigns.map((design, index) => (
+          {loading ? (
+            // Loading State
+            <LoadingSkeleton />
+          ) : filteredArtworks.length === 0 ? (
+            // No artworks found or empty state
+            artworks.length === 0 ? (
+              <EarlyAccessMessage />
+            ) : (
               <motion.div
-                key={design.id}
-                initial={{ opacity: 0, y: 40, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{
-                  duration: 0.6,
-                  delay: index * 0.1,
-                  ease: "easeOut",
-                }}
-                className={`group relative bg-white/70 dark:bg-neutral-900/70 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-neutral-800/50 shadow-xl shadow-black/5 overflow-hidden ${
-                  viewMode === "list" ? "p-8" : "p-6"
-                }`}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.6 }}
+                className="text-center py-24"
               >
-                {/* Hover Glow Effect */}
-                <div className="absolute inset-0 bg-gradient-to-br from-red-500/0 via-red-500/0 to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                <div className="relative z-10">
-                  <div className="text-center text-gray-500 dark:text-neutral-400 py-12">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-950/50 dark:to-red-900/50 rounded-2xl mb-4">
-                      <Pen size={24} className="text-red-500" />
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">
-                      {design.title}
-                    </h3>
-                    <p className="text-sm font-medium text-red-500 mb-3">
-                      {design.category}
-                    </p>
-                    <p className="text-xs text-gray-600 dark:text-neutral-400 mb-4">
-                      Client: {design.client}
-                    </p>
-
-                    <div className="flex items-center justify-center gap-4 text-xs">
-                      <div className="flex items-center gap-1">
-                        <Heart size={12} className="text-red-500" />
-                        <span>{design.likes.toLocaleString()}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Eye size={12} className="text-blue-500" />
-                        <span>{design.views.toLocaleString()}</span>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 pt-4 border-t border-gray-200/50 dark:border-neutral-700/50">
-                      <p className="text-xs text-gray-500 dark:text-neutral-400">
-                        Software: {design.software.join(", ")}
-                      </p>
-                      <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">
-                        Uploaded:{" "}
-                        {new Date(design.uploadDate).toLocaleDateString()}
-                      </p>
-                    </div>
+                <div className="relative mb-8">
+                  <div className="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-neutral-800 dark:to-neutral-900 rounded-full flex items-center justify-center mx-auto">
+                    <Search
+                      size={48}
+                      className="text-gray-400 dark:text-neutral-500"
+                    />
                   </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Enhanced Empty State */}
-          {filteredDesigns.length === 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.6 }}
-              className="text-center py-24"
-            >
-              <div className="relative mb-8">
-                <div className="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-neutral-800 dark:to-neutral-900 rounded-full flex items-center justify-center mx-auto">
-                  <Search
-                    size={48}
-                    className="text-gray-400 dark:text-neutral-500"
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{
+                      duration: 8,
+                      repeat: Infinity,
+                      ease: "linear",
+                    }}
+                    className="absolute top-0 right-1/2 translate-x-1/2 w-4 h-4 bg-red-500 rounded-full"
                   />
                 </div>
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                  className="absolute top-0 right-1/2 translate-x-1/2 w-4 h-4 bg-red-500 rounded-full"
-                />
+                <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                  No designs found
+                </h3>
+                <p className="text-lg text-gray-600 dark:text-neutral-400 max-w-md mx-auto mb-8">
+                  {searchQuery
+                    ? `Your search for "${searchQuery}" didn't match any designs. Try different keywords or explore our categories.`
+                    : "Adjust your filters to discover amazing graphic design work."}
+                </p>
+                {(searchQuery || filterBy !== "all") && (
+                  <motion.button
+                    whileHover={{
+                      scale: 1.05,
+                      boxShadow: "0 10px 30px -10px rgba(239, 68, 68, 0.4)",
+                    }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => {
+                      setSearchQuery("");
+                      setFilterBy("all");
+                    }}
+                    className="px-8 py-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-2xl font-bold transition-all duration-300 shadow-xl shadow-red-500/25"
+                  >
+                    Reset All Filters
+                  </motion.button>
+                )}
+              </motion.div>
+            )
+          ) : (
+            // Artworks Grid/List
+            <motion.div
+              layout
+              className={`grid gap-8 ${
+                viewMode === "grid"
+                  ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
+                  : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
+              } justify-items-center`}
+            >
+              <AnimatePresence mode="popLayout">
+                {filteredArtworks.map((artwork, index) => (
+                  <motion.div
+                    key={artwork.id}
+                    layout
+                    initial={{ opacity: 0, y: 40, scale: 0.9 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{
+                      duration: 0.6,
+                      delay: index * 0.1,
+                      ease: "easeOut",
+                      layout: { duration: 0.3 },
+                    }}
+                    className="w-full max-w-xs group relative bg-white/70 dark:bg-neutral-900/70 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-neutral-800/50 shadow-xl shadow-black/5 overflow-hidden"
+                  >
+                    {/* Hover Glow Effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-red-500/0 via-red-500/0 to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                    <div className="relative z-10">
+                      <ArtworkCard
+                        artwork={artwork}
+                        isAdmin={isAdminMode}
+                        onDelete={(id) => {
+                          setArtworks((prev) =>
+                            prev.filter((art) => art.id !== id)
+                          );
+
+                          fetch(`/api/artworks/${id}`, {
+                            method: "DELETE",
+                          }).catch((error) => {
+                            console.error(
+                              "Failed to delete artwork from backend:",
+                              error
+                            );
+                          });
+                        }}
+                        onEdit={(id) => {
+                          console.log("Edit artwork:", id);
+                        }}
+                        onToggleVisibility={(id, visible) => {
+                          setArtworks((prev) =>
+                            prev.map((art) =>
+                              art.id === id ? { ...art, visible } : art
+                            )
+                          );
+
+                          fetch(`/api/artworks/${id}/visibility`, {
+                            method: "PATCH",
+                            headers: {
+                              "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({ visible }),
+                          }).catch((error) => {
+                            console.error(
+                              "Failed to update artwork visibility:",
+                              error
+                            );
+                            setArtworks((prev) =>
+                              prev.map((art) =>
+                                art.id === id
+                                  ? { ...art, visible: !visible }
+                                  : art
+                              )
+                            );
+                          });
+                        }}
+                      />
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          )}
+
+          {/* Results Count */}
+          {!loading && filteredArtworks.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="mt-12 text-center"
+            >
+              <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/60 dark:bg-neutral-800/60 backdrop-blur-sm rounded-full border border-gray-200/60 dark:border-neutral-700/60">
+                <span className="text-sm text-gray-600 dark:text-neutral-400">
+                  Showing{" "}
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {filteredArtworks.length}
+                  </span>{" "}
+                  of{" "}
+                  <span className="font-semibold text-gray-900 dark:text-white">
+                    {artworks.length}
+                  </span>{" "}
+                  artworks
+                  {isAdminMode && (
+                    <span className="ml-1 text-xs text-red-500">
+                      (including hidden)
+                    </span>
+                  )}
+                </span>
               </div>
-              <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                No designs found
-              </h3>
-              <p className="text-lg text-gray-600 dark:text-neutral-400 max-w-md mx-auto mb-8">
-                {searchQuery
-                  ? `Your search for "${searchQuery}" didn't match any designs. Try different keywords or explore our categories.`
-                  : "Adjust your filters to discover amazing graphic design work."}
-              </p>
-              {(searchQuery || filterBy !== "all") && (
-                <motion.button
-                  whileHover={{
-                    scale: 1.05,
-                    boxShadow: "0 10px 30px -10px rgba(239, 68, 68, 0.4)",
-                  }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => {
-                    setSearchQuery("");
-                    setFilterBy("all");
-                  }}
-                  className="px-8 py-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-2xl font-bold transition-all duration-300 shadow-xl shadow-red-500/25"
-                >
-                  Reset All Filters
-                </motion.button>
-              )}
             </motion.div>
           )}
         </motion.section>
