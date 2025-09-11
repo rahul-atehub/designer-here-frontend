@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LayoutWrapper from "@/Components/LayoutWrapper";
+import axios from "axios";
+import ArtworkCard from "@/components/ui/ArtworkCard";
 
 import {
   Bookmark,
@@ -25,46 +27,60 @@ const SavedPostsPage = () => {
   const [, forceUpdate] = useState({});
 
   // Load saved posts and liked posts from localStorage
+
   useEffect(() => {
-    const loadSavedPosts = () => {
-      if (typeof window !== "undefined") {
-        try {
-          const savedPostsData = JSON.parse(
-            window.localStorage.getItem("savedPostsData") || "[]"
-          );
-          const likedPosts = JSON.parse(
-            window.localStorage.getItem("likedPosts") || "[]"
-          );
-          setSavedPosts(savedPostsData);
-          setLikedPostsSet(new Set(likedPosts));
-        } catch (error) {
-          console.error("Error loading saved posts:", error);
-          setSavedPosts([]);
-          setLikedPostsSet(new Set());
-        }
+    const fetchSavedPosts = async () => {
+      try {
+        const { data } = await axios.get(`/api/users/demoUser123/saved`);
+        setSavedPosts(data); // backend returns array of saved posts
+      } catch (error) {
+        console.error("Error fetching saved posts:", error);
       }
     };
 
-    // Initial load
-    loadSavedPosts();
-
-    // Listen for storage changes (when posts are added/removed from other components)
-    const handleStorageChange = () => {
-      loadSavedPosts();
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-
-    // Custom event listener for real-time updates within the same tab
-    window.addEventListener("savedPostsUpdated", handleStorageChange);
-    window.addEventListener("likedPostsUpdated", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-      window.removeEventListener("savedPostsUpdated", handleStorageChange);
-      window.removeEventListener("likedPostsUpdated", handleStorageChange);
-    };
+    fetchSavedPosts();
   }, []);
+
+  // useEffect(() => {
+  //   const loadSavedPosts = () => {
+  //     if (typeof window !== "undefined") {
+  //       try {
+  //         const savedPostsData = JSON.parse(
+  //           window.localStorage.getItem("savedPostsData") || "[]"
+  //         );
+  //         const likedPosts = JSON.parse(
+  //           window.localStorage.getItem("likedPosts") || "[]"
+  //         );
+  //         setSavedPosts(savedPostsData);
+  //         setLikedPostsSet(new Set(likedPosts));
+  //       } catch (error) {
+  //         console.error("Error loading saved posts:", error);
+  //         setSavedPosts([]);
+  //         setLikedPostsSet(new Set());
+  //       }
+  //     }
+  //   };
+
+  //   // Initial load
+  //   loadSavedPosts();
+
+  //   // Listen for storage changes (when posts are added/removed from other components)
+  //   const handleStorageChange = () => {
+  //     loadSavedPosts();
+  //   };
+
+  //   window.addEventListener("storage", handleStorageChange);
+
+  //   // Custom event listener for real-time updates within the same tab
+  //   window.addEventListener("savedPostsUpdated", handleStorageChange);
+  //   window.addEventListener("likedPostsUpdated", handleStorageChange);
+
+  //   return () => {
+  //     window.removeEventListener("storage", handleStorageChange);
+  //     window.removeEventListener("savedPostsUpdated", handleStorageChange);
+  //     window.removeEventListener("likedPostsUpdated", handleStorageChange);
+  //   };
+  // }, []);
 
   // Get unique categories from saved posts
   const categories = [
@@ -120,85 +136,114 @@ const SavedPostsPage = () => {
     },
   };
 
-  const handleRemoveSaved = (postId) => {
-    // Remove from localStorage
-    if (typeof window !== "undefined") {
-      try {
-        const savedPostsData = JSON.parse(
-          window.localStorage.getItem("savedPostsData") || "[]"
-        );
-        const updatedData = savedPostsData.filter((post) => post.id !== postId);
-        window.localStorage.setItem(
-          "savedPostsData",
-          JSON.stringify(updatedData)
-        );
+  // const handleRemoveSaved = (postId) => {
+  //   // Remove from localStorage
+  //   if (typeof window !== "undefined") {
+  //     try {
+  //       const savedPostsData = JSON.parse(
+  //         window.localStorage.getItem("savedPostsData") || "[]"
+  //       );
+  //       const updatedData = savedPostsData.filter((post) => post.id !== postId);
+  //       window.localStorage.setItem(
+  //         "savedPostsData",
+  //         JSON.stringify(updatedData)
+  //       );
 
-        // Update saved posts set
-        const savedPosts = JSON.parse(
-          window.localStorage.getItem("savedPosts") || "[]"
-        );
-        const updatedSavedPosts = savedPosts.filter((id) => id !== postId);
-        window.localStorage.setItem(
-          "savedPosts",
-          JSON.stringify(updatedSavedPosts)
-        );
+  //       // Update saved posts set
+  //       const savedPosts = JSON.parse(
+  //         window.localStorage.getItem("savedPosts") || "[]"
+  //       );
+  //       const updatedSavedPosts = savedPosts.filter((id) => id !== postId);
+  //       window.localStorage.setItem(
+  //         "savedPosts",
+  //         JSON.stringify(updatedSavedPosts)
+  //       );
 
-        // Trigger custom event for real-time updates
-        window.dispatchEvent(new CustomEvent("savedPostsUpdated"));
+  //       // Trigger custom event for real-time updates
+  //       window.dispatchEvent(new CustomEvent("savedPostsUpdated"));
 
-        setSavedPosts(updatedData);
-      } catch (error) {
-        console.error("Error removing saved post:", error);
-      }
+  //       setSavedPosts(updatedData);
+  //     } catch (error) {
+  //       console.error("Error removing saved post:", error);
+  //     }
+  //   }
+  // };
+
+  const handleRemoveSaved = async (postId) => {
+    try {
+      await axios.delete(`/api/users/demoUser123/save/${postId}`);
+      setSavedPosts((prev) => prev.filter((post) => post.id !== postId));
+    } catch (error) {
+      console.error("Error removing saved post:", error);
     }
   };
 
-  const handleLikeFromSaved = (postId) => {
-    // Toggle like status in localStorage
-    const postData = savedPosts.find((post) => post.id === postId);
-    if (postData) {
-      const currentLikedPosts = JSON.parse(
-        window.localStorage.getItem("likedPosts") || "[]"
-      );
-      const isCurrentlyLiked = currentLikedPosts.includes(postId);
+  // const handleLikeFromSaved = (postId) => {
+  //   // Toggle like status in localStorage
+  //   const postData = savedPosts.find((post) => post.id === postId);
+  //   if (postData) {
+  //     const currentLikedPosts = JSON.parse(
+  //       window.localStorage.getItem("likedPosts") || "[]"
+  //     );
+  //     const isCurrentlyLiked = currentLikedPosts.includes(postId);
 
-      let updatedLikedPosts;
-      if (isCurrentlyLiked) {
-        // Remove from liked
-        updatedLikedPosts = currentLikedPosts.filter((id) => id !== postId);
-        // Remove from liked posts data
-        const likedPostsData = JSON.parse(
-          window.localStorage.getItem("likedPostsData") || "[]"
-        );
-        const updatedLikedData = likedPostsData.filter(
-          (post) => post.id !== postId
-        );
-        window.localStorage.setItem(
-          "likedPostsData",
-          JSON.stringify(updatedLikedData)
-        );
+  //     let updatedLikedPosts;
+  //     if (isCurrentlyLiked) {
+  //       // Remove from liked
+  //       updatedLikedPosts = currentLikedPosts.filter((id) => id !== postId);
+  //       // Remove from liked posts data
+  //       const likedPostsData = JSON.parse(
+  //         window.localStorage.getItem("likedPostsData") || "[]"
+  //       );
+  //       const updatedLikedData = likedPostsData.filter(
+  //         (post) => post.id !== postId
+  //       );
+  //       window.localStorage.setItem(
+  //         "likedPostsData",
+  //         JSON.stringify(updatedLikedData)
+  //       );
+  //     } else {
+  //       // Add to liked
+  //       updatedLikedPosts = [...currentLikedPosts, postId];
+  //       // Add to liked posts data
+  //       const likedPostsData = JSON.parse(
+  //         window.localStorage.getItem("likedPostsData") || "[]"
+  //       );
+  //       likedPostsData.push(postData);
+  //       window.localStorage.setItem(
+  //         "likedPostsData",
+  //         JSON.stringify(likedPostsData)
+  //       );
+  //     }
+
+  //     window.localStorage.setItem(
+  //       "likedPosts",
+  //       JSON.stringify(updatedLikedPosts)
+  //     );
+  //     setLikedPostsSet(new Set(updatedLikedPosts));
+
+  //     // Trigger custom events for real-time updates
+  //     window.dispatchEvent(new CustomEvent("likedPostsUpdated"));
+  //   }
+  // };
+
+  const handleLikeFromSaved = async (postId) => {
+    try {
+      const isLiked = likedPostsSet.has(postId);
+
+      if (isLiked) {
+        await axios.delete(`/api/users/demoUser123/likes/${postId}`);
+        setLikedPostsSet((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(postId);
+          return newSet;
+        });
       } else {
-        // Add to liked
-        updatedLikedPosts = [...currentLikedPosts, postId];
-        // Add to liked posts data
-        const likedPostsData = JSON.parse(
-          window.localStorage.getItem("likedPostsData") || "[]"
-        );
-        likedPostsData.push(postData);
-        window.localStorage.setItem(
-          "likedPostsData",
-          JSON.stringify(likedPostsData)
-        );
+        await axios.post(`/api/users/demoUser123/likes`, { postId });
+        setLikedPostsSet((prev) => new Set(prev).add(postId));
       }
-
-      window.localStorage.setItem(
-        "likedPosts",
-        JSON.stringify(updatedLikedPosts)
-      );
-      setLikedPostsSet(new Set(updatedLikedPosts));
-
-      // Trigger custom events for real-time updates
-      window.dispatchEvent(new CustomEvent("likedPostsUpdated"));
+    } catch (error) {
+      console.error("Error toggling like:", error);
     }
   };
 
@@ -327,241 +372,15 @@ const SavedPostsPage = () => {
             `}
             >
               {sortedPosts.map((post, index) => (
-                <motion.div
-                  key={post.id}
-                  variants={itemVariants}
-                  layout
-                  whileHover={{ y: -5 }}
-                  className={`
-                  group cursor-pointer bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700
-                  ${viewMode === "list" ? "flex items-center p-4" : ""}
-                `}
-                >
-                  {viewMode === "grid" ? (
-                    <>
-                      {/* Image */}
-                      <div className="relative overflow-hidden aspect-[4/3]">
-                        <img
-                          src={post.image}
-                          alt={post.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                        {/* Overlay Actions */}
-                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 lg:opacity-0 group-hover:opacity-100 md:opacity-100 sm:opacity-100 transition-opacity duration-300">
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveSaved(post.id);
-                            }}
-                            className="p-2 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors duration-200"
-                          >
-                            <Bookmark className="w-4 h-4" fill="white" />
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleLikeFromSaved(post.id);
-                            }}
-                            className={`p-2 rounded-full shadow-lg transition-colors duration-200 ${
-                              likedPostsSet.has(post.id)
-                                ? "bg-red-500 text-white hover:bg-red-600"
-                                : "bg-black/50 text-white hover:bg-black/70"
-                            }`}
-                          >
-                            <Heart
-                              className={`w-4 h-4 ${
-                                likedPostsSet.has(post.id) ? "fill-current" : ""
-                              }`}
-                            />
-                          </motion.button>
-                        </div>
-
-                        {/* Category Badge */}
-                        <div className="absolute top-4 left-4">
-                          <span className="px-3 py-1 bg-white/90 dark:bg-gray-800/90 text-gray-800 dark:text-white text-xs font-medium rounded-full backdrop-blur-sm">
-                            {post.category}
-                          </span>
-                        </div>
-
-                        {/* Saved Date Badge */}
-                        <div className="absolute bottom-4 left-4">
-                          <span className="px-2 py-1 bg-red-500/90 text-white text-xs font-medium rounded-md backdrop-blur-sm">
-                            Saved{" "}
-                            {new Date(post.dateAdded).toLocaleDateString(
-                              "en-US",
-                              { month: "short", day: "numeric" }
-                            )}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-6">
-                        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors duration-200">
-                          {post.title}
-                        </h3>
-
-                        {/* Author */}
-                        <div className="flex items-center gap-3 mb-4">
-                          <img
-                            src={post.authorAvatar}
-                            alt={post.author}
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
-                            {post.author}
-                          </span>
-                        </div>
-
-                        {/* Description Preview */}
-                        {post.description && (
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4 line-clamp-2">
-                            {post.description.length > 80
-                              ? post.description.substring(0, 80) + "..."
-                              : post.description}
-                          </p>
-                        )}
-
-                        {/* Tags */}
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {post.tags.slice(0, 3).map((tag) => (
-                            <span
-                              key={tag}
-                              className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-xs rounded-md"
-                            >
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-
-                        {/* Stats */}
-                        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-1">
-                              <Heart className="w-4 h-4" />
-                              <span>{post.likes}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Eye className="w-4 h-4" />
-                              <span>{post.views}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            <span>
-                              {new Date(
-                                post.uploadDate || post.dateAdded
-                              ).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    /* List View */
-                    <>
-                      <div className="relative w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden">
-                        <img
-                          src={post.image}
-                          alt={post.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      </div>
-
-                      <div className="flex-1 min-w-0 ml-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors duration-200 truncate">
-                              {post.title}
-                            </h3>
-
-                            <div className="flex items-center gap-3 mb-3">
-                              <img
-                                src={post.authorAvatar}
-                                alt={post.author}
-                                className="w-6 h-6 rounded-full object-cover"
-                              />
-                              <span className="text-sm text-gray-600 dark:text-gray-400">
-                                {post.author}
-                              </span>
-                              <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded-md">
-                                {post.category}
-                              </span>
-                              <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-xs rounded-md">
-                                Saved{" "}
-                                {new Date(post.dateAdded).toLocaleDateString(
-                                  "en-US",
-                                  { month: "short", day: "numeric" }
-                                )}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-                              <div className="flex items-center gap-1">
-                                <Heart className="w-4 h-4" />
-                                <span>{post.likes}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Eye className="w-4 h-4" />
-                                <span>{post.views}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Calendar className="w-4 h-4" />
-                                <span>
-                                  {new Date(
-                                    post.uploadDate || post.dateAdded
-                                  ).toLocaleDateString()}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex gap-2 ml-4">
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveSaved(post.id);
-                              }}
-                              className="p-2 bg-red-500 text-white rounded-lg shadow-sm hover:bg-red-600 transition-colors duration-200"
-                            >
-                              <Bookmark className="w-4 h-4" fill="white" />
-                            </motion.button>
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleLikeFromSaved(post.id);
-                              }}
-                              className={`p-2 rounded-lg shadow-sm transition-colors duration-200 ${
-                                likedPostsSet.has(post.id)
-                                  ? "bg-red-500 text-white hover:bg-red-600"
-                                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-                              }`}
-                            >
-                              <Heart
-                                className={`w-4 h-4 ${
-                                  likedPostsSet.has(post.id)
-                                    ? "fill-current"
-                                    : ""
-                                }`}
-                              />
-                            </motion.button>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
+                <motion.div key={post.id} variants={itemVariants} layout>
+                  <ArtworkCard
+                    post={post}
+                    isLiked={likedPostsSet.has(post.id)}
+                    isSaved={true} // because we’re inside saved page
+                    onToggleLike={handleLikeFromSaved}
+                    onToggleSave={handleRemoveSaved}
+                    viewMode={viewMode} // if your ArtworkCard supports grid/list switch
+                  />
                 </motion.div>
               ))}
             </motion.div>

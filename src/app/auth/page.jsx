@@ -130,17 +130,6 @@ const AuthPage = () => {
             animate="visible"
             className="w-full max-w-md relative z-10"
           >
-            {/* Logo Section */}
-            <motion.div variants={itemVariants} className="text-center mb-8">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-[#EF4444] to-blue-500 bg-clip-text text-transparent mb-2">
-                Designer
-                <span className=" text-gray-900 dark:text-white">Here</span>
-              </h1>
-              <p className="text-gray-600 dark:text-gray-400">
-                Create stunning visuals with ease
-              </p>
-            </motion.div>
-
             {/* Auth Card */}
             <motion.div
               variants={itemVariants}
@@ -267,18 +256,6 @@ const AuthPage = () => {
                         className="w-full pl-12 pr-4 py-4 bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-[#EF4444] focus:border-transparent outline-none transition-all duration-300 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
                       />
                     </motion.div>
-                  )}
-
-                  {/* Forgot Password (Login Only) */}
-                  {isLogin && (
-                    <div className="text-right">
-                      <button
-                        type="button"
-                        className="text-[#EF4444] hover:text-red-600 text-sm font-medium transition-colors"
-                      >
-                        Forgot Password?
-                      </button>
-                    </div>
                   )}
 
                   {/* Submit Button */}

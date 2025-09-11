@@ -80,7 +80,7 @@ const AboutPage = () => {
       description: "Leading creative vision with 8+ years in brand design",
     },
     {
-      name: "Rahul Choudhary",
+      name: "Rahul ",
       role: "UI/UX Designer & Developer",
       image:
         "https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=400&fit=crop&crop=face",

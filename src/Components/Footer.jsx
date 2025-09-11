@@ -176,7 +176,7 @@ const Footer = () => {
               </p>
               <div className="hidden sm:block w-1 h-4 bg-gradient-to-b from-blue-500 to-#EF4444 rounded-full"></div>
               <p className="hidden sm:block text-gray-500 dark:text-gray-500 text-xs">
-                Crafted with ❤️
+                Crafted with ❣️
               </p>
             </div>
 

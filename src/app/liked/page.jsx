@@ -2,6 +2,9 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LayoutWrapper from "@/Components/LayoutWrapper";
+import ArtworkCard from "@/components/ui/ArtworkCard";
+import axios from "axios";
+
 import {
   Heart,
   Search,
@@ -14,43 +17,26 @@ import {
   Calendar,
 } from "lucide-react";
 
-// Import the posts manager from ArtworkCard
-import { postsManager } from "@/components/ui/ArtworkCard"; // Adjust the path as needed
-
 const LikedPostsPage = () => {
   const [viewMode, setViewMode] = useState("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const [likedPosts, setLikedPosts] = useState([]);
-  const [, forceUpdate] = useState({});
-
-  // Load liked posts from localStorage and subscribe to changes
+  // const [, forceUpdate] = useState({});
   useEffect(() => {
-    const loadLikedPosts = () => {
-      if (typeof window !== "undefined") {
-        try {
-          const likedPostsData = JSON.parse(
-            window.localStorage.getItem("likedPostsData") || "[]"
-          );
-          setLikedPosts(likedPostsData);
-        } catch (error) {
-          console.error("Error loading liked posts:", error);
-          setLikedPosts([]);
-        }
+    const fetchLikedPosts = async () => {
+      try {
+        const res = await axios.get("/api/likes", {
+          params: { userId: "demoUser123" }, // later: replace with real user
+        });
+        setLikedPosts(res.data);
+      } catch (error) {
+        console.error("Error fetching liked posts:", error);
       }
     };
 
-    // Initial load
-    loadLikedPosts();
-
-    // Subscribe to changes from the posts manager
-    const unsubscribe = postsManager.subscribe(() => {
-      loadLikedPosts();
-      forceUpdate({});
-    });
-
-    return unsubscribe;
+    fetchLikedPosts();
   }, []);
 
   // Get unique categories from liked posts
@@ -103,14 +89,6 @@ const LikedPostsPage = () => {
         ease: "easeOut",
       },
     },
-  };
-
-  const handleRemoveLike = (postId) => {
-    // Use the global posts manager to remove the like
-    const postData = likedPosts.find((post) => post.id === postId);
-    if (postData) {
-      postsManager.toggleLiked(postId, postData);
-    }
   };
 
   return (
@@ -236,201 +214,9 @@ const LikedPostsPage = () => {
               }
             `}
             >
-              {sortedPosts.map((post, index) => (
-                <motion.div
-                  key={post.id}
-                  variants={itemVariants}
-                  layout
-                  whileHover={{ y: -5 }}
-                  className={`
-                  group cursor-pointer bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 dark:border-gray-700
-                  ${viewMode === "list" ? "flex items-center p-4" : ""}
-                `}
-                >
-                  {viewMode === "grid" ? (
-                    <>
-                      {/* Image */}
-                      <div className="relative overflow-hidden aspect-[4/3]">
-                        <img
-                          src={post.image}
-                          alt={post.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                        {/* Overlay Actions */}
-                        <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveLike(post.id);
-                            }}
-                            className="p-2 bg-red-500 text-white rounded-full shadow-lg hover:bg-red-600 transition-colors duration-200"
-                          >
-                            <Heart className="w-4 h-4" fill="white" />
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            className="p-2 bg-black/50 text-white rounded-full shadow-lg hover:bg-black/70 transition-colors duration-200"
-                          >
-                            <Share2 className="w-4 h-4" />
-                          </motion.button>
-                          <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            className="p-2 bg-black/50 text-white rounded-full shadow-lg hover:bg-black/70 transition-colors duration-200"
-                          >
-                            <Download className="w-4 h-4" />
-                          </motion.button>
-                        </div>
-
-                        {/* Category Badge */}
-                        <div className="absolute top-4 left-4">
-                          <span className="px-3 py-1 bg-white/90 dark:bg-gray-800/90 text-gray-800 dark:text-white text-xs font-medium rounded-full backdrop-blur-sm">
-                            {post.category}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-6">
-                        <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-200">
-                          {post.title}
-                        </h3>
-
-                        {/* Author */}
-                        <div className="flex items-center gap-3 mb-4">
-                          <img
-                            src={post.authorAvatar}
-                            alt={post.author}
-                            className="w-8 h-8 rounded-full object-cover"
-                          />
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
-                            {post.author}
-                          </span>
-                        </div>
-
-                        {/* Tags */}
-                        <div className="flex flex-wrap gap-2 mb-4">
-                          {post.tags.slice(0, 3).map((tag) => (
-                            <span
-                              key={tag}
-                              className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded-md"
-                            >
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-
-                        {/* Stats */}
-                        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                          <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-1">
-                              <Heart className="w-4 h-4" />
-                              <span>{post.likes}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Eye className="w-4 h-4" />
-                              <span>{post.views}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-4 h-4" />
-                            <span>
-                              {new Date(post.dateAdded).toLocaleDateString()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    /* List View */
-                    <>
-                      <div className="relative w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden">
-                        <img
-                          src={post.image}
-                          alt={post.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                      </div>
-
-                      <div className="flex-1 min-w-0 ml-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-200 truncate">
-                              {post.title}
-                            </h3>
-
-                            <div className="flex items-center gap-3 mb-3">
-                              <img
-                                src={post.authorAvatar}
-                                alt={post.author}
-                                className="w-6 h-6 rounded-full object-cover"
-                              />
-                              <span className="text-sm text-gray-600 dark:text-gray-400">
-                                {post.author}
-                              </span>
-                              <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs rounded-md">
-                                {post.category}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
-                              <div className="flex items-center gap-1">
-                                <Heart className="w-4 h-4" />
-                                <span>{post.likes}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Eye className="w-4 h-4" />
-                                <span>{post.views}</span>
-                              </div>
-                              <div className="flex items-center gap-1">
-                                <Calendar className="w-4 h-4" />
-                                <span>
-                                  {new Date(
-                                    post.dateAdded
-                                  ).toLocaleDateString()}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex gap-2 ml-4">
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveLike(post.id);
-                              }}
-                              className="p-2 bg-red-500 text-white rounded-lg shadow-sm hover:bg-red-600 transition-colors duration-200"
-                            >
-                              <Heart className="w-4 h-4" fill="white" />
-                            </motion.button>
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg shadow-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
-                            >
-                              <Share2 className="w-4 h-4" />
-                            </motion.button>
-                            <motion.button
-                              whileHover={{ scale: 1.1 }}
-                              whileTap={{ scale: 0.9 }}
-                              className="p-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg shadow-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
-                            >
-                              <Download className="w-4 h-4" />
-                            </motion.button>
-                          </div>
-                        </div>
-                      </div>
-                    </>
-                  )}
+              {sortedPosts.map((post) => (
+                <motion.div key={post.id} variants={itemVariants}>
+                  <ArtworkCard artwork={post} source="liked" />
                 </motion.div>
               ))}
             </motion.div>

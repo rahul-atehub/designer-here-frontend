@@ -1,6 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
+import socket from "@/lib/socket"; //  reuse global socket
+import axios from "axios";
+import { useLikedPosts } from "@/context/LikedPostsContext";
+import { useSavedPosts } from "@/context/SavedPostsContext";
+
 import {
   Pencil,
   Trash2,
@@ -13,168 +18,6 @@ import {
   Bookmark,
   X,
 } from "lucide-react";
-
-// Global state management for liked and saved posts
-class PostsManager {
-  constructor() {
-    this.listeners = new Set();
-    this.likedPosts = new Set();
-    this.savedPosts = new Set();
-    this.loadFromStorage();
-  }
-
-  loadFromStorage() {
-    if (typeof window !== "undefined") {
-      try {
-        const liked = JSON.parse(
-          window.localStorage.getItem("likedPosts") || "[]"
-        );
-        const saved = JSON.parse(
-          window.localStorage.getItem("savedPosts") || "[]"
-        );
-        this.likedPosts = new Set(liked);
-        this.savedPosts = new Set(saved);
-      } catch (error) {
-        console.error("Error loading posts from storage:", error);
-      }
-    }
-  }
-
-  saveToStorage() {
-    if (typeof window !== "undefined") {
-      try {
-        window.localStorage.setItem(
-          "likedPosts",
-          JSON.stringify([...this.likedPosts])
-        );
-        window.localStorage.setItem(
-          "savedPosts",
-          JSON.stringify([...this.savedPosts])
-        );
-      } catch (error) {
-        console.error("Error saving posts to storage:", error);
-      }
-    }
-  }
-
-  subscribe(callback) {
-    this.listeners.add(callback);
-    return () => this.listeners.delete(callback);
-  }
-
-  notify() {
-    this.listeners.forEach((callback) => callback());
-  }
-
-  toggleLiked(postId, postData) {
-    if (this.likedPosts.has(postId)) {
-      this.likedPosts.delete(postId);
-      // Remove from liked posts data
-      if (typeof window !== "undefined") {
-        const likedPostsData = JSON.parse(
-          window.localStorage.getItem("likedPostsData") || "[]"
-        );
-        const updatedData = likedPostsData.filter((post) => post.id !== postId);
-        window.localStorage.setItem(
-          "likedPostsData",
-          JSON.stringify(updatedData)
-        );
-      }
-    } else {
-      this.likedPosts.add(postId);
-      // Add to liked posts data
-      if (typeof window !== "undefined") {
-        const likedPostsData = JSON.parse(
-          window.localStorage.getItem("likedPostsData") || "[]"
-        );
-        const postToAdd = {
-          id: postData.id,
-          title: postData.title,
-          image: postData.image,
-          description: postData.description,
-          category: postData.category || "General",
-          author: postData.author || "Unknown Artist",
-          authorAvatar:
-            postData.authorAvatar ||
-            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face",
-          likes: postData.likes,
-          views: postData.views,
-          dateAdded: new Date().toISOString().split("T")[0],
-          tags: postData.tags || ["artwork"],
-          uploadDate: postData.uploadDate,
-        };
-        likedPostsData.push(postToAdd);
-        window.localStorage.setItem(
-          "likedPostsData",
-          JSON.stringify(likedPostsData)
-        );
-      }
-    }
-    this.saveToStorage();
-    this.notify();
-    return this.likedPosts.has(postId);
-  }
-
-  toggleSaved(postId, postData) {
-    if (this.savedPosts.has(postId)) {
-      this.savedPosts.delete(postId);
-      // Remove from saved posts data
-      if (typeof window !== "undefined") {
-        const savedPostsData = JSON.parse(
-          window.localStorage.getItem("savedPostsData") || "[]"
-        );
-        const updatedData = savedPostsData.filter((post) => post.id !== postId);
-        window.localStorage.setItem(
-          "savedPostsData",
-          JSON.stringify(updatedData)
-        );
-      }
-    } else {
-      this.savedPosts.add(postId);
-      // Add to saved posts data
-      if (typeof window !== "undefined") {
-        const savedPostsData = JSON.parse(
-          window.localStorage.getItem("savedPostsData") || "[]"
-        );
-        const postToAdd = {
-          id: postData.id,
-          title: postData.title,
-          image: postData.image,
-          description: postData.description,
-          category: postData.category || "General",
-          author: postData.author || "Unknown Artist",
-          authorAvatar:
-            postData.authorAvatar ||
-            "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=40&h=40&fit=crop&crop=face",
-          likes: postData.likes,
-          views: postData.views,
-          dateAdded: new Date().toISOString().split("T")[0],
-          tags: postData.tags || ["artwork"],
-          uploadDate: postData.uploadDate,
-        };
-        savedPostsData.push(postToAdd);
-        window.localStorage.setItem(
-          "savedPostsData",
-          JSON.stringify(savedPostsData)
-        );
-      }
-    }
-    this.saveToStorage();
-    this.notify();
-    return this.savedPosts.has(postId);
-  }
-
-  isLiked(postId) {
-    return this.likedPosts.has(postId);
-  }
-
-  isSaved(postId) {
-    return this.savedPosts.has(postId);
-  }
-}
-
-// Create global instance
-const postsManager = new PostsManager();
 
 export default function ArtworkCard({
   artwork,
@@ -198,9 +41,29 @@ export default function ArtworkCard({
   const [isHovered, setIsHovered] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
-  const [likes, setLikes] = useState(artwork?.likes ?? 89);
+  // const [isBookmarked, setIsBookmarked] = useState(false);
+  const artworkData = artwork || sampleArtwork;
+  const { savedPosts, toggleSave } = useSavedPosts();
+  const isSaved = savedPosts.some((p) => p.id === artworkData.id);
+
+  const [likes, setLikes] = useState(artwork?.likes ?? 0);
+  const { likedPosts, toggleLike } = useLikedPosts();
+  const isLiked = likedPosts.some((p) => p.id === artworkData.id);
+
+  // 🔌 Connect to WebSocket server and listen for like updates
+
+  useEffect(() => {
+    // Subscribe only to this artwork’s like updates
+    socket.on(`likes-update-${artworkData.id}`, (newCount) => {
+      setLikes(newCount);
+    });
+
+    // Clean up (unsubscribe) when component unmounts
+    return () => {
+      socket.off(`likes-update-${artworkData.id}`);
+    };
+  }, [artworkData.id]);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [, forceUpdate] = useState({});
 
@@ -228,23 +91,6 @@ export default function ArtworkCard({
     tags: ["atmospheric", "r&b", "dark"],
   };
 
-  const artworkData = artwork || sampleArtwork;
-
-  // Initialize liked and saved states from global manager
-  useEffect(() => {
-    setIsLiked(postsManager.isLiked(artworkData.id));
-    setIsBookmarked(postsManager.isSaved(artworkData.id));
-
-    // Subscribe to global state changes
-    const unsubscribe = postsManager.subscribe(() => {
-      setIsLiked(postsManager.isLiked(artworkData.id));
-      setIsBookmarked(postsManager.isSaved(artworkData.id));
-      forceUpdate({});
-    });
-
-    return unsubscribe;
-  }, [artworkData.id]);
-
   const handleToggleVisibility = () => {
     const newVisibility = !visible;
     setVisible(newVisibility);
@@ -270,32 +116,53 @@ export default function ArtworkCard({
     }
   };
 
-  const handleLike = (e) => {
+  const handleLike = async (e) => {
     e.stopPropagation();
     const wasLiked = isLiked;
 
-    // Toggle global liked state
-    const newLikedState = postsManager.toggleLiked(artworkData.id, artworkData);
-
-    // Update local likes count
+    // Optimistic UI update
     setLikes((prev) => (wasLiked ? prev - 1 : prev + 1));
 
-    // Optional: Add visual feedback
-    console.log(
-      newLikedState ? "Added to liked posts!" : "Removed from liked posts!"
-    );
+    // Update global liked posts context
+    toggleLike(artworkData);
+
+    try {
+      await axios.post(
+        `http://localhost:4000/api/posts/${artworkData.id}/like`,
+        { userId: "demoUser123" } // replace with actual user ID
+      );
+      console.log("Like saved on server");
+    } catch (err) {
+      console.error("Error liking post:", err);
+      // Rollback UI if backend fails
+      setLikes((prev) => (wasLiked ? prev + 1 : prev - 1));
+    }
   };
 
-  const handleBookmark = (e) => {
+  const handleBookmark = async (e) => {
     e.stopPropagation();
 
-    // Toggle global saved state
-    const newSavedState = postsManager.toggleSaved(artworkData.id, artworkData);
+    // Optimistic UI update
+    toggleSave(artworkData);
 
-    // Optional: Add visual feedback
-    console.log(
-      newSavedState ? "Added to saved posts!" : "Removed from saved posts!"
-    );
+    try {
+      if (isSaved) {
+        // Remove from saved posts
+        await axios.delete(
+          `http://localhost:4000/api/posts/${artworkData.id}/save`,
+          { data: { userId: "demoUser123" } } // replace with real user
+        );
+      } else {
+        // Add to saved posts
+        await axios.post(
+          `http://localhost:4000/api/posts/${artworkData.id}/save`,
+          { userId: "demoUser123" } // replace with real user
+        );
+      }
+    } catch (error) {
+      console.error("Error updating saved posts:", error);
+      toggleSave(artworkData); // revert UI
+    }
   };
 
   const handleCardClick = () => {
@@ -505,15 +372,12 @@ export default function ArtworkCard({
             <button
               onClick={handleBookmark}
               className={`p-1.5 rounded-full transition-all duration-200 hover:scale-110 ${
-                isBookmarked
+                isSaved
                   ? "text-blue-500"
                   : "text-gray-600 dark:text-gray-400 hover:text-blue-500"
               }`}
             >
-              <Bookmark
-                size={16}
-                className={isBookmarked ? "fill-current" : ""}
-              />
+              <Bookmark size={16} className={isSaved ? "fill-current" : ""} />
             </button>
           </div>
 
@@ -628,14 +492,14 @@ export default function ArtworkCard({
                   <button
                     onClick={handleBookmark}
                     className={`p-1.5 rounded-full transition-all duration-200 hover:scale-110 ${
-                      isBookmarked
+                      isSaved
                         ? "text-blue-500"
                         : "text-gray-600 dark:text-gray-400 hover:text-blue-500"
                     }`}
                   >
                     <Bookmark
                       size={16}
-                      className={isBookmarked ? "fill-current" : ""}
+                      className={isSaved ? "fill-current" : ""}
                     />
                   </button>
                 </div>
@@ -680,6 +544,3 @@ export default function ArtworkCard({
     </>
   );
 }
-
-// Export the posts manager for use in other components
-export { postsManager };

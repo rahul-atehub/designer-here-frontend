@@ -2,6 +2,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { LikedPostsProvider } from "../context/LikedPostsContext";
+import { SavedPostsProvider } from "../context/SavedPostsContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,7 +26,10 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <LikedPostsProvider>{children}</LikedPostsProvider>
+          {/* Wrap both contexts here */}
+          <LikedPostsProvider>
+            <SavedPostsProvider>{children}</SavedPostsProvider>
+          </LikedPostsProvider>
         </ThemeProvider>
       </body>
     </html>

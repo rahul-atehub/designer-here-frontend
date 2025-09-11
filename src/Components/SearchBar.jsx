@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { Search, X, ArrowUpRight } from "lucide-react";
+import axios from "axios";
 
 export default function SearchBar() {
   const [query, setQuery] = useState("");
@@ -23,7 +24,7 @@ export default function SearchBar() {
   // Recent searches (start empty, fill from API/local later)
   const [recentSearches, setRecentSearches] = useState([]);
 
-  // Debounced API call with mock data
+  // Debounced API call with Axios
   const fetchResults = debounce(async (searchTerm) => {
     if (!searchTerm.trim()) {
       setResults([]);
@@ -32,57 +33,14 @@ export default function SearchBar() {
 
     setIsSearching(true);
     try {
-      // Simulate API delay
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      const res = await axios.get("/api/search", {
+        params: { q: searchTerm }, // sends ?q=searchTerm
+      });
 
-      // Mock search results with categories
-      const mockResults = [
-        {
-          id: 1,
-          title: "React Components Best Practices",
-          category: "Tutorial",
-          type: "article",
-        },
-        {
-          id: 2,
-          title: "Advanced JavaScript Patterns",
-          category: "Guide",
-          type: "documentation",
-        },
-        {
-          id: 3,
-          title: "CSS Grid Layout Examples",
-          category: "Examples",
-          type: "code",
-        },
-        {
-          id: 4,
-          title: "Next.js API Routes Tutorial",
-          category: "Tutorial",
-          type: "video",
-        },
-        {
-          id: 5,
-          title: "TypeScript Advanced Types",
-          category: "Reference",
-          type: "article",
-        },
-        {
-          id: 6,
-          title: "Modern Web Development Tools",
-          category: "Tools",
-          type: "list",
-        },
-      ].filter(
-        (item) =>
-          item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.category.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-
-      setResults(mockResults);
+      setResults(res.data); // ✅ directly use backend response
     } catch (error) {
       console.error("Search failed:", error);
-      setResults([]);
+      setResults([]); // clear results on error
     }
     setIsSearching(false);
   }, 400);

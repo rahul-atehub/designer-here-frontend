@@ -57,7 +57,7 @@ export default function ProfileRouter() {
   if (loading) {
     return (
       <LayoutWrapper>
-        <div className="min-h-screen bg-white dark:bg-neutral-950 flex items-center justify-center">
+        <div className="min-h-[calc(100vh-124px)] sm:min-h-[calc(100vh-100px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-80px)] bg-white dark:bg-neutral-950 flex items-center justify-center">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -86,11 +86,11 @@ export default function ProfileRouter() {
   if (error) {
     return (
       <LayoutWrapper>
-        <div className="min-h-screen bg-white dark:bg-neutral-950 flex items-center justify-center p-4">
+        <div className="min-h-[calc(100vh-124px)] sm:min-h-[calc(100vh-100px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-80px)] bg-white dark:bg-neutral-950 flex items-center justify-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center max-w-md mx-auto"
+            className="text-center max-w-md mx-auto px-4"
           >
             <motion.div
               initial={{ scale: 0 }}
@@ -144,14 +144,13 @@ export default function ProfileRouter() {
     return <UserProfile />;
   } else {
     // Fallback for unknown roles
-
     return (
       <LayoutWrapper>
-        <div className="min-h-screen bg-white dark:bg-neutral-950 flex items-center justify-center p-4">
+        <div className="min-h-[calc(100vh-124px)] sm:min-h-[calc(100vh-100px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-80px)] bg-white dark:bg-neutral-950 flex items-center justify-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center max-w-md mx-auto"
+            className="text-center max-w-md mx-auto px-4"
           >
             <motion.div
               initial={{ scale: 0 }}
