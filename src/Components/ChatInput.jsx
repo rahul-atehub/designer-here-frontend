@@ -295,7 +295,8 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
         }
       }
 
-      const response = await fetch(`/messages/api/chat/${chatId}`, {
+      const endpoint = API.CHAT.MESSAGES.replace("{chatId}", chatId);
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import axios from "axios";
+import { API } from "@/config";
 import { useRouter } from "next/navigation";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import { Settings, Bookmark, Heart, User } from "lucide-react";
@@ -22,7 +23,7 @@ export default function UserProfile() {
     try {
       setLoading(true);
       // Replace with your actual API endpoint
-      const response = await axios.get("/api/user/profile", {
+      const response = await axios.get(API.USER.PROFILE, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`, // or however you handle auth
         },

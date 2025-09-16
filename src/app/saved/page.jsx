@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import axios from "axios";
+import { API } from "@/config";
 import ArtworkCard from "@/components/ui/ArtworkCard";
 
 import {
@@ -31,7 +32,8 @@ const SavedPostsPage = () => {
   useEffect(() => {
     const fetchSavedPosts = async () => {
       try {
-        const { data } = await axios.get(`/api/users/demoUser123/saved`);
+        const endpoint = API.SAVED.LIST.replace("{userId}", "demoUser123");
+        const { data } = await axios.get(endpoint);
         setSavedPosts(data); // backend returns array of saved posts
       } catch (error) {
         console.error("Error fetching saved posts:", error);
@@ -40,47 +42,6 @@ const SavedPostsPage = () => {
 
     fetchSavedPosts();
   }, []);
-
-  // useEffect(() => {
-  //   const loadSavedPosts = () => {
-  //     if (typeof window !== "undefined") {
-  //       try {
-  //         const savedPostsData = JSON.parse(
-  //           window.localStorage.getItem("savedPostsData") || "[]"
-  //         );
-  //         const likedPosts = JSON.parse(
-  //           window.localStorage.getItem("likedPosts") || "[]"
-  //         );
-  //         setSavedPosts(savedPostsData);
-  //         setLikedPostsSet(new Set(likedPosts));
-  //       } catch (error) {
-  //         console.error("Error loading saved posts:", error);
-  //         setSavedPosts([]);
-  //         setLikedPostsSet(new Set());
-  //       }
-  //     }
-  //   };
-
-  //   // Initial load
-  //   loadSavedPosts();
-
-  //   // Listen for storage changes (when posts are added/removed from other components)
-  //   const handleStorageChange = () => {
-  //     loadSavedPosts();
-  //   };
-
-  //   window.addEventListener("storage", handleStorageChange);
-
-  //   // Custom event listener for real-time updates within the same tab
-  //   window.addEventListener("savedPostsUpdated", handleStorageChange);
-  //   window.addEventListener("likedPostsUpdated", handleStorageChange);
-
-  //   return () => {
-  //     window.removeEventListener("storage", handleStorageChange);
-  //     window.removeEventListener("savedPostsUpdated", handleStorageChange);
-  //     window.removeEventListener("likedPostsUpdated", handleStorageChange);
-  //   };
-  // }, []);
 
   // Get unique categories from saved posts
   const categories = [
@@ -136,110 +97,37 @@ const SavedPostsPage = () => {
     },
   };
 
-  // const handleRemoveSaved = (postId) => {
-  //   // Remove from localStorage
-  //   if (typeof window !== "undefined") {
-  //     try {
-  //       const savedPostsData = JSON.parse(
-  //         window.localStorage.getItem("savedPostsData") || "[]"
-  //       );
-  //       const updatedData = savedPostsData.filter((post) => post.id !== postId);
-  //       window.localStorage.setItem(
-  //         "savedPostsData",
-  //         JSON.stringify(updatedData)
-  //       );
-
-  //       // Update saved posts set
-  //       const savedPosts = JSON.parse(
-  //         window.localStorage.getItem("savedPosts") || "[]"
-  //       );
-  //       const updatedSavedPosts = savedPosts.filter((id) => id !== postId);
-  //       window.localStorage.setItem(
-  //         "savedPosts",
-  //         JSON.stringify(updatedSavedPosts)
-  //       );
-
-  //       // Trigger custom event for real-time updates
-  //       window.dispatchEvent(new CustomEvent("savedPostsUpdated"));
-
-  //       setSavedPosts(updatedData);
-  //     } catch (error) {
-  //       console.error("Error removing saved post:", error);
-  //     }
-  //   }
-  // };
-
   const handleRemoveSaved = async (postId) => {
     try {
-      await axios.delete(`/api/users/demoUser123/save/${postId}`);
+      const endpoint = API.SAVED.SAVE_POST.replace(
+        "{userId}",
+        "demoUser123"
+      ).replace("{postId}", postId);
+      await axios.delete(endpoint);
       setSavedPosts((prev) => prev.filter((post) => post.id !== postId));
     } catch (error) {
       console.error("Error removing saved post:", error);
     }
   };
 
-  // const handleLikeFromSaved = (postId) => {
-  //   // Toggle like status in localStorage
-  //   const postData = savedPosts.find((post) => post.id === postId);
-  //   if (postData) {
-  //     const currentLikedPosts = JSON.parse(
-  //       window.localStorage.getItem("likedPosts") || "[]"
-  //     );
-  //     const isCurrentlyLiked = currentLikedPosts.includes(postId);
-
-  //     let updatedLikedPosts;
-  //     if (isCurrentlyLiked) {
-  //       // Remove from liked
-  //       updatedLikedPosts = currentLikedPosts.filter((id) => id !== postId);
-  //       // Remove from liked posts data
-  //       const likedPostsData = JSON.parse(
-  //         window.localStorage.getItem("likedPostsData") || "[]"
-  //       );
-  //       const updatedLikedData = likedPostsData.filter(
-  //         (post) => post.id !== postId
-  //       );
-  //       window.localStorage.setItem(
-  //         "likedPostsData",
-  //         JSON.stringify(updatedLikedData)
-  //       );
-  //     } else {
-  //       // Add to liked
-  //       updatedLikedPosts = [...currentLikedPosts, postId];
-  //       // Add to liked posts data
-  //       const likedPostsData = JSON.parse(
-  //         window.localStorage.getItem("likedPostsData") || "[]"
-  //       );
-  //       likedPostsData.push(postData);
-  //       window.localStorage.setItem(
-  //         "likedPostsData",
-  //         JSON.stringify(likedPostsData)
-  //       );
-  //     }
-
-  //     window.localStorage.setItem(
-  //       "likedPosts",
-  //       JSON.stringify(updatedLikedPosts)
-  //     );
-  //     setLikedPostsSet(new Set(updatedLikedPosts));
-
-  //     // Trigger custom events for real-time updates
-  //     window.dispatchEvent(new CustomEvent("likedPostsUpdated"));
-  //   }
-  // };
-
   const handleLikeFromSaved = async (postId) => {
     try {
       const isLiked = likedPostsSet.has(postId);
 
       if (isLiked) {
-        await axios.delete(`/api/users/demoUser123/likes/${postId}`);
+        const endpoint = API.LIKES.LIKE_POST.replace(
+          "{userId}",
+          "demoUser123"
+        ).replace("{postId}", postId);
+        await axios.delete(endpoint);
         setLikedPostsSet((prev) => {
           const newSet = new Set(prev);
           newSet.delete(postId);
           return newSet;
         });
       } else {
-        await axios.post(`/api/users/demoUser123/likes`, { postId });
+        const endpoint = API.LIKES.ADD_LIKE.replace("{userId}", "demoUser123");
+        await axios.post(endpoint, { postId });
         setLikedPostsSet((prev) => new Set(prev).add(postId));
       }
     } catch (error) {
@@ -249,7 +137,7 @@ const SavedPostsPage = () => {
 
   return (
     <LayoutWrapper>
-      <div className="min-h-screen dark:bg-gray-800 transition-colors duration-300">
+      <div className="min-h-[calc(100vh-124px)] sm:min-h-[calc(100vh-100px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-80px)] dark:bg-gray-800 transition-colors duration-300">
         {/* Header Section */}
         <motion.div
           className="relative overflow-hidden bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700"

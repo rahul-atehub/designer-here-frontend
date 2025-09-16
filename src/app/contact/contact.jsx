@@ -6,7 +6,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import Footer from "@/Components/Footer";
 import axios from "axios";
-import { API } from "@/config";
 
 export default function Home() {
   // Existing contact form state
@@ -171,12 +170,16 @@ export default function Home() {
         formPayload.append("attachments", att.file);
       });
 
-      const response = await axios.post(API.CONTACT, formPayload, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-        withCredentials: true,
-      });
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/contact`,
+        formPayload,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          withCredentials: true,
+        }
+      );
 
       console.log("Response from backend:", response.data);
 
@@ -209,7 +212,7 @@ export default function Home() {
     // API call for email service
     try {
       const response = await axios.post(
-        API.EMAIL,
+        "/api/send-email",
         {
           name: emailFormData.name,
           email: emailFormData.email,
@@ -1109,7 +1112,7 @@ export default function Home() {
 
             {/* NEW EMAIL SERVICE SECTION */}
             <motion.div
-              className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl my-14 border border-white/20 dark:border-neutral-700/30 rounded-3xl shadow-2xl shadow-blue-500/10 max-w-4xl w-full overflow-hidden"
+              className="bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-white/20 dark:border-neutral-700/30 rounded-3xl shadow-2xl shadow-blue-500/10 max-w-4xl w-full overflow-hidden"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8, duration: 0.8, ease: "easeOut" }}
@@ -1125,7 +1128,7 @@ export default function Home() {
                 >
                   <motion.div className="flex items-center justify-center gap-3 mb-4">
                     <motion.div
-                      className="w-12 h-12 bg-gradient-to-r from-[#EF4444] to-orange-500 rounded-xl flex items-center justify-center"
+                      className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center"
                       whileHover={{ rotate: 5, scale: 1.1 }}
                       transition={{ duration: 0.3 }}
                     >
@@ -1143,7 +1146,7 @@ export default function Home() {
                         />
                       </svg>
                     </motion.div>
-                    <span className="text-2xl font-bold bg-gradient-to-r from-[#EF4444] to-orange-500 bg-clip-text text-transparent">
+                    <span className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
                       Email Service
                     </span>
                   </motion.div>
@@ -1205,7 +1208,7 @@ export default function Home() {
                       placeholder="Your name"
                       className={`w-full px-4 py-4 bg-gray-50/50 dark:bg-neutral-800/50 border-2 rounded-xl focus:outline-none transition-all duration-300 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 backdrop-blur-sm ${
                         emailFocusedField === "name"
-                          ? "border-red-500 shadow-lg shadow-red-500/20 bg-white dark:bg-neutral-800"
+                          ? "border-blue-500 shadow-lg shadow-blue-500/20 bg-white dark:bg-neutral-800"
                           : emailErrors.name
                           ? "border-red-400"
                           : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600"
@@ -1253,7 +1256,7 @@ export default function Home() {
                       placeholder="Your email address"
                       className={`w-full px-4 py-4 bg-gray-50/50 dark:bg-neutral-800/50 border-2 rounded-xl focus:outline-none transition-all duration-300 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 backdrop-blur-sm ${
                         emailFocusedField === "email"
-                          ? "border-red-500 shadow-lg shadow-red-500/20 bg-white dark:bg-neutral-800"
+                          ? "border-blue-500 shadow-lg shadow-blue-500/20 bg-white dark:bg-neutral-800"
                           : emailErrors.email
                           ? "border-red-400"
                           : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600"
@@ -1301,7 +1304,7 @@ export default function Home() {
                       rows="4"
                       className={`w-full px-4 py-4 bg-gray-50/50 dark:bg-neutral-800/50 border-2 rounded-xl focus:outline-none transition-all duration-300 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 resize-none backdrop-blur-sm ${
                         emailFocusedField === "message"
-                          ? "border-red-500 shadow-lg shadow-red-500/20 bg-white dark:bg-neutral-800"
+                          ? "border-blue-500 shadow-lg shadow-blue-500/20 bg-white dark:bg-neutral-800"
                           : emailErrors.message
                           ? "border-red-400"
                           : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600"
@@ -1342,8 +1345,8 @@ export default function Home() {
                       whileHover={{ scale: isEmailSubmitting ? 1 : 1.05 }}
                       whileTap={{ scale: isEmailSubmitting ? 1 : 0.95 }}
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 group-hover:from-red-600 group-hover:to-orange-600 transition-all duration-300" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-500 group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300" />
+                      <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       <motion.div
                         className="relative flex items-center gap-2"
                         animate={

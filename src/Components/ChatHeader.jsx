@@ -15,9 +15,11 @@ export default function ChatHeader({
     const fetchParticipant = async () => {
       try {
         setLoading(true);
-        const response = await fetch(
-          `/messages/api/chat/${chatId}?viewerType=${viewerType}`
-        );
+        const endpoint = API.CHAT.MESSAGES_VIEWER.replace(
+          "{chatId}",
+          chatId
+        ).replace("{viewerType}", viewerType);
+        const response = await fetch(endpoint);
         const data = await response.json();
 
         if (data.participant) {

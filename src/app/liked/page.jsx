@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import ArtworkCard from "@/components/ui/ArtworkCard";
 import axios from "axios";
+import { API } from "@/config";
 
 import {
   Heart,
@@ -27,7 +28,7 @@ const LikedPostsPage = () => {
   useEffect(() => {
     const fetchLikedPosts = async () => {
       try {
-        const res = await axios.get("/api/likes", {
+        const res = await axios.get(API.LIKES.LIST, {
           params: { userId: "demoUser123" }, // later: replace with real user
         });
         setLikedPosts(res.data);
@@ -93,7 +94,7 @@ const LikedPostsPage = () => {
 
   return (
     <LayoutWrapper>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
+      <div className="min-h-[calc(100vh-124px)] sm:min-h-[calc(100vh-100px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-80px)] bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
         {/* Header Section */}
         <motion.div
           className="relative overflow-hidden bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700"

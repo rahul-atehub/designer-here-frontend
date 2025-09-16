@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
+import { API } from "@/config";
 import Head from "next/head";
 
 export default function AdminSettings() {
@@ -49,7 +50,7 @@ export default function AdminSettings() {
   const fetchUserData = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get("/api/admin/profile", {
+      const response = await axios.get(API.ADMIN.PROFILE, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
         },
@@ -71,7 +72,7 @@ export default function AdminSettings() {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get("/api/admin/users", {
+      const response = await axios.get(API.ADMIN.USERS, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
         },
@@ -123,7 +124,7 @@ export default function AdminSettings() {
         formData.append("profilePicture", profile.profilePicture);
       }
 
-      await axios.put("/api/admin/profile", formData, {
+      await axios.put(API.ADMIN.PROFILE, formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           "Content-Type": "multipart/form-data",
@@ -148,7 +149,7 @@ export default function AdminSettings() {
     try {
       setIsSaving(true);
       await axios.put(
-        "/api/admin/change-password",
+        API.ADMIN.CHANGE_PASSWORD,
         {
           oldPassword: passwordData.oldPassword,
           newPassword: passwordData.newPassword,
@@ -182,7 +183,7 @@ export default function AdminSettings() {
 
     try {
       setIsSaving(true);
-      await axios.delete("/api/admin/delete-account", {
+      await axios.delete(API.ADMIN.DELETE_ACCOUNT, {
         data: { password: deleteData.password },
         headers: {
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
@@ -202,7 +203,7 @@ export default function AdminSettings() {
   const blockUser = async (userId) => {
     try {
       await axios.post(
-        "/api/admin/block-user",
+        API.ADMIN.BLOCK_USER,
         { userId },
         {
           headers: {
@@ -221,7 +222,7 @@ export default function AdminSettings() {
   const unblockUser = async (userId) => {
     try {
       await axios.post(
-        "/api/admin/unblock-user",
+        API.ADMIN.UNBLOCK_USER,
         { userId },
         {
           headers: {

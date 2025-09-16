@@ -21,9 +21,11 @@ class PostsManager {
 
   async syncWithBackend(userId) {
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/user/${userId}/state`
+      const endpoint = process.env.NEXT_PUBLIC_USER_STATE_ENDPOINT.replace(
+        "{userId}",
+        userId
       );
+      const res = await fetch(endpoint);
       const data = await res.json();
 
       this.likedPosts = new Set(data.likedPosts || []);

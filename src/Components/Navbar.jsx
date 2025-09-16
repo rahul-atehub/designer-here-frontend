@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SearchBar from "../Components/SearchBar";
 import { ThemeToggle } from "../components/ui/theme.toggle";
+import UserCard from "./UserCard";
 import {
   User,
   Menu,
@@ -377,20 +378,7 @@ export default function Navbar() {
 
           {/* Enhanced Bottom Section */}
           <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-            <div className="flex items-center space-x-4 p-4 rounded-xl bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700/50 border border-gray-200 dark:border-gray-700 transition-all duration-200 group cursor-pointer">
-              <div className="w-12 h-12 bg-gradient-to-r from-[#EF4444] to-[#F97316] rounded-full flex items-center justify-center shadow-lg">
-                <User className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-black dark:text-white truncate group-hover:text-[#EF4444] transition-colors duration-200">
-                  John Doe
-                </p>
-                <p className="text-xs text-gray-500 dark:text-neutral-400 truncate">
-                  john@example.com
-                </p>
-              </div>
-              <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-[#EF4444] transition-colors duration-200" />
-            </div>
+            <UserCard />
           </div>
         </div>
       </div>

@@ -10,21 +10,14 @@ import {
   AnimatePresence,
 } from "framer-motion";
 import {
-  Filter,
-  Calendar,
   Heart,
-  Plus,
   Grid,
   List,
   Search,
-  SlidersHorizontal,
   X,
   Eye,
-  Download,
   Layers,
-  Palette,
   Zap,
-  Sparkles,
   MousePointer,
   Pen,
   Loader2,
@@ -38,21 +31,28 @@ const GraphicDesignPortfolio = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [artworks, setArtworks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showFilters, setShowFilters] = useState(false);
 
   // Admin mode detection
-  const [isAdminMode, setIsAdminMode] = useState(() => {
-    if (typeof window !== "undefined") {
-      const urlParams = new URLSearchParams(window.location.search);
-      return urlParams.has("admin") && urlParams.get("admin") === "true";
-    }
-    return false;
-  });
+  const [isAdminMode, setIsAdminMode] = useState(false);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_API_URL}/auth/me`,
+          { withCredentials: true } // 👈 sends HttpOnly cookie to backend
+        );
+        setIsAdminMode(res.data.role === "admin"); // ✅ secure check
+      } catch (err) {
+        setIsAdminMode(false); // not logged in or not admin
+      }
+    };
+
+    checkAdmin();
+  }, []);
 
   const containerRef = useRef(null);
   const { scrollY } = useScroll();
-  const headerY = useTransform(scrollY, [0, 100], [0, -50]);
-  const headerOpacity = useTransform(scrollY, [0, 100], [1, 0.95]);
   const parallaxY = useTransform(scrollY, [0, 500], [0, -100]);
 
   // Categories for filtering
@@ -149,10 +149,10 @@ const GraphicDesignPortfolio = () => {
         break;
       case "most-liked":
       case "popular":
-        filtered.sort((a, b) => (b.likes || 0) - (a.likes || 0));
+        filtered.sort((a, b) => (b.Years || 0) - (a.Years || 0));
         break;
       case "most-viewed":
-        filtered.sort((a, b) => (b.views || 0) - (a.views || 0));
+        filtered.sort((a, b) => (b.HappyClients || 0) - (a.HappyClients || 0));
         break;
       case "alphabetical":
         filtered.sort((a, b) => a.title?.localeCompare(b.title));
@@ -165,15 +165,9 @@ const GraphicDesignPortfolio = () => {
   }, [artworks, filterBy, sortBy, searchQuery]);
 
   const totalStats = {
-    totalViews: artworks.reduce(
-      (sum, artwork) => sum + (artwork.views || 0),
-      0
-    ),
-    totalLikes: artworks.reduce(
-      (sum, artwork) => sum + (artwork.likes || 0),
-      0
-    ),
-    totalProjects: artworks.length,
+    totalProjects: 500,
+    totalHappyClients: 150,
+    totalYears: 5,
   };
 
   // Early access email subscription component
@@ -412,10 +406,10 @@ const GraphicDesignPortfolio = () => {
                     transition={{ delay: 0.7, type: "spring" }}
                     className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white"
                   >
-                    {Math.round(totalStats.totalViews / 1000)}K+
+                    {totalStats.totalHappyClients}+
                   </motion.div>
                   <div className="text-sm font-medium text-gray-600 dark:text-neutral-400 mt-1">
-                    Views
+                    Happy Clients
                   </div>
                 </div>
                 <div className="text-center">
@@ -425,10 +419,10 @@ const GraphicDesignPortfolio = () => {
                     transition={{ delay: 0.9, type: "spring" }}
                     className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white"
                   >
-                    {Math.round(totalStats.totalLikes / 1000)}K+
+                    {totalStats.totalYears}+
                   </motion.div>
                   <div className="text-sm font-medium text-gray-600 dark:text-neutral-400 mt-1">
-                    Likes
+                    Years
                   </div>
                 </div>
               </div>
@@ -616,16 +610,19 @@ const GraphicDesignPortfolio = () => {
                 <div className="flex items-center gap-2">
                   <Eye size={16} />
                   {filteredArtworks
-                    .reduce((sum, artwork) => sum + (artwork.views || 0), 0)
+                    .reduce(
+                      (sum, artwork) => sum + (artwork.HappyClients || 0),
+                      0
+                    )
                     .toLocaleString()}{" "}
-                  views
+                  Happy Clients
                 </div>
                 <div className="flex items-center gap-2">
                   <Heart size={16} />
                   {filteredArtworks
-                    .reduce((sum, artwork) => sum + (artwork.likes || 0), 0)
+                    .reduce((sum, artwork) => sum + (artwork.Years || 0), 0)
                     .toLocaleString()}{" "}
-                  likes
+                  Years
                 </div>
               </div>
             </div>

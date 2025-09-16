@@ -397,7 +397,7 @@ export default function ContactCTA() {
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
                 >
-                  Join 500+ satisfied clients
+                  Join 150+ satisfied clients
                 </motion.p>
                 <motion.p
                   className="text-xs opacity-80 mt-1"
@@ -408,15 +408,6 @@ export default function ContactCTA() {
                   Ready to transform your vision into reality
                 </motion.p>
               </div>
-            </motion.div>
-
-            {/* Floating Action Button */}
-            <motion.div
-              className="absolute top-4 right-4 w-12 h-12 bg-white/90 dark:bg-black/80 rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100 z-30"
-              whileHover={{ scale: 1.1, rotate: 15 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <ArrowRight size={20} className="text-red-500" />
             </motion.div>
           </motion.div>
         </motion.div>

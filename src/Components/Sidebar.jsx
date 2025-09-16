@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ThemeToggle } from "../components/ui/theme.toggle";
 import { Settings, User, MessageSquare, X, Heart, Save } from "lucide-react";
+import UserCard from "./UserCard";
 
 const Sidebar = ({ isOpen, onToggle }) => {
   return (
@@ -58,22 +59,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
 
         {/* Bottom Section */}
         <div className="p-4 border-t border-gray-200/50 dark:border-gray-700/50">
-          <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/80 dark:bg-gray-800/80 hover:bg-white dark:hover:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 transition">
-            <div className="relative">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-#EF4444 rounded-full flex items-center justify-center shadow-sm">
-                <User className="w-4 h-4 text-white" />
-              </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-800 rounded-full"></div>
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-black dark:text-white truncate">
-                John Doe
-              </p>
-              <p className="text-xs text-gray-500 dark:text-neutral-400 truncate">
-                john@example.com
-              </p>
-            </div>
-          </div>
+          <UserCard />
         </div>
       </div>
 

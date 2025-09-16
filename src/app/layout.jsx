@@ -3,6 +3,7 @@ import "./globals.css";
 import { ThemeProvider } from "next-themes";
 import { LikedPostsProvider } from "../context/LikedPostsContext";
 import { SavedPostsProvider } from "../context/SavedPostsContext";
+import { UserProvider } from "../context/UserContext"; // ✅ import UserProvider
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,10 +27,12 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {/* Wrap both contexts here */}
-          <LikedPostsProvider>
-            <SavedPostsProvider>{children}</SavedPostsProvider>
-          </LikedPostsProvider>
+          {/* Wrap all contexts including UserProvider */}
+          <UserProvider>
+            <LikedPostsProvider>
+              <SavedPostsProvider>{children}</SavedPostsProvider>
+            </LikedPostsProvider>
+          </UserProvider>
         </ThemeProvider>
       </body>
     </html>

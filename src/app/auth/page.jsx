@@ -105,7 +105,7 @@ const AuthPage = () => {
 
   return (
     <LayoutWrapper>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-violet-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 transition-all duration-500 relative overflow-hidden">
+      <div className="in-h-[calc(100vh-124px)] sm:min-h-[calc(100vh-100px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-80px)] bg-gradient-to-br from-blue-50 via-white to-violet-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 transition-all duration-500 relative overflow-hidden">
         {/* Animated Background Shapes */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {floatingShapes.map((shape, i) => (
@@ -123,7 +123,7 @@ const AuthPage = () => {
           <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-r from-violet-400 to-pink-600 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse animation-delay-2000"></div>
         </div>
 
-        <div className="flex items-center justify-center min-h-screen p-4">
+        <div className="flex items-center justify-center in-h-[calc(100vh-124px)] sm:min-h-[calc(100vh-100px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-80px)] p-4">
           <motion.div
             variants={containerVariants}
             initial="hidden"
@@ -137,38 +137,6 @@ const AuthPage = () => {
             >
               {/* Card Background Effect */}
               <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent dark:from-white/5 pointer-events-none"></div>
-
-              {/* Toggle Buttons */}
-              <div className="flex bg-gray-100 dark:bg-gray-800/50 rounded-2xl p-1 mb-8 relative">
-                <motion.div
-                  className="absolute top-1 bottom-1 bg-white dark:bg-gray-700 rounded-xl shadow-md"
-                  animate={{
-                    left: isLogin ? "4px" : "50%",
-                    width: "calc(50% - 4px)",
-                  }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                />
-                <button
-                  onClick={() => setIsLogin(true)}
-                  className={`flex-1 py-3 text-center font-semibold rounded-xl transition-colors relative z-10 ${
-                    isLogin
-                      ? "text-gray-900 dark:text-white"
-                      : "text-gray-500 dark:text-gray-400"
-                  }`}
-                >
-                  Login
-                </button>
-                <button
-                  onClick={() => setIsLogin(false)}
-                  className={`flex-1 py-3 text-center font-semibold rounded-xl transition-colors relative z-10 ${
-                    !isLogin
-                      ? "text-gray-900 dark:text-white"
-                      : "text-gray-500 dark:text-gray-400"
-                  }`}
-                >
-                  Sign Up
-                </button>
-              </div>
 
               {/* Form */}
               <AnimatePresence mode="wait">
@@ -285,12 +253,12 @@ const AuthPage = () => {
                   </div>
 
                   {/* Social Buttons */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="flex  justify-center">
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
                       type="button"
-                      className="flex items-center justify-center py-3 px-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 text-gray-700 dark:text-gray-300 font-medium"
+                      className="flex items-center justify-center py-3 px-20 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 text-gray-700 dark:text-gray-300 font-medium"
                     >
                       <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
                         <path
@@ -311,22 +279,6 @@ const AuthPage = () => {
                         />
                       </svg>
                       Google
-                    </motion.button>
-
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      type="button"
-                      className="flex items-center justify-center py-3 px-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 text-gray-700 dark:text-gray-300 font-medium"
-                    >
-                      <svg
-                        className="w-5 h-5 mr-2"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.174-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.663.967-2.911 2.168-2.911 1.024 0 1.518.769 1.518 1.688 0 1.029-.653 2.567-.992 3.992-.285 1.193.6 2.165 1.775 2.165 2.128 0 3.768-2.245 3.768-5.487 0-2.861-2.063-4.869-5.008-4.869-3.41 0-5.409 2.562-5.409 5.199 0 1.033.394 2.143.889 2.75.097.118.11.219.081.338-.089.375-.293 1.199-.334 1.363-.053.225-.172.271-.402.162-1.499-.698-2.436-2.888-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.357-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24.009 12.017 24.009c6.624 0 11.99-5.367 11.99-11.987C24.007 5.367 18.641.001.012.001z" />
-                      </svg>
-                      Pinterest
                     </motion.button>
                   </div>
                 </motion.form>

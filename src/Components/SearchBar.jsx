@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, X, ArrowUpRight } from "lucide-react";
 import axios from "axios";
+import { API } from "@/config";
 
 export default function SearchBar() {
   const [query, setQuery] = useState("");
@@ -33,7 +34,7 @@ export default function SearchBar() {
 
     setIsSearching(true);
     try {
-      const res = await axios.get("/api/search", {
+      const res = await axios.get(API.SEARCH, {
         params: { q: searchTerm }, // sends ?q=searchTerm
       });
 
