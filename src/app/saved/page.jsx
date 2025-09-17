@@ -296,18 +296,6 @@ const SavedPostsPage = () => {
             </motion.div>
           )}
         </motion.div>
-
-        {/* Floating Action for Mobile */}
-        <motion.button
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.8 }}
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className="fixed bottom-6 right-6 lg:hidden w-14 h-14 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-full shadow-lg flex items-center justify-center"
-        >
-          <Search className="w-6 h-6" />
-        </motion.button>
       </div>
     </LayoutWrapper>
   );

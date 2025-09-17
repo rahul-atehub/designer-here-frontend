@@ -297,7 +297,7 @@ const AuthPage = () => {
                 onClick={() => setIsLogin(!isLogin)}
                 className="text-[#EF4444] hover:text-red-600 font-semibold transition-colors"
               >
-                {isLogin ? "Sign up" : "Sign in"}
+                {isLogin ? "Sign up" : "Log in"}
               </button>
             </motion.p>
           </motion.div>

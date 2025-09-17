@@ -43,15 +43,17 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Close mobile menu when clicking outside
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (isMobileMenuOpen && !event.target.closest(".mobile-menu-container")) {
-        setIsMobileMenuOpen(false);
-      }
+    if (isMobileMenuOpen) {
+      document.body.classList.add("no-scroll");
+    } else {
+      document.body.classList.remove("no-scroll");
+    }
+
+    // Cleanup in case component unmounts
+    return () => {
+      document.body.classList.remove("no-scroll");
     };
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
   }, [isMobileMenuOpen]);
 
   // Sidebar-style items for mobile menu (grouped)
@@ -175,7 +177,7 @@ export default function Navbar() {
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
                     className="flex items-center space-x-2 p-2 text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
                   >
-                    <div className="w-8 h-8 bg-gradient-to-r from-[#EF4444] to-[#F97316] rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-gradient-to-br from-[#EF4444] to-[#F97316] rounded-full flex items-center justify-center">
                       <User size={16} className="text-white" />
                     </div>
                     <ChevronDown

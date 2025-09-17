@@ -133,6 +133,12 @@
   }
 }
 
+/* Prevent body scrolling when menu is open */
+body.no-scroll {
+  overflow: hidden;
+  height: 100%;
+}
+
 /* THIN, subtle scrollbar (shows faintly on hover) */
 @layer utilities {
   .scrollbar-thin-invisible {
