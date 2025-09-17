@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useContext, useState, useEffect } from "react";
-import postsManager from "../lib/postManager";
+import postsManager from "@/lib/postManager";
 
 const LikedPostsContext = createContext();
 

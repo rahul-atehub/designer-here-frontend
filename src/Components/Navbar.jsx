@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import SearchBar from "../Components/SearchBar";
-import { ThemeToggle } from "../components/ui/theme.toggle";
+import SearchBar from "@/Components/SearchBar";
+import { ThemeToggle } from "@/components/ui/theme.toggle";
 import UserCard from "./UserCard";
 import {
   User,

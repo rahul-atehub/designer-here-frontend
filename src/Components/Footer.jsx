@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 
 import { useState } from "react";
-import Modal from "../components/ui/modal";
+import Modal from "@/components/ui/modal";
 import PrivacyPolicyContent from "@/components/ui/PrivacyPolicyContent";
 import TermsOfServiceContent from "@/components/ui/TermsOfServiceContent";
 import {

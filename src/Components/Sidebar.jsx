@@ -2,7 +2,7 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ThemeToggle } from "../components/ui/theme.toggle";
+import { ThemeToggle } from "@/components/ui/theme.toggle";
 import { Settings, User, MessageSquare, X, Heart, Save } from "lucide-react";
 import UserCard from "./UserCard";
 

@@ -1,9 +1,9 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
-import { LikedPostsProvider } from "../context/LikedPostsContext";
-import { SavedPostsProvider } from "../context/SavedPostsContext";
-import { UserProvider } from "../context/UserContext"; // ✅ import UserProvider
+import { LikedPostsProvider } from "@/context/LikedPostsContext";
+import { SavedPostsProvider } from "@/context/SavedPostsContext";
+import { UserProvider } from "@/context/UserContext"; // ✅ import UserProvider
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
