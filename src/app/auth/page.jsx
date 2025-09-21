@@ -1,24 +1,12 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, User, Palette, Sparkles } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import ModeHandler from "./ModeHandler";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 
 const AuthPage = () => {
-  const searchParams = useSearchParams();
-  const mode = searchParams.get("mode"); // 'login' or 'signup'
-
   const [isLogin, setIsLogin] = useState(true);
-
-  // Set default when URL changes
-  useEffect(() => {
-    if (mode === "signup") {
-      setIsLogin(false);
-    } else {
-      setIsLogin(true);
-    }
-  }, [mode]);
 
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -105,6 +93,9 @@ const AuthPage = () => {
 
   return (
     <LayoutWrapper>
+      <Suspense fallback={null}>
+        <ModeHandler setIsLogin={setIsLogin} />
+      </Suspense>
       <div className="in-h-[calc(100vh-124px)] sm:min-h-[calc(100vh-100px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-80px)] bg-gradient-to-br from-blue-50 via-white to-violet-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950 transition-all duration-500 relative overflow-hidden">
         {/* Animated Background Shapes */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
