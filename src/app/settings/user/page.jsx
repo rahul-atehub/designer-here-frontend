@@ -41,7 +41,7 @@ export default function UserSettings() {
   const fetchUserData = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get("/api/user/profile", {
+      const response = await axios.get(API.USER.PROFILE, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
         },
@@ -101,7 +101,7 @@ export default function UserSettings() {
         formData.append("profilePicture", profile.profilePicture);
       }
 
-      await axios.put("/api/user/profile", formData, {
+      await axios.put(API.USER.PROFILE, formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           "Content-Type": "multipart/form-data",
@@ -126,7 +126,7 @@ export default function UserSettings() {
     try {
       setIsSaving(true);
       await axios.put(
-        "/api/user/change-password",
+        API.USER.CHANGE_PASSWORD,
         {
           oldPassword: passwordData.oldPassword,
           newPassword: passwordData.newPassword,
@@ -160,7 +160,7 @@ export default function UserSettings() {
 
     try {
       setIsSaving(true);
-      await axios.delete("/api/user/delete-account", {
+      await axios.delete(API.USER.DELETE_ACCOUNT, {
         data: { password: deleteData.password },
         headers: {
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,

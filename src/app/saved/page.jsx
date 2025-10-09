@@ -32,9 +32,9 @@ const SavedPostsPage = () => {
   useEffect(() => {
     const fetchSavedPosts = async () => {
       try {
-        const endpoint = API.SAVED.LIST.replace("{userId}", "demoUser123");
-        const { data } = await axios.get(endpoint);
-        setSavedPosts(data); // backend returns array of saved posts
+        const endpoint = API.SAVED.LIST; // "/api/saved/user"
+        const { data } = await axios.get(endpoint); // backend knows current user
+        setSavedPosts(data);
       } catch (error) {
         console.error("Error fetching saved posts:", error);
       }
@@ -96,38 +96,30 @@ const SavedPostsPage = () => {
       },
     },
   };
-
   const handleRemoveSaved = async (postId) => {
     try {
-      const endpoint = API.SAVED.SAVE_POST.replace(
-        "{userId}",
-        "demoUser123"
-      ).replace("{postId}", postId);
-      await axios.delete(endpoint);
+      const endpoint = API.SAVED.SAVE_POST; // "/api/saved"
+      await axios.delete(endpoint, { data: { postId } }); // postId in body
       setSavedPosts((prev) => prev.filter((post) => post.id !== postId));
     } catch (error) {
       console.error("Error removing saved post:", error);
     }
   };
-
   const handleLikeFromSaved = async (postId) => {
     try {
       const isLiked = likedPostsSet.has(postId);
 
       if (isLiked) {
-        const endpoint = API.LIKES.LIKE_POST.replace(
-          "{userId}",
-          "demoUser123"
-        ).replace("{postId}", postId);
-        await axios.delete(endpoint);
+        // DELETE like for current user
+        await axios.delete(API.LIKES.LIKE_POST, { data: { postId } });
         setLikedPostsSet((prev) => {
           const newSet = new Set(prev);
           newSet.delete(postId);
           return newSet;
         });
       } else {
-        const endpoint = API.LIKES.ADD_LIKE.replace("{userId}", "demoUser123");
-        await axios.post(endpoint, { postId });
+        // ADD like for current user
+        await axios.post(API.LIKES.ADD_LIKE, { postId });
         setLikedPostsSet((prev) => new Set(prev).add(postId));
       }
     } catch (error) {

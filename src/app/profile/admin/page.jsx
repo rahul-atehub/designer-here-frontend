@@ -39,11 +39,12 @@ export default function AdminProfile() {
     try {
       setLoading(true);
       // Replace with your actual API endpoint
-      const response = await axios.get("/api/admin/profile", {
+      const response = await axios.get(API.ADMIN.PROFILE, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
+
       setUser(response.data);
     } catch (error) {
       console.error("Error fetching admin profile:", error);
@@ -123,7 +124,7 @@ export default function AdminProfile() {
       formData.append("uploadedBy", user.id);
 
       // Upload artwork - replace with your actual API endpoint
-      const response = await axios.post("/api/admin/upload-artwork", formData, {
+      const response = await axios.post(API.PORTFOLIO.UPLOAD, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${localStorage.getItem("token")}`,

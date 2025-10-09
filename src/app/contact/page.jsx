@@ -170,8 +170,7 @@ export default function Home() {
       attachments.forEach((att) => {
         formPayload.append("attachments", att.file);
       });
-
-      const response = await axios.post(API.CONTACT, formPayload, {
+      const response = await axios.post(API.MESSAGES, formPayload, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

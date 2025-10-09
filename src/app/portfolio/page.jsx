@@ -3,6 +3,9 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import Footer from "@/Components/Footer";
 import ArtworkCard from "@/components/ui/ArtworkCard";
+import { API } from "@/config"; // ✅ add this at the top
+import axios from "axios"; // keep this if still using axios for auth/me
+
 import {
   motion,
   useScroll,
@@ -82,26 +85,20 @@ const GraphicDesignPortfolio = () => {
 
   // Fetch artworks from backend
   useEffect(() => {
-    const fetchArtworks = async () => {
+    const fetchPortfolio = async () => {
       try {
         setLoading(true);
-        const response = await fetch("/api/artworks");
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch artworks");
-        }
-
-        const data = await response.json();
-        setArtworks(data.artworks || []);
+        const response = await API.get("/portfolio"); // ✅ portfolio endpoint
+        setArtworks(response.data || []); // ✅ axios returns data directly
       } catch (error) {
-        console.error("Error fetching artworks:", error);
+        console.error("Error fetching portfolio:", error);
         setArtworks([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchArtworks();
+    fetchPortfolio();
   }, []);
 
   // Filter and search functionality
@@ -732,11 +729,9 @@ const GraphicDesignPortfolio = () => {
                             prev.filter((art) => art.id !== id)
                           );
 
-                          fetch(`/api/artworks/${id}`, {
-                            method: "DELETE",
-                          }).catch((error) => {
+                          API.delete(`/portfolio/${id}`).catch((error) => {
                             console.error(
-                              "Failed to delete artwork from backend:",
+                              "Failed to delete portfolio item:",
                               error
                             );
                           });
@@ -751,15 +746,11 @@ const GraphicDesignPortfolio = () => {
                             )
                           );
 
-                          fetch(`/api/artworks/${id}/visibility`, {
-                            method: "PATCH",
-                            headers: {
-                              "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({ visible }),
+                          API.patch(`/portfolio/${id}/visibility`, {
+                            visible,
                           }).catch((error) => {
                             console.error(
-                              "Failed to update artwork visibility:",
+                              "Failed to update portfolio visibility:",
                               error
                             );
                             setArtworks((prev) =>

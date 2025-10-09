@@ -30,19 +30,17 @@ export default function ChatMessages({
   };
 
   useEffect(() => {
+    if (!chatId || !viewerType) return;
+
     const fetchMessages = async () => {
       try {
         setLoading(true);
-        const endpoint = API.CHAT.MESSAGES_VIEWER.replace(
-          "{chatId}",
-          chatId
-        ).replace("{viewerType}", viewerType);
-        const response = await fetch(endpoint);
+        const endpoint = `${API.CHAT.MESSAGES}/${chatId}?viewerType=${viewerType}`;
+        const response = await fetch(endpoint, { method: "GET" });
         const data = await response.json();
 
         if (data.messages) {
           setMessages(data.messages);
-          // Set current user ID based on viewer type
           setCurrentUserId(viewerType === "admin" ? "admin_456" : "user_123");
         }
       } catch (error) {
@@ -52,9 +50,7 @@ export default function ChatMessages({
       }
     };
 
-    if (chatId && viewerType) {
-      fetchMessages();
-    }
+    fetchMessages();
   }, [chatId, viewerType]);
 
   // Handle new messages
@@ -114,22 +110,15 @@ export default function ChatMessages({
 
   const handleUnsendMessage = async (messageId) => {
     try {
-      const response = await fetch(`/messages/api/chat/${chatId}`, {
+      const response = await fetch(`${API.CHAT.MESSAGES}/${chatId}`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "unsend",
-          messageId,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "unsend", messageId }),
       });
 
       if (response.ok) {
         setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
-        if (onMessageUpdate) {
-          onMessageUpdate();
-        }
+        if (onMessageUpdate) onMessageUpdate();
       }
     } catch (error) {
       console.error("Failed to unsend message:", error);

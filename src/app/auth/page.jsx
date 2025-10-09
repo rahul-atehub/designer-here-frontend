@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, Mail, Lock, User, Palette, Sparkles } from "lucide-react";
 import ModeHandler from "./ModeHandler";
 import LayoutWrapper from "@/Components/LayoutWrapper";
+import { API } from "@/config";
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -26,7 +27,7 @@ const AuthPage = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch(isLogin ? "/api/login" : "/api/signup", {
+      const response = await fetch(isLogin ? API.AUTH.LOGIN : API.AUTH.SIGNUP, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

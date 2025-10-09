@@ -95,15 +95,25 @@ export default function ArtworkCard({
       onToggleVisibility(artworkData.id, newVisibility);
     }
   };
+  const handleDelete = async () => {
+    if (!confirm(`Delete "${artworkData.title}"?`)) return;
 
-  const handleDelete = () => {
-    if (confirm(`Delete "${artworkData.title}"?`)) {
-      setIsDeleting(true);
-      setTimeout(() => {
-        if (onDelete) {
-          onDelete(artworkData.id);
-        }
-      }, 300);
+    setIsDeleting(true);
+
+    try {
+      // Call API to delete post
+      await axios.delete(
+        API.PORTFOLIO.DELETE.replace("{postId}", artworkData.id),
+        { withCredentials: true }
+      );
+
+      console.log("Post deleted on server");
+
+      // Remove post from UI
+      if (onDelete) onDelete(artworkData.id);
+    } catch (err) {
+      console.error("Error deleting post:", err);
+      setIsDeleting(false); // rollback UI
     }
   };
 
@@ -124,15 +134,9 @@ export default function ArtworkCard({
     toggleLike(artworkData);
 
     try {
-      if (wasLiked) {
-        // Unlike (remove the like)
-        const endpoint = API.POSTS.LIKE.replace("{postId}", artworkData.id);
-        await axios.delete(endpoint, { withCredentials: true });
-      } else {
-        // Like (add the like)
-        const endpoint = API.POSTS.LIKE.replace("{postId}", artworkData.id);
-        await axios.post(endpoint, {}, { withCredentials: true });
-      }
+      // Use single toggle endpoint for like/unlike
+      const endpoint = API.LIKES.ADD_LIKE.replace("{postId}", artworkData.id);
+      await axios.post(endpoint, {}, { withCredentials: true });
 
       console.log("Like saved on server");
     } catch (err) {
@@ -149,18 +153,13 @@ export default function ArtworkCard({
     toggleSave(artworkData);
 
     try {
-      if (isSaved) {
-        // Remove from saved posts
-        const endpoint = API.POSTS.SAVE.replace("{postId}", artworkData.id);
-        await axios.delete(endpoint, { withCredentials: true });
-      } else {
-        // Add to saved posts
-        const endpoint = API.POSTS.SAVE.replace("{postId}", artworkData.id);
-        await axios.post(endpoint, {}, { withCredentials: true });
-      }
-    } catch (error) {
-      console.error("Error updating saved posts:", error);
-      toggleSave(artworkData); // revert UI
+      const endpoint = API.SAVED.SAVE_POST.replace("{postId}", artworkData.id);
+      await axios.post(endpoint, {}, { withCredentials: true });
+
+      console.log("Save/Unsave updated on server");
+    } catch (err) {
+      console.error("Error updating saved post:", err);
+      toggleSave(artworkData); // rollback UI if backend fails
     }
   };
 

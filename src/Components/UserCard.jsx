@@ -55,12 +55,12 @@ const UserCard = () => {
         setLoading(true);
 
         // Use credentials: 'include' to send HttpOnly cookies
-        const response = await axios.get(API.USER.PROFILE, {
+        const response = await axios.get(API.AUTH.ME, {
           withCredentials: true, // This ensures cookies are sent
           headers: {
             "Content-Type": "application/json",
           },
-          timeout: 10000, // 10 second timeout
+          timeout: 3000, // 3 second timeout
         });
 
         // Validate response data

@@ -149,7 +149,7 @@ export default function AdminSettings() {
     try {
       setIsSaving(true);
       await axios.put(
-        API.ADMIN.CHANGE_PASSWORD,
+        API.USER.CHANGE_PASSWORD,
         {
           oldPassword: passwordData.oldPassword,
           newPassword: passwordData.newPassword,
@@ -183,7 +183,7 @@ export default function AdminSettings() {
 
     try {
       setIsSaving(true);
-      await axios.delete(API.ADMIN.DELETE_ACCOUNT, {
+      await axios.delete(API.USER.DELETE_ACCOUNT, {
         data: { password: deleteData.password },
         headers: {
           Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
