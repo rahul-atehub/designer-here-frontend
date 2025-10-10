@@ -28,10 +28,8 @@ const LikedPostsPage = () => {
   useEffect(() => {
     const fetchLikedPosts = async () => {
       try {
-        const res = await axios.get(API.LIKES.LIST, {
-          params: { userId: "demoUser123" }, // later: replace with real user
-        });
-        setLikedPosts(res.data);
+        const res = await axios.get(API.LIKES.LIST, { withCredentials: true });
+        setLikedPosts(res.data.likedPosts); // remember: response includes likedPosts
       } catch (error) {
         console.error("Error fetching liked posts:", error);
       }

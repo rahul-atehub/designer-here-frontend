@@ -5,9 +5,6 @@ export const API = {
   AUTH: {
     LOGIN: process.env.NEXT_PUBLIC_AUTH_LOGIN_ENDPOINT,
     SIGNUP: process.env.NEXT_PUBLIC_AUTH_SIGNUP_ENDPOINT,
-    ME: process.env.NEXT_PUBLIC_AUTH_ME_ENDPOINT,
-    // 2 used in auth page, and me is usesd in usercard.jsx file for navbar and sidebar profile part.
-    // the me is also defined for checking the role of user, which is not correct. change this asap.
   },
   USER: {
     PROFILE: process.env.NEXT_PUBLIC_USER_PROFILE_ENDPOINT,
@@ -24,10 +21,11 @@ export const API = {
     // all the endpoints exist in the settings file and profile/admin page.
     //
   },
-  POSTS: {
-    LIKE: process.env.NEXT_PUBLIC_POST_LIKE_ENDPOINT,
-    SAVE: process.env.NEXT_PUBLIC_POST_SAVE_ENDPOINT,
+
+  PROFILE: {
+    ME: process.env.NEXT_PUBLIC_PROFILE_ME_ENDPOINT, // get current user and role
   },
+
   PORTFOLIO: {
     UPLOAD: process.env.NEXT_PUBLIC_PORTFOLIO_UPLOAD_ENDPOINT,
     LIST: process.env.NEXT_PUBLIC_PORTFOLIO_LIST_ENDPOINT,
@@ -36,7 +34,7 @@ export const API = {
     // there's no edit api here.
   },
   LIKES: {
-    LIST: process.env.NEXT_PUBLIC_LIKES_ENDPOINT, // to fetch all the liked posts of a user, to create a new one (POST)
+    LIST: process.env.NEXT_PUBLIC_LIKED_LIST_ENDPOINT, // to fetch all the liked posts of a user.
     LIKE_POST: process.env.NEXT_PUBLIC_LIKE_POST_ENDPOINT, // for likes count on a post
     ADD_LIKE: process.env.NEXT_PUBLIC_ADD_LIKE_ENDPOINT, // to like/unlike a post, also chekcs if the user liked the post or not.
     // the list is for fetch all the liked posts of a user, and adn the rest are for count and like a post.
@@ -47,7 +45,7 @@ export const API = {
   },
   SEARCH: process.env.NEXT_PUBLIC_SEARCH_ENDPOINT,
   CONTACT: process.env.NEXT_PUBLIC_CONTACT_ENDPOINT,
-  EMAIL: process.env.NEXT_PUBLIC_SEND_EMAIL_ENDPOINT,
+  EMAIL: process.env.NEXT_PUBLIC_CONTACT_EMAIL_ENDPOINT,
   CHAT: {
     MESSAGES: process.env.NEXT_PUBLIC_CHAT_MESSAGES_ENDPOINT, // to fetch messages, send a message, delete a message. can also be used in chat header.
     MESSAGES_ARCHIVE: process.env.NEXT_PUBLIC_CHAT_MESSAGES_ARCHIVE_ENDPOINT, // to archieve/unarchieve a chat.

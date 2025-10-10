@@ -26,7 +26,6 @@ const UserCard = () => {
   // Check if user is authenticated
   const isAuthenticated = user && user.id && user.name !== "Guest";
   const isGuest = !isAuthenticated;
-
   const toggleMenu = () => {
     setExpanded((prev) => !prev);
   };
@@ -55,7 +54,7 @@ const UserCard = () => {
         setLoading(true);
 
         // Use credentials: 'include' to send HttpOnly cookies
-        const response = await axios.get(API.AUTH.ME, {
+        const response = await axios.get(API.USER.PROFILE, {
           withCredentials: true, // This ensures cookies are sent
           headers: {
             "Content-Type": "application/json",

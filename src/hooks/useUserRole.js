@@ -23,7 +23,7 @@ export default function useUserRole() {
         return;
       }
 
-      const response = await axios.get(API.AUTH.ME, {
+      const response = await axios.get(API.PROFILE.ME, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
