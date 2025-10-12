@@ -255,14 +255,14 @@ const UserCard = () => {
                   </p>
                 </div>
                 <Link
-                  href="/auth?mode=login"
+                  href="/auth/login"
                   className="flex items-center space-x-3 px-4 py-2 text-sm text-[#EF4444] dark:text-[#EF4444] hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   <User size={16} />
                   <span>Login</span>
                 </Link>
                 <Link
-                  href="/auth?mode=signup"
+                  href="/auth/signup"
                   className="flex items-center space-x-3 px-4 py-2 text-sm text-[#F97316] dark:text-[#F97316] hover:bg-gray-100 dark:hover:bg-gray-700"
                 >
                   <User size={16} />
