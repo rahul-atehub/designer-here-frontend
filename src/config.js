@@ -11,7 +11,7 @@ export const API = {
     DELETE: process.env.NEXT_PUBLIC_USER_DELETE_ENDPOINT,
     CHANGE_PASSWORD: process.env.NEXT_PUBLIC_ADMIN_CHANGE_PASSWORD_ENDPOINT, // to change the password .
     DELETE_ACCOUNT: process.env.NEXT_PUBLIC_ADMIN_DELETE_ACCOUNT_ENDPOINT,
-    STATE: process.env.NEXT_PUBLIC_USER_STATE_ENDPOINT,
+    STATE: process.env.NEXT_PUBLIC_USER_STATE_ENDPOINT, // this doesn't exist anywhere in the backend or env file.
   },
   ADMIN: {
     PROFILE: process.env.NEXT_PUBLIC_ADMIN_PROFILE_ENDPOINT, //to fecth admin profile and also update it.
@@ -35,8 +35,9 @@ export const API = {
   },
   LIKES: {
     LIST: process.env.NEXT_PUBLIC_LIKED_LIST_ENDPOINT, // to fetch all the liked posts of a user.
-    LIKE_POST: process.env.NEXT_PUBLIC_LIKE_POST_ENDPOINT, // for likes count on a post
-    ADD_LIKE: process.env.NEXT_PUBLIC_ADD_LIKE_ENDPOINT, // to like/unlike a post, also chekcs if the user liked the post or not.
+    LIKE_POST: (postID) =>
+      `${process.env.NEXT_PUBLIC_LIKED_ENDPOINT}/${postID}`, // for likes count on a post
+    ADD_LIKE: process.env.NEXT_PUBLIC_LIKED_ENDPOINT, // to like/unlike a post, also chekcs if the user liked the post or not.
     // the list is for fetch all the liked posts of a user, and adn the rest are for count and like a post.
   },
   SAVED: {
@@ -47,15 +48,20 @@ export const API = {
   CONTACT: process.env.NEXT_PUBLIC_CONTACT_ENDPOINT,
   EMAIL: process.env.NEXT_PUBLIC_CONTACT_EMAIL_ENDPOINT,
   CHAT: {
-    MESSAGES: process.env.NEXT_PUBLIC_CHAT_MESSAGES_ENDPOINT, // to fetch messages, send a message, delete a message. can also be used in chat header.
-    MESSAGES_ARCHIVE: process.env.NEXT_PUBLIC_CHAT_MESSAGES_ARCHIVE_ENDPOINT, // to archieve/unarchieve a chat.
-    MESSAGES_BLOCK: process.env.NEXT_PUBLIC_CHAT_MESSAGES_BLOCK_ENDPOINT, // to block/unblock a chat.
-    MESSAGES_ADMIN: process.env.NEXT_PUBLIC_CHAT_MESSAGES_ADMIN_ENDPOINT, // Fetch admin dashboard data, chats, users, analytics
-    MESSAGES_CHATS: process.env.NEXT_PUBLIC_CHAT_MESSAGES_CHATS_ENDPOINT, // to fetch all chats and create a new one.[it'll be used for admin only.]
-    MESSAGES_READ: process.env.NEXT_PUBLIC_CHAT_MESSAGES_READ_ENDPOINT, // to mark messages as read. [read only]
-    MESSAGES_STATS: process.env.NEXT_PUBLIC_CHAT_MESSAGES_STATS_ENDPOINT, // Get overall chat statistics. [don't know the use .]
-    MESSAGES_USER_CHATS: process.env.NEXT_PUBLIC_USER_CHATS_ENDPOINT, // to fetch his chat with admin.[debatable]
-    MESSAGE_USER_SEARCH: process.env.NEXT_PUBLIC_USER_SEARCH_ENDPOINT, // to search user's inbox. [make it admin only.]
+    MESSAGES: (chatID) =>
+      `${process.env.NEXT_PUBLIC_MESSAGES_CHAT_ENDPOINT}/${chatID}`, // for fetch a chat, send a message, delete a message, can used in chat header.
+    MESSAGES_ARCHIVE: (chatID) =>
+      `${process.env.NEXT_PUBLIC_MESSAGES_CHAT_ENDPOINT}/${chatID}/archieve`, // for archieve/unarchieve a chat
+    MESSAGES_BLOCK: (chatID) =>
+      `${process.env.NEXT_PUBLIC_MESSAGES_CHAT_ENDPOINT}/${chatID}/block`, // for block/unblock a chat
+    MESSAGES_ADMIN: process.env.NEXT_PUBLIC_MESSAGES_ADMIN_ENDPOINT, // Fetch admin dashboard data, chats, users, analytics
+    MESSAGES_CHATS: process.env.NEXT_PUBLIC_MESSAGES_CHATS_ENDPOINT, // to fetch all chats and create a new one.[it'll be used for admin only.]
+    MESSAGES_READ: (chatID) =>
+      `${process.env.NEXT_PUBLIC_MESSAGES_READ_ENDPOINT}/${chatID}`, // to mark messages as read.[read only]
+    MESSAGES_STATS: process.env.NEXT_PUBLIC_MESSAGES_STATS_ENDPOINT, // Get overall chat statistics. [don't know the use .]
+    MESSAGES_USER_CHATS: (userID) =>
+      `${process.env.NEXT_PUBLIC_USER_CHATS_ENDPOINT}/${userID}`, // to fetch his chat with admin.[debatable]
+    MESSAGE_USERS_SEARCH: process.env.NEXT_PUBLIC_MESSAGES_USER_SEARCH_ENDPOINT, // to search user's inbox. [make it admin only.]
   },
 };
 
