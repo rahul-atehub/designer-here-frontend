@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Search, X, ArrowUpRight } from "lucide-react";
 import axios from "axios";
 import { API } from "@/config";
+import { Clock, TrendingUp } from "lucide-react";
 
 export default function SearchBar() {
   const [query, setQuery] = useState("");
@@ -24,6 +25,24 @@ export default function SearchBar() {
 
   // Recent searches (start empty, fill from API/local later)
   const [recentSearches, setRecentSearches] = useState([]);
+  const [trendingSearches, setTrendingSearches] = useState([]);
+
+  useEffect(() => {
+    const fetchRecentAndTrending = async () => {
+      try {
+        const [recentRes, trendingRes] = await Promise.all([
+          axios.get(API.RECENT_SEARCHES),
+          axios.get(API.TRENDING_SEARCHES),
+        ]);
+        setRecentSearches(recentRes.data); // Array of strings
+        setTrendingSearches(trendingRes.data); // Array of strings
+      } catch (error) {
+        console.error("Failed to fetch recent/trending searches:", error);
+      }
+    };
+
+    fetchRecentAndTrending();
+  }, []);
 
   // Debounced API call with Axios
   const fetchResults = debounce(async (searchTerm) => {
@@ -215,57 +234,52 @@ export default function SearchBar() {
           )}
 
           {/* Search Results */}
-          {query && (
-            <div className="max-h-80 overflow-y-auto">
-              {isSearching ? (
-                <div className="p-8 text-center">
-                  <div className="inline-flex items-center gap-3 text-gray-500 dark:text-gray-400">
-                    <div className="w-5 h-5 border-2 border-violet-500 border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-sm font-medium">Searching...</span>
+
+          {!query && (
+            <div className="p-6 space-y-6">
+              {/* Recent Searches */}
+              {recentSearches.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Clock className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                      Recent
+                    </span>
+                  </div>
+                  <div className="space-y-1">
+                    {recentSearches.map((search, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleQuickSearch(search)}
+                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all duration-200 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                      >
+                        {search}
+                      </button>
+                    ))}
                   </div>
                 </div>
-              ) : results.length === 0 ? (
-                <div className="p-8 text-center space-y-2">
-                  <div className="text-gray-500 dark:text-gray-400 font-medium">
-                    No results found for "{query}"
+              )}
+
+              {/* Trending Searches */}
+              {trendingSearches.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <TrendingUp className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                      Trending
+                    </span>
                   </div>
-                </div>
-              ) : (
-                <div className="p-2">
-                  {results.map((item, index) => (
-                    <div
-                      key={item.id}
-                      onClick={() => handleResultClick(item)}
-                      className={`
-                        group px-4 py-3 rounded-xl cursor-pointer transition-all duration-200
-                        hover:bg-gradient-to-r hover:from-gray-50 hover:to-blue-50 
-                        dark:hover:from-neutral-800 dark:hover:to-blue-900/20
-                        border-l-4 border-transparent hover:border-red-500
-                        transform hover:translate-x-1
-                      `}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-3 flex-1">
-                          {getTypeIcon(item.type)}
-                          <div className="flex-1">
-                            <div className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors duration-200">
-                              {item.title}
-                            </div>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span
-                                className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
-                                  item.category
-                                )}`}
-                              >
-                                {item.category}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                        <ArrowUpRight className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 group-hover:text-red-500 transition-all duration-200 transform group-hover:scale-110" />
-                      </div>
-                    </div>
-                  ))}
+                  <div className="space-y-1">
+                    {trendingSearches.map((search, index) => (
+                      <button
+                        key={index}
+                        onClick={() => handleQuickSearch(search)}
+                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all duration-200 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                      >
+                        {search}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

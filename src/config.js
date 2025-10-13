@@ -48,7 +48,12 @@ export const API = {
     LIST: process.env.NEXT_PUBLIC_SAVED_USER_ENDPOINT, // to get all the saved posts of the user.
     SAVE_POST: process.env.NEXT_PUBLIC_SAVE_POST_ENDPOINT, // to save/unsave a post.
   },
-  SEARCH: process.env.NEXT_PUBLIC_SEARCH_ENDPOINT,
+  SEARCH: {
+    SEARCH: process.env.NEXT_PUBLIC_SEARCH_ENDPOINT, //to post search queries to the db.
+    RECENT: process.env.NEXT_PUBLICK_RECENT_SEARCH_ENDPOINT, // to fetch recent searches of the user.
+    TRENDING: process.env.NEXT_PUBLIC_TRENDING_SEARCH_ENDPOINT, // to fetch trending searches.
+  },
+
   CONTACT: process.env.NEXT_PUBLIC_CONTACT_ENDPOINT,
   EMAIL: process.env.NEXT_PUBLIC_CONTACT_EMAIL_ENDPOINT,
   CHAT: {
