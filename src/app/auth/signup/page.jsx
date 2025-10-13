@@ -208,7 +208,7 @@ export default function SignupPage() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-center mb-8"
           >
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mb-2">
               Create Account
             </h1>
             <motion.p
@@ -280,6 +280,19 @@ export default function SignupPage() {
                     {loading ? "Sending..." : "Send Code"}
                   </motion.button>
                 </form>
+
+                <motion.p
+                  variants={itemVariants}
+                  className="text-center text-sm text-gray-600 dark:text-gray-400"
+                >
+                  Already have an account?{" "}
+                  <Link
+                    href="/auth/login"
+                    className="text-red-500 hover:text-red-600 dark:hover:text-red-400 font-semibold transition"
+                  >
+                    Log in
+                  </Link>
+                </motion.p>
               </motion.div>
             )}
           </AnimatePresence>
