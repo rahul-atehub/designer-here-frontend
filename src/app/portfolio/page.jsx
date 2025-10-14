@@ -42,7 +42,7 @@ const GraphicDesignPortfolio = () => {
     const checkAdmin = async () => {
       try {
         const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_URL}/auth/me`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`,
           { withCredentials: true } // 👈 sends HttpOnly cookie to backend
         );
         setIsAdminMode(res.data.role === "admin"); // ✅ secure check
