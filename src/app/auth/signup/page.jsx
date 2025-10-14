@@ -119,11 +119,12 @@ export default function SignupPage() {
     try {
       console.log(
         "Sending request to:",
-        API.SEND_VERIFICATION,
+        API.AUTH.SEND_VERIFICATION,
         "with email:",
         email
-      ); // <-- add this
-      await axios.post(API.SEND_VERIFICATION, { email });
+      );
+
+      await axios.post(API.AUTH.SEND_VERIFICATION, { email });
       setMessage({
         type: "success",
         text: "Verification code sent to your email",
@@ -148,10 +149,8 @@ export default function SignupPage() {
     setMessage({ type: "", text: "" });
 
     try {
-      await axios.post(API.VERIFY, {
-        email,
-        verificationCode,
-      });
+      await axios.post(API.AUTH.VERIFY, { email, verificationCode });
+
       setMessage({ type: "success", text: "Email verified successfully" });
       setTimeout(() => {
         setStep(2);
@@ -178,12 +177,8 @@ export default function SignupPage() {
     setMessage({ type: "", text: "" });
 
     try {
-      await axios.post(API.SIGNUP, {
-        email,
-        name,
-        username,
-        password,
-      });
+      await axios.post(API.AUTH.SIGNUP, { email, name, username, password });
+
       setMessage({ type: "success", text: "Account created successfully!" });
     } catch (error) {
       const errorMsg = error.response?.data?.message || "Signup failed";
