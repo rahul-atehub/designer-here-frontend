@@ -117,6 +117,12 @@ export default function SignupPage() {
     setMessage({ type: "", text: "" });
 
     try {
+      console.log(
+        "Sending request to:",
+        API.SEND_VERIFICATION,
+        "with email:",
+        email
+      ); // <-- add this
       await axios.post(API.SEND_VERIFICATION, { email });
       setMessage({
         type: "success",
