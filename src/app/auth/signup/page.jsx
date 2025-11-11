@@ -124,7 +124,11 @@ export default function SignupPage() {
         email
       );
 
-      await axios.post(API.AUTH.SEND_VERIFICATION, { email });
+      await axios.post(
+        API.AUTH.SEND_VERIFICATION,
+        { email },
+        { withCredentials: true } // <-- this activates cookies
+      );
       setMessage({
         type: "success",
         text: "Verification code sent to your email",
