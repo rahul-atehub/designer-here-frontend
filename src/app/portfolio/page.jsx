@@ -3,8 +3,8 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import Footer from "@/Components/Footer";
 import ArtworkCard from "@/components/ui/ArtworkCard";
-import { API } from "@/config"; // ✅ add this at the top
-import axios from "axios"; // keep this if still using axios for auth/me
+import { API as CONFIG } from "@/config";
+import api from "@/lib/api";
 
 import {
   motion,
@@ -19,18 +19,16 @@ import {
   Search,
   X,
   Eye,
-  Layers,
   Zap,
-  MousePointer,
   Pen,
   Loader2,
 } from "lucide-react";
 
 const GraphicDesignPortfolio = () => {
-  const [filterBy, setFilterBy] = useState("all");
-  const [sortBy, setSortBy] = useState("newest");
+  // const [filterBy, setFilterBy] = useState("all");
+  // const [sortBy, setSortBy] = useState("newest");
   const [viewMode, setViewMode] = useState("grid");
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  // const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [artworks, setArtworks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -41,13 +39,18 @@ const GraphicDesignPortfolio = () => {
   useEffect(() => {
     const checkAdmin = async () => {
       try {
-        const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/me`,
-          { withCredentials: true } // 👈 sends HttpOnly cookie to backend
-        );
-        setIsAdminMode(res.data.role === "admin"); // ✅ secure check
+        // api.defaults.baseURL should include /api, so this hits: <BASE_URL>/api/auth/me
+        const res = await api.get("/auth/me", { withCredentials: true });
+        // protect against unexpected shapes
+        const role = res?.data?.role;
+        setIsAdminMode(role === "admin");
       } catch (err) {
-        setIsAdminMode(false); // not logged in or not admin
+        // not logged in, token expired, CORS issue, or server error → treat as non-admin
+        setIsAdminMode(false);
+        // optional: log small amount of info for dev only
+        if (process.env.NODE_ENV === "development") {
+          console.debug("checkAdmin failed:", err?.message || err);
+        }
       }
     };
 
@@ -58,37 +61,13 @@ const GraphicDesignPortfolio = () => {
   const { scrollY } = useScroll();
   const parallaxY = useTransform(scrollY, [0, 500], [0, -100]);
 
-  // Categories for filtering
-  const categories = [
-    "all",
-    "branding",
-    "ui/ux design",
-    "print design",
-    "web design",
-    "packaging",
-    "digital marketing",
-    "editorial design",
-    "motion design",
-    "logo",
-    "illustration",
-    "music",
-  ];
-
-  const sortOptions = [
-    { value: "newest", label: "Latest Projects" },
-    { value: "oldest", label: "Earliest Work" },
-    { value: "most-liked", label: "Most Appreciated" },
-    { value: "most-viewed", label: "Most Viewed" },
-    { value: "alphabetical", label: "A-Z" },
-    { value: "popular", label: "Most Popular" },
-  ];
-
   // Fetch artworks from backend
   useEffect(() => {
+    console.log("API client baseURL ->", api.defaults.baseURL);
     const fetchPortfolio = async () => {
       try {
         setLoading(true);
-        const response = await API.get("/portfolio"); // ✅ portfolio endpoint
+        const response = await api.get("/portfolio"); // since api.baseURL includes /api
         setArtworks(response.data || []); // ✅ axios returns data directly
       } catch (error) {
         console.error("Error fetching portfolio:", error);
@@ -101,65 +80,24 @@ const GraphicDesignPortfolio = () => {
     fetchPortfolio();
   }, []);
 
-  // Filter and search functionality
+  // Simple filteredArtworks that only respects the search query (no categories, no sorting)
   const filteredArtworks = useMemo(() => {
-    let filtered = artworks;
+    const items = Array.isArray(artworks) ? artworks : [];
 
-    // Apply search filter
-    if (searchQuery) {
-      filtered = filtered.filter(
-        (artwork) =>
-          artwork.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          artwork.description
-            ?.toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          artwork.author?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          artwork.client?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          artwork.tags?.some((tag) =>
-            tag.toLowerCase().includes(searchQuery.toLowerCase())
-          )
+    if (!searchQuery || !searchQuery.trim()) return items;
+
+    const q = searchQuery.toLowerCase().trim();
+    return items.filter((artwork) => {
+      return (
+        (artwork?.title || "").toLowerCase().includes(q) ||
+        (artwork?.description || "").toLowerCase().includes(q) ||
+        (artwork?.author || "").toLowerCase().includes(q) ||
+        (artwork?.client || "").toLowerCase().includes(q) ||
+        (Array.isArray(artwork?.tags) &&
+          artwork.tags.some((tag) => (tag || "").toLowerCase().includes(q)))
       );
-    }
-
-    // Apply category filter
-    if (filterBy !== "all") {
-      filtered = filtered.filter(
-        (artwork) => artwork.category?.toLowerCase() === filterBy.toLowerCase()
-      );
-    }
-
-    // Apply sorting
-    switch (sortBy) {
-      case "newest":
-        filtered.sort(
-          (a, b) =>
-            new Date(b.uploadDate || b.createdAt) -
-            new Date(a.uploadDate || a.createdAt)
-        );
-        break;
-      case "oldest":
-        filtered.sort(
-          (a, b) =>
-            new Date(a.uploadDate || a.createdAt) -
-            new Date(b.uploadDate || b.createdAt)
-        );
-        break;
-      case "most-liked":
-      case "popular":
-        filtered.sort((a, b) => (b.Years || 0) - (a.Years || 0));
-        break;
-      case "most-viewed":
-        filtered.sort((a, b) => (b.HappyClients || 0) - (a.HappyClients || 0));
-        break;
-      case "alphabetical":
-        filtered.sort((a, b) => a.title?.localeCompare(b.title));
-        break;
-      default:
-        break;
-    }
-
-    return filtered;
-  }, [artworks, filterBy, sortBy, searchQuery]);
+    });
+  }, [artworks, searchQuery]);
 
   const totalStats = {
     totalProjects: 500,
@@ -481,7 +419,7 @@ const GraphicDesignPortfolio = () => {
                   </motion.div>
                 )}
 
-                {/* Category Filter */}
+                {/* Category Filter
                 <div className="relative">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
@@ -537,20 +475,9 @@ const GraphicDesignPortfolio = () => {
                       </>
                     )}
                   </AnimatePresence>
-                </div>
+                </div> */}
 
                 {/* Sort Dropdown */}
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="px-6 py-5 bg-gray-50/80 dark:bg-neutral-800/80 border border-gray-200 dark:border-neutral-700 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300 text-gray-700 dark:text-neutral-300 font-semibold min-w-[180px] backdrop-blur-sm"
-                >
-                  {sortOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
 
                 {/* View Mode Toggle */}
                 <div className="flex items-center bg-gray-50/80 dark:bg-neutral-800/80 border border-gray-200 dark:border-neutral-700 rounded-2xl p-2 backdrop-blur-sm">
@@ -583,7 +510,7 @@ const GraphicDesignPortfolio = () => {
             </div>
 
             {/* Enhanced Stats */}
-            <div className="flex items-center justify-between mt-8 pt-8 border-t border-gray-200/60 dark:border-neutral-800/60">
+            <div className="flex items-center justify-center mt-4 pt-2 border-t border-gray-200/60 dark:border-neutral-800/60">
               <div className="flex items-center gap-6">
                 <div className="text-gray-600 dark:text-neutral-400">
                   <span className="font-bold text-2xl text-gray-900 dark:text-white">
@@ -603,25 +530,7 @@ const GraphicDesignPortfolio = () => {
                   )}
                 </div>
               </div>
-              <div className="flex items-center gap-6 text-sm font-medium text-gray-500 dark:text-neutral-500">
-                <div className="flex items-center gap-2">
-                  <Eye size={16} />
-                  {filteredArtworks
-                    .reduce(
-                      (sum, artwork) => sum + (artwork.HappyClients || 0),
-                      0
-                    )
-                    .toLocaleString()}{" "}
-                  Happy Clients
-                </div>
-                <div className="flex items-center gap-2">
-                  <Heart size={16} />
-                  {filteredArtworks
-                    .reduce((sum, artwork) => sum + (artwork.Years || 0), 0)
-                    .toLocaleString()}{" "}
-                  Years
-                </div>
-              </div>
+              <div className="flex items-center gap-6 text-sm font-medium text-gray-500 dark:text-neutral-500"></div>
             </div>
           </div>
         </motion.section>
@@ -671,9 +580,9 @@ const GraphicDesignPortfolio = () => {
                 <p className="text-lg text-gray-600 dark:text-neutral-400 max-w-md mx-auto mb-8">
                   {searchQuery
                     ? `Your search for "${searchQuery}" didn't match any designs. Try different keywords or explore our categories.`
-                    : "Adjust your filters to discover amazing graphic design work."}
+                    : "Contact us for early access to upcoming designs and be the first to see our latest work!"}
                 </p>
-                {(searchQuery || filterBy !== "all") && (
+                {searchQuery && (
                   <motion.button
                     whileHover={{
                       scale: 1.05,
@@ -682,7 +591,6 @@ const GraphicDesignPortfolio = () => {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => {
                       setSearchQuery("");
-                      setFilterBy("all");
                     }}
                     className="px-8 py-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-2xl font-bold transition-all duration-300 shadow-xl shadow-red-500/25"
                   >
@@ -729,7 +637,7 @@ const GraphicDesignPortfolio = () => {
                             prev.filter((art) => art.id !== id)
                           );
 
-                          API.delete(`/portfolio/${id}`).catch((error) => {
+                          api.delete(`/portfolio/${id}`).catch((error) => {
                             console.error(
                               "Failed to delete portfolio item:",
                               error
@@ -746,21 +654,23 @@ const GraphicDesignPortfolio = () => {
                             )
                           );
 
-                          API.patch(`/portfolio/${id}/visibility`, {
-                            visible,
-                          }).catch((error) => {
-                            console.error(
-                              "Failed to update portfolio visibility:",
-                              error
-                            );
-                            setArtworks((prev) =>
-                              prev.map((art) =>
-                                art.id === id
-                                  ? { ...art, visible: !visible }
-                                  : art
-                              )
-                            );
-                          });
+                          api
+                            .patch(`/portfolio/${id}/visibility`, {
+                              visible,
+                            })
+                            .catch((error) => {
+                              console.error(
+                                "Failed to update portfolio visibility:",
+                                error
+                              );
+                              setArtworks((prev) =>
+                                prev.map((art) =>
+                                  art.id === id
+                                    ? { ...art, visible: !visible }
+                                    : art
+                                )
+                              );
+                            });
                         }}
                       />
                     </div>

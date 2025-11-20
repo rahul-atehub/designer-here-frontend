@@ -48,50 +48,36 @@ const UserCard = () => {
   }, []);
 
   // Fetch user data with proper error handling
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        setLoading(true);
+  // pattern you can reuse in both files
+  const fetchUser = async () => {
+    try {
+      console.log("Fetching profile from:", API.USER.PROFILE);
+      const res = await axios.get(API.USER.PROFILE, {
+        withCredentials: true, // remove if server doesn't use cookies
+        headers: {
+          "Content-Type": "application/json",
+          // 'Authorization': `Bearer ${token}` // enable if backend needs bearer token
+        },
+      });
+      setUser(res.data);
+    } catch (err) {
+      console.error("fetchUser error:", {
+        status: err?.response?.status,
+        data: err?.response?.data,
+        message: err?.message,
+      });
 
-        // Use credentials: 'include' to send HttpOnly cookies
-        const response = await axios.get(API.USER.PROFILE, {
-          withCredentials: true, // This ensures cookies are sent
-          headers: {
-            "Content-Type": "application/json",
-          },
-          timeout: 3000, // 3 second timeout
-        });
-
-        // Validate response data
-        if (response.data && response.data.id) {
-          setUser({
-            id: response.data.id,
-            name: response.data.name,
-            email: response.data.email,
-            profileImage: response.data.profileImage,
-            role: response.data.role || "user",
-          });
-        } else {
-          throw new Error("Invalid user data received");
-        }
-      } catch (error) {
-        console.error("Failed to fetch user:", error);
-
-        // Handle different error scenarios
-        if (error.response?.status === 401) {
-          // Unauthorized - user is not authenticated
-          console.log("User not authenticated");
-        }
-
-        // Set as guest user
-        setUser({ name: "Guest", role: "guest" });
-      } finally {
-        setLoading(false);
+      // handle different status codes
+      if (err?.response?.status === 401) {
+        // unauthorized: clear client state or redirect to login
+        setUser(null);
+        // router.push("/login"); // optional
+      } else {
+        // show friendly UI message or fallback
+        setUser(null);
       }
-    };
-
-    fetchUser();
-  }, []);
+    }
+  };
 
   // Handle logout with proper cleanup
   const handleLogout = async () => {

@@ -35,13 +35,16 @@ export const API = {
   PROFILE: {
     ME: `${BASE_URL}${process.env.NEXT_PUBLIC_PROFILE_ME_ENDPOINT}`, // get current user and role
   },
-
   PORTFOLIO: {
-    UPLOAD: `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_UPLOAD_ENDPOINT}`,
-    LIST: `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_LIST_ENDPOINT}`,
-    DELETE: `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_DELETE_ENDPOINT}`,
-    TOGGLE_VISIBILITY: `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_VISIBILITY_ENDPOINT}`,
-    // there's no edit api here.
+    LIST: `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT}`, // fetch all portfolios
+    UPLOAD: `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT}/upload`, // create a new portfolio (POST)
+    DELETE: (id) =>
+      `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT}/${id}`,
+    UPDATE: (id) =>
+      `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT}/${id}/update`,
+    TOGGLE_VISIBILITY: (id) =>
+      `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT}/${id}/visibility`,
+    // delete and toggle visiblity are handled by the same file, but they're still written separately for clarity like this.
   },
 
   LIKES: {

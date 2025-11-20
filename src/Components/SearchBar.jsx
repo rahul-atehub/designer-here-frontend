@@ -27,17 +27,49 @@ export default function SearchBar() {
   const [recentSearches, setRecentSearches] = useState([]);
   const [trendingSearches, setTrendingSearches] = useState([]);
 
+  // src/Components/SearchBar.jsx (inside component)
   useEffect(() => {
     const fetchRecentAndTrending = async () => {
       try {
+        console.log(
+          "Recent URL:",
+          API.RECENT_SEARCHES,
+          "Trending URL:",
+          API.TRENDING_SEARCHES
+        );
+
+        // Fetch individually so one failing endpoint doesn't explode the whole UI
+        const recentPromise = axios.get(API.RECENT_SEARCHES).catch((err) => {
+          console.error(
+            "Recent searches failed:",
+            err?.response?.status,
+            err?.message
+          );
+          return { data: [] }; // fallback
+        });
+
+        const trendingPromise = axios
+          .get(API.TRENDING_SEARCHES)
+          .catch((err) => {
+            console.error(
+              "Trending searches failed:",
+              err?.response?.status,
+              err?.message
+            );
+            return { data: [] }; // fallback
+          });
+
         const [recentRes, trendingRes] = await Promise.all([
-          axios.get(API.RECENT_SEARCHES),
-          axios.get(API.TRENDING_SEARCHES),
+          recentPromise,
+          trendingPromise,
         ]);
-        setRecentSearches(recentRes.data); // Array of strings
-        setTrendingSearches(trendingRes.data); // Array of strings
-      } catch (error) {
-        console.error("Failed to fetch recent/trending searches:", error);
+        setRecent(recentRes.data || []);
+        setTrending(trendingRes.data || []);
+      } catch (err) {
+        // Should be rare now, but keep a final guard
+        console.error("fetchRecentAndTrending unexpected error:", err);
+        setRecent([]);
+        setTrending([]);
       }
     };
 
