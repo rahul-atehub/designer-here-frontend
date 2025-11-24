@@ -153,7 +153,11 @@ export default function SignupPage() {
     setMessage({ type: "", text: "" });
 
     try {
-      await axios.post(API.AUTH.VERIFY, { email, verificationCode });
+      await axios.post(
+        API.AUTH.VERIFY,
+        { email, verificationCode },
+        { withCredentials: true } // ⬅️ add this
+      );
 
       setMessage({ type: "success", text: "Email verified successfully" });
       setTimeout(() => {
@@ -180,8 +184,14 @@ export default function SignupPage() {
     setLoading(true);
     setMessage({ type: "", text: "" });
 
+    console.log("Signup payload:", { email, name, username, password });
+
     try {
-      await axios.post(API.AUTH.SIGNUP, { email, name, username, password });
+      await axios.post(
+        API.AUTH.SIGNUP,
+        { email, name, username, password },
+        { withCredentials: true } // ⬅️ add this
+      );
 
       setMessage({ type: "success", text: "Account created successfully!" });
     } catch (error) {
