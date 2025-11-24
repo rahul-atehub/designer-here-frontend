@@ -39,7 +39,7 @@ export default function SearchBar() {
         );
 
         // Fetch individually so one failing endpoint doesn't explode the whole UI
-        const recentPromise = axios.get(API.RECENT_SEARCHES).catch((err) => {
+        const recentPromise = axios.get(API.SEARCH.RECENT).catch((err) => {
           console.error(
             "Recent searches failed:",
             err?.response?.status,
@@ -48,28 +48,26 @@ export default function SearchBar() {
           return { data: [] }; // fallback
         });
 
-        const trendingPromise = axios
-          .get(API.TRENDING_SEARCHES)
-          .catch((err) => {
-            console.error(
-              "Trending searches failed:",
-              err?.response?.status,
-              err?.message
-            );
-            return { data: [] }; // fallback
-          });
+        const trendingPromise = axios.get(API.SEARCH.TRENDING).catch((err) => {
+          console.error(
+            "Trending searches failed:",
+            err?.response?.status,
+            err?.message
+          );
+          return { data: [] }; // fallback
+        });
 
         const [recentRes, trendingRes] = await Promise.all([
           recentPromise,
           trendingPromise,
         ]);
-        setRecent(recentRes.data || []);
-        setTrending(trendingRes.data || []);
+        setRecentSearches(recentRes.data || []);
+        setTrendingSearches(trendingRes.data || []);
       } catch (err) {
         // Should be rare now, but keep a final guard
         console.error("fetchRecentAndTrending unexpected error:", err);
-        setRecent([]);
-        setTrending([]);
+        setRecentSearches([]);
+        setTrendingSearches([]);
       }
     };
 
@@ -85,7 +83,7 @@ export default function SearchBar() {
 
     setIsSearching(true);
     try {
-      const res = await axios.get(API.SEARCH, {
+      const res = await axios.get(API.SEARCH.SEARCH, {
         params: { q: searchTerm }, // sends ?q=searchTerm
       });
 
@@ -237,34 +235,6 @@ export default function SearchBar() {
           }
         `}
         >
-          {/* No Query State - Show Recent & Trending */}
-          {!query && (
-            <div className="p-6 space-y-6">
-              {/* Recent Searches */}
-              {recentSearches.length > 0 && (
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Clock className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
-                      Recent
-                    </span>
-                  </div>
-                  <div className="space-y-1">
-                    {recentSearches.map((search, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleQuickSearch(search)}
-                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all duration-200 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-                      >
-                        {search}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Search Results */}
 
           {!query && (
@@ -318,14 +288,6 @@ export default function SearchBar() {
           )}
         </div>
       )}
-
-      {/* Mobile backdrop
-      {showResults && (
-        <div
-          className="fixed inset-0 bg-black/20 dark:bg-black/40 z-40 md:hidden backdrop-blur-sm"
-          onClick={() => setShowResults(false)}
-        />
-      )} */}
     </div>
   );
 }
