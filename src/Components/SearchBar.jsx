@@ -33,10 +33,11 @@ export default function SearchBar() {
       try {
         console.log(
           "Recent URL:",
-          API.RECENT_SEARCHES,
+          API.SEARCH.RECENT,
           "Trending URL:",
-          API.TRENDING_SEARCHES
+          API.SEARCH.TRENDING
         );
+        console.log("API.SEARCH object:", API.SEARCH);
 
         // Fetch individually so one failing endpoint doesn't explode the whole UI
         const recentPromise = axios.get(API.SEARCH.RECENT).catch((err) => {
