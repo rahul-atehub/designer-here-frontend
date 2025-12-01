@@ -20,7 +20,8 @@ export function UserProvider({ children }) {
           signal: controller.signal, // cancels fetch on unmount
         });
 
-        setUser(res?.data ?? null);
+        const payload = res?.data?.data ?? res?.data ?? null;
+        setUser(payload);
         setError(null);
       } catch (err) {
         if (axios.isCancel(err)) return; // request was cancelled

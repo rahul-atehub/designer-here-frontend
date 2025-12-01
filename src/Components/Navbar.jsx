@@ -7,6 +7,8 @@ import { usePathname } from "next/navigation";
 import SearchBar from "@/Components/SearchBar";
 import { ThemeToggle } from "@/components/ui/theme.toggle";
 import UserCard from "./UserCard";
+import { useUser } from "@/context/UserContext";
+
 import {
   User,
   Menu,
@@ -20,19 +22,17 @@ import {
   Mail,
   Images,
   ChevronDown,
-  Bell,
   LogOut,
 } from "lucide-react";
 
 export default function Navbar() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, loading, error } = useUser(); // you can use error later if you want.
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-
-  const [isLoggedIn, setIsLoggedIn] = useState(false); // false = not logged in
-
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const pathname = usePathname();
+  const isLoggedIn = !!user;
 
   // Enhanced scroll effect
   useEffect(() => {
@@ -191,15 +191,19 @@ export default function Navbar() {
                   {/* Profile Dropdown */}
                   {isProfileOpen && (
                     <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
-                      {isLoggedIn ? (
+                      {loading ? (
+                        <div className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
+                          Checking session...
+                        </div>
+                      ) : isLoggedIn ? (
                         <>
                           {/* Logged-in Menu */}
                           <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                             <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                              John Doe
+                              {user?.username || "User"}
                             </p>
                             <p className="text-xs text-gray-500 dark:text-gray-400">
-                              john@example.com
+                              {user?.email || ""}
                             </p>
                           </div>
                           <Link
