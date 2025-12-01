@@ -149,14 +149,7 @@ export default function LoginPage() {
   };
 
   const isFormValid = () => {
-    return (
-      login.trim() &&
-      password.trim() &&
-      !loginError &&
-      !passwordError &&
-      validateLogin(login) &&
-      validatePassword(password)
-    );
+    return login.trim() && password.trim() && !loginError && !passwordError;
   };
 
   // Handle login submit
@@ -171,7 +164,7 @@ export default function LoginPage() {
     setMessage({ type: "", text: "" });
 
     try {
-      const response = await axios.post(API.LOGIN, {
+      const response = await axios.post(API.AUTH.LOGIN, {
         login,
         password,
       });
@@ -180,7 +173,7 @@ export default function LoginPage() {
 
       // Fetch user info
       try {
-        const userResponse = await axios.get(API.ME);
+        const userResponse = await axios.get(API.AUTH.ME);
         setUser(userResponse.data);
 
         setTimeout(() => {

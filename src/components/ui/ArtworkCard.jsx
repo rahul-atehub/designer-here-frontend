@@ -6,6 +6,7 @@ import axios from "axios";
 import { API } from "@/config";
 import { useLikedPosts } from "@/context/LikedPostsContext";
 import { useSavedPosts } from "@/context/SavedPostsContext";
+import { useUser } from "@/context/UserContext";
 
 import {
   Pencil,
@@ -29,24 +30,13 @@ export default function ArtworkCard({
   viewMode = "grid", // New prop with default value
 }) {
   const [adminMode, setAdminMode] = useState(false);
+  const { user, loading } = useUser();
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await axios.get(API.USER.PROFILE, {
-          withCredentials: true, // send cookies/JWT
-        });
-        if (res.data.role === "admin") {
-          setAdminMode(true);
-        }
-      } catch (err) {
-        console.error("Failed to fetch user info", err);
-        setAdminMode(false);
-      }
-    };
-
-    fetchUser();
-  }, []);
+    if (!loading) {
+      setAdminMode(user?.role === "admin");
+    }
+  }, [user, loading]);
 
   const [visible, setVisible] = useState(artwork?.visible ?? true);
   const [views, setViews] = useState(artwork?.views ?? 0);

@@ -62,7 +62,7 @@ export const API = {
 
   SEARCH: {
     SEARCH: `${BASE_URL}${process.env.NEXT_PUBLIC_SEARCH_ENDPOINT}`, //to post search queries to the db.
-    RECENT: `${BASE_URL}${process.env.NEXT_PUBLICK_RECENT_SEARCH_ENDPOINT}`, // to fetch recent searches of the user.
+    RECENT: `${BASE_URL}${process.env.NEXT_PUBLIC_RECENT_SEARCH_ENDPOINT}`, // to fetch recent searches of the user.
     TRENDING: `${BASE_URL}${process.env.NEXT_PUBLIC_TRENDING_SEARCH_ENDPOINT}`, // to fetch trending searches.
   },
 

@@ -4,6 +4,7 @@ import { Search, X, ArrowUpRight } from "lucide-react";
 import axios from "axios";
 import { API } from "@/config";
 import { Clock, TrendingUp } from "lucide-react";
+import { useUser } from "@/context/UserContext";
 
 export default function SearchBar() {
   const [query, setQuery] = useState("");
@@ -13,67 +14,64 @@ export default function SearchBar() {
   const [showResults, setShowResults] = useState(false);
   const inputRef = useRef(null);
   const searchContainerRef = useRef(null);
+  const { user, loading } = useUser();
 
   // Custom debounce function
-  const debounce = (func, delay) => {
+  function debounce(func, delay) {
     let timeoutId;
     return (...args) => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => func.apply(null, args), delay);
     };
-  };
+  }
 
   // Recent searches (start empty, fill from API/local later)
   const [recentSearches, setRecentSearches] = useState([]);
   const [trendingSearches, setTrendingSearches] = useState([]);
 
-  // src/Components/SearchBar.jsx (inside component)
   useEffect(() => {
-    const fetchRecentAndTrending = async () => {
+    if (loading) return;
+
+    let ignore = false;
+
+    (async () => {
       try {
-        console.log(
-          "Recent URL:",
-          API.SEARCH.RECENT,
-          "Trending URL:",
-          API.SEARCH.TRENDING
+        console.log("Recent URL:", API.SEARCH.RECENT);
+        console.log("Trending URL:", API.SEARCH.TRENDING);
+
+        let recentRes = { data: { data: { searches: [] } } };
+
+        if (user && user._id) {
+          recentRes = await axios
+            .get(`${API.SEARCH.RECENT}?userId=${user._id}`, {
+              withCredentials: true,
+            })
+            .catch(() => ({ data: { data: { searches: [] } } }));
+        }
+
+        const trendingRes = await axios
+          .get(API.SEARCH.TRENDING)
+          .catch(() => ({ data: [] }));
+
+        if (ignore) return;
+
+        setRecentSearches(
+          recentRes?.data?.data?.searches?.map((s) => s.term) || []
         );
-        console.log("API.SEARCH object:", API.SEARCH);
 
-        // Fetch individually so one failing endpoint doesn't explode the whole UI
-        const recentPromise = axios.get(API.SEARCH.RECENT).catch((err) => {
-          console.error(
-            "Recent searches failed:",
-            err?.response?.status,
-            err?.message
-          );
-          return { data: [] }; // fallback
-        });
-
-        const trendingPromise = axios.get(API.SEARCH.TRENDING).catch((err) => {
-          console.error(
-            "Trending searches failed:",
-            err?.response?.status,
-            err?.message
-          );
-          return { data: [] }; // fallback
-        });
-
-        const [recentRes, trendingRes] = await Promise.all([
-          recentPromise,
-          trendingPromise,
-        ]);
-        setRecentSearches(recentRes.data || []);
-        setTrendingSearches(trendingRes.data || []);
+        setTrendingSearches(
+          trendingRes?.data?.data?.trending?.map((s) => s.term) || []
+        );
       } catch (err) {
-        // Should be rare now, but keep a final guard
-        console.error("fetchRecentAndTrending unexpected error:", err);
-        setRecentSearches([]);
-        setTrendingSearches([]);
+        if (ignore) return;
+        console.error("Error fetching search data:", err);
       }
-    };
+    })();
 
-    fetchRecentAndTrending();
-  }, []);
+    return () => {
+      ignore = true;
+    };
+  }, [loading, user]);
 
   // Debounced API call with Axios
   const fetchResults = debounce(async (searchTerm) => {
