@@ -6,6 +6,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import { API } from "@/config";
+import { useUser } from "@/context/UserContext";
 
 export default function SignupPage() {
   // Form data
@@ -14,6 +15,7 @@ export default function SignupPage() {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const { refetchProfile } = useUser();
 
   // State management
   const [step, setStep] = useState(1);
@@ -190,9 +192,9 @@ export default function SignupPage() {
       await axios.post(
         API.AUTH.SIGNUP,
         { email, name, username, password },
-        { withCredentials: true } // ⬅️ add this
+        { withCredentials: true }
       );
-
+      await refetchProfile();
       setMessage({ type: "success", text: "Account created successfully!" });
     } catch (error) {
       const errorMsg = error.response?.data?.message || "Signup failed";

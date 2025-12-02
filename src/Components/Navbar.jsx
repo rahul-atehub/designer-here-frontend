@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 
 export default function Navbar() {
-  const { user, loading, error } = useUser(); // you can use error later if you want.
+  const { user, loading, error, logout } = useUser();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -221,7 +221,10 @@ export default function Navbar() {
                             <span>Settings</span>
                           </Link>
                           <hr className="my-2 border-gray-200 dark:border-gray-700" />
-                          <button className="flex items-center space-x-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left">
+                          <button
+                            onClick={logout}
+                            className="flex items-center space-x-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left"
+                          >
                             <LogOut size={16} />
                             <span>Sign Out</span>
                           </button>

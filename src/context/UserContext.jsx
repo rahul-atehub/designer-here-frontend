@@ -10,44 +10,53 @@ export function UserProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+
+      const res = await axios.get(API.USER.PROFILE, {
+        withCredentials: true,
+      });
+
+      const payload = res?.data?.data ?? res?.data ?? null;
+      setUser(payload);
+      setError(null);
+    } catch (err) {
+      setUser(null);
+      setError({
+        message: err?.message ?? "Unknown error",
+        status: err?.response?.status ?? null,
+        data: err?.response?.data ?? null,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const controller = new AbortController();
-
-    const fetchProfile = async () => {
-      try {
-        const res = await axios.get(API.USER.PROFILE, {
-          withCredentials: true,
-          signal: controller.signal, // cancels fetch on unmount
-        });
-
-        const payload = res?.data?.data ?? res?.data ?? null;
-        setUser(payload);
-        setError(null);
-      } catch (err) {
-        if (axios.isCancel(err)) return; // request was cancelled
-        // normalize error so consumers can safely read it
-        setUser(null);
-        setError({
-          message: err?.message ?? "Unknown error",
-          status: err?.response?.status ?? null,
-          data: err?.response?.data ?? null,
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProfile();
-
-    return () => {
-      controller.abort();
-    };
   }, []);
+
+  const logout = async () => {
+    try {
+      await axios.post(API.AUTH.LOGOUT, {}, { withCredentials: true });
+    } catch (err) {
+      // ignore errors
+    } finally {
+      setUser(null);
+    }
+  };
 
   // Memoize value to avoid unnecessary re-renders of consumers
   const value = useMemo(() => {
-    // optionally expose helpers like login/logout later instead of setUser directly
-    return { user, loading, error, setUser };
+    return {
+      user,
+      loading,
+      error,
+      setUser,
+      refetchProfile: fetchProfile,
+      logout,
+    };
   }, [user, loading, error]);
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
