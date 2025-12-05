@@ -226,7 +226,7 @@ export default function Navbar() {
                             className="flex items-center space-x-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left"
                           >
                             <LogOut size={16} />
-                            <span>Sign Out</span>
+                            <span>Log Out</span>
                           </button>
                         </>
                       ) : (
