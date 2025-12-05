@@ -12,20 +12,18 @@ import {
   Loader2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import axios from "axios";
-import { API } from "@/config";
+import { useUser } from "@/context/UserContext";
 
 const UserCard = () => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, loading, logout } = useUser();
   const [expanded, setExpanded] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
   const dropdownRef = useRef(null);
   const cardRef = useRef(null);
 
-  // Check if user is authenticated
-  const isAuthenticated = user && user.id && user.name !== "Guest";
+  const isAuthenticated = !!user;
   const isGuest = !isAuthenticated;
+
   const toggleMenu = () => {
     setExpanded((prev) => !prev);
   };
@@ -47,109 +45,46 @@ const UserCard = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Fetch user data with proper error handling
-  // pattern you can reuse in both files
-  const fetchUser = async () => {
-    try {
-      console.log("Fetching profile from:", API.USER.PROFILE);
-      const res = await axios.get(API.USER.PROFILE, {
-        withCredentials: true, // remove if server doesn't use cookies
-        headers: {
-          "Content-Type": "application/json",
-          // 'Authorization': `Bearer ${token}` // enable if backend needs bearer token
-        },
-      });
-      setUser(res.data);
-    } catch (err) {
-      console.error("fetchUser error:", {
-        status: err?.response?.status,
-        data: err?.response?.data,
-        message: err?.message,
-      });
-
-      // handle different status codes
-      if (err?.response?.status === 401) {
-        // unauthorized: clear client state or redirect to login
-        setUser(null);
-        // router.push("/login"); // optional
-      } else {
-        // show friendly UI message or fallback
-        setUser(null);
-      }
-    }
-  };
-
-  // Handle logout with proper cleanup
   const handleLogout = async () => {
     try {
       setActionLoading("logout");
-
-      // Call logout endpoint with credentials to clear HttpOnly cookie
-      await axios.post(
-        API.USER.LOGOUT,
-        {},
-        {
-          withCredentials: true, // This ensures cookies are sent and cleared
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      await logout(); // from context
     } catch (error) {
       console.error("Logout error:", error);
     } finally {
-      // Update local state
-      setUser({ name: "Guest", role: "guest" });
       setExpanded(false);
       setActionLoading(null);
-
-      // Redirect to login or home page
-      window.location.href = "/login";
+      // optional redirect:
+      // window.location.href = "/auth/login";
     }
   };
 
-  // Handle profile navigation
   const handleProfile = () => {
     setActionLoading("profile");
     setExpanded(false);
-    // Navigate to profile page
     window.location.href = "/profile";
   };
 
-  // Handle settings navigation
   const handleSettings = () => {
     setActionLoading("settings");
     setExpanded(false);
-    // Navigate to settings page
     window.location.href = "/settings";
   };
 
-  // Handle notifications
   const handleNotifications = () => {
     setActionLoading("notifications");
     setExpanded(false);
-    // Navigate to notifications page
     window.location.href = "/notifications";
-  };
-
-  // Handle guest login
-  const handleLogin = () => {
-    window.location.href = "/login";
-  };
-
-  // Handle guest signup
-  const handleSignup = () => {
-    window.location.href = "/signup";
   };
 
   // Loading state
   if (loading) {
     return (
       <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/80 dark:bg-gray-800/80 border border-gray-200/50 dark:border-gray-700/50">
-        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />
         <div className="flex-1">
-          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1"></div>
-          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-2/3"></div>
+          <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse mb-1" />
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-2/3" />
         </div>
         <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
       </div>
@@ -165,16 +100,15 @@ const UserCard = () => {
         {/* Profile Image/Avatar */}
         <div className="relative">
           <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#EF4444] to-[#F97316] shadow-sm">
-            {isAuthenticated && user.profileImage ? (
+            {isAuthenticated && user?.profileImage ? (
               <Image
                 src={user.profileImage}
-                alt={user.name}
+                alt={user?.name || user?.username || "User"}
                 width={32}
                 height={32}
                 className="object-cover w-full h-full"
                 onError={(e) => {
                   e.target.style.display = "none";
-                  e.target.nextSibling.style.display = "flex";
                 }}
               />
             ) : (
@@ -182,18 +116,17 @@ const UserCard = () => {
             )}
           </div>
 
-          {/* Online status indicator for authenticated users */}
           {isAuthenticated && (
-            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
+            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-800" />
           )}
         </div>
 
         {/* User Info */}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-black dark:text-white truncate">
-            {user?.name || "Guest"}
+            {user?.name || user?.username || "Guest"}
           </p>
-          {isAuthenticated && user.email && (
+          {isAuthenticated && user?.email && (
             <p className="text-xs text-gray-500 dark:text-neutral-400 truncate">
               {user.email}
             </p>
@@ -230,7 +163,6 @@ const UserCard = () => {
             className="absolute bottom-full left-0 mb-2 w-full min-w-48 rounded-lg shadow-lg bg-white dark:bg-gray-800 border border-gray-200/50 dark:border-gray-700/50 overflow-hidden z-50"
           >
             {isGuest ? (
-              // Guest menu options
               <div className="py-1">
                 <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                   <p className="text-sm font-semibold text-gray-900 dark:text-white">
@@ -256,19 +188,17 @@ const UserCard = () => {
                 </Link>
               </div>
             ) : (
-              // Authenticated user menu
               <>
-                {/* User info header */}
                 <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700">
                   <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                    {user.name}
+                    {user?.name || user?.username}
                   </p>
-                  {user.email && (
+                  {user?.email && (
                     <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                       {user.email}
                     </p>
                   )}
-                  {user.role && user.role !== "user" && (
+                  {user?.role && user.role !== "user" && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-full mt-1">
                       <Shield className="w-3 h-3" />
                       {user.role}
@@ -276,7 +206,6 @@ const UserCard = () => {
                   )}
                 </div>
 
-                {/* Menu items */}
                 <div className="py-1">
                   <button
                     onClick={handleProfile}
@@ -318,7 +247,6 @@ const UserCard = () => {
                   </button>
                 </div>
 
-                {/* Logout section */}
                 <div className="border-t border-gray-100 dark:border-gray-700 py-1">
                   <button
                     onClick={handleLogout}

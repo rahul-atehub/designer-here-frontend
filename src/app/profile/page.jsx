@@ -1,18 +1,20 @@
-// pages/profile/index.js or components/ProfileRouter.js
+// src/app/profile/page.jsx
 "use client";
 
 import { motion } from "framer-motion";
 
-import { useRouter } from "next/navigation"; // ✅ correct
-import UserProfile from "./user/page"; // ✅ explicit page import
-import AdminProfile from "./admin/page"; // ✅ explicit page import
+import { useRouter } from "next/navigation";
+import UserProfile from "./user/page";
+import AdminProfile from "./admin/page";
 import LayoutWrapper from "@/Components/LayoutWrapper";
-import useUserRole from "@/hooks/useUserRole"; // adjust path if needed
+import { useUser } from "@/context/UserContext";
 import AuthRequired from "@/components/ui/AuthRequired";
 
 export default function ProfileRouter() {
-  const { userRole, loading, error } = useUserRole();
+  const { user, loading, error } = useUser();
   const router = useRouter();
+
+  const userRole = user?.role || null;
 
   // Loading state
   if (loading) {
@@ -43,9 +45,9 @@ export default function ProfileRouter() {
     );
   }
 
-  // Error state
-  if (error) {
-    return <AuthRequired error={error} />;
+  // Not authenticated or error state
+  if (error || !user) {
+    return <AuthRequired />;
   }
 
   // Route based on user role

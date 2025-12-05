@@ -2,9 +2,12 @@
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import LayoutWrapper from "@/Components/LayoutWrapper";
+import { useUser } from "@/context/UserContext";
 
-export default function AuthRequired({ error }) {
+export default function AuthRequired() {
   const router = useRouter();
+  const { error } = useUser();
+
   return (
     <LayoutWrapper>
       <div className="min-h-[calc(100vh-124px)] sm:min-h-[calc(100vh-100px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-80px)] bg-white dark:bg-neutral-950 flex items-center justify-center">
@@ -39,7 +42,7 @@ export default function AuthRequired({ error }) {
           </h2>
 
           <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-            {error === "Session expired"
+            {error?.status === 401 || error?.message === "Session expired"
               ? "Your session has expired. Please sign in again to continue."
               : "Please sign in to access your profile and enjoy our creative community."}
           </p>
