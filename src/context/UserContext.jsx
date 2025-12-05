@@ -14,7 +14,7 @@ export function UserProvider({ children }) {
     try {
       setLoading(true);
 
-      const res = await axios.get(API.USER.PROFILE, {
+      const res = await axios.get(API.PROFILE.ME, {
         withCredentials: true,
       });
 
