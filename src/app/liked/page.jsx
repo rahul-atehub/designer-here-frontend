@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import ArtworkCard from "@/components/ui/ArtworkCard";
+import { useUser } from "@/context/UserContext";
+import AuthRequired from "@/components/ui/AuthRequired";
 import axios from "axios";
 import { API } from "@/config";
 
@@ -19,24 +21,43 @@ import {
 } from "lucide-react";
 
 const LikedPostsPage = () => {
+  const { user, loading, error } = useUser();
   const [viewMode, setViewMode] = useState("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const [likedPosts, setLikedPosts] = useState([]);
-  // const [, forceUpdate] = useState({});
+
   useEffect(() => {
+    if (!user || error) return; // ⬅️ don't fetch if not logged in
+
     const fetchLikedPosts = async () => {
       try {
         const res = await axios.get(API.LIKES.LIST, { withCredentials: true });
-        setLikedPosts(res.data.likedPosts); // remember: response includes likedPosts
+        setLikedPosts(res.data.likedPosts);
       } catch (error) {
         console.error("Error fetching liked posts:", error);
       }
     };
 
     fetchLikedPosts();
-  }, []);
+  }, [user, error]); // ⬅️ run when user is available
+
+  // Show loading while checking auth
+  if (loading) {
+    return (
+      <LayoutWrapper>
+        <div className="min-h-[calc(100vh-124px)] sm:min-h-[calc(100vh-100px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-80px)] bg-white dark:bg-neutral-950 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500" />
+        </div>
+      </LayoutWrapper>
+    );
+  }
+
+  // Not logged in → show AuthRequired
+  if (error || !user) {
+    return <AuthRequired />;
+  }
 
   // Get unique categories from liked posts
   const categories = [

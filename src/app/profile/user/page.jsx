@@ -1,12 +1,14 @@
-// pages/profile/user.js
+// app/profile/user/page.jsx
+
 "use client";
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import axios from "axios";
-import { API } from "@/config";
 import { useRouter } from "next/navigation";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import { Settings, Bookmark, Heart, User } from "lucide-react";
+import axios from "axios";
+import { API } from "@/config";
 
 export default function UserProfile() {
   const [user, setUser] = useState(null);
@@ -22,20 +24,29 @@ export default function UserProfile() {
   const fetchUserProfile = async () => {
     try {
       setLoading(true);
-      // Replace with your actual API endpoint
-      const response = await axios.get(API.USER.PROFILE, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`, // or however you handle auth
-        },
+
+      // ⬅️ Fetch full profile details
+      const res = await axios.get(API.USER.PROFILE, {
+        withCredentials: true, // because your auth is cookie-based
       });
-      setUser(response.data);
-    } catch (error) {
-      console.error("Error fetching user profile:", error);
-      if (error.response?.status === 401) {
-        setError("Please log in to view your profile");
-      } else {
-        setError("Failed to load profile");
-      }
+
+      const payload = res?.data?.data ?? res?.data ?? null;
+
+      // Normalize backend fields to match what the frontend expects
+
+      const normalizedUser = {
+        name: payload?.name ?? payload?.username ?? "User",
+        email: payload?.email ?? "",
+        profilePicture: payload?.profilePicture ?? payload?.profilePic ?? null,
+        memberSince: payload?.memberSince ?? payload?.createdAt ?? null,
+      };
+
+      setUser(normalizedUser);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching user profile:", err);
+
+      setError("Failed to load your profile. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -57,10 +68,6 @@ export default function UserProfile() {
     router.push("/liked-posts");
   };
 
-  const handleAuthRedirect = () => {
-    router.push("/auth");
-  };
-
   // Loading state
   if (loading) {
     return (
@@ -74,7 +81,7 @@ export default function UserProfile() {
     );
   }
 
-  // Error state - user not logged in
+  // Error state - profile fetch failed
   if (error) {
     return (
       <div className="min-h-screen bg-white dark:bg-neutral-950 flex items-center justify-center p-4">
@@ -93,22 +100,20 @@ export default function UserProfile() {
           </motion.div>
 
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            Welcome to Our Creative Space!
+            Couldn’t load your profile
           </h2>
 
           <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-            To access your personalized profile and explore amazing artworks,
-            please sign in to your account. Join our community of creative
-            minds!
+            {error}
           </p>
 
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={handleAuthRedirect}
+            onClick={fetchUserProfile}
             className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-medium transition-colors duration-200"
           >
-            Sign In / Sign Up
+            Retry
           </motion.button>
         </motion.div>
       </div>

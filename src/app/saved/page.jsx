@@ -5,6 +5,8 @@ import LayoutWrapper from "@/Components/LayoutWrapper";
 import axios from "axios";
 import { API } from "@/config";
 import ArtworkCard from "@/components/ui/ArtworkCard";
+import AuthRequired from "@/components/ui/AuthRequired";
+import { useUser } from "@/context/UserContext";
 
 import {
   Bookmark,
@@ -19,21 +21,25 @@ import {
 } from "lucide-react";
 
 const SavedPostsPage = () => {
+  const { user, loading, error } = useUser();
   const [viewMode, setViewMode] = useState("grid");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const [savedPosts, setSavedPosts] = useState([]);
   const [likedPostsSet, setLikedPostsSet] = useState(new Set());
-  const [, forceUpdate] = useState({});
 
   // Load saved posts and liked posts from localStorage
 
   useEffect(() => {
+    if (!user || error) return; // ⬅️ don't fetch if not authenticated
+
     const fetchSavedPosts = async () => {
       try {
-        const endpoint = API.SAVED.LIST; // "/api/saved/user"
-        const { data } = await axios.get(endpoint); // backend knows current user
+        const endpoint = API.SAVED.LIST;
+        const { data } = await axios.get(endpoint, {
+          withCredentials: true, // ⬅️ important for cookie auth
+        });
         setSavedPosts(data);
       } catch (error) {
         console.error("Error fetching saved posts:", error);
@@ -41,7 +47,22 @@ const SavedPostsPage = () => {
     };
 
     fetchSavedPosts();
-  }, []);
+  }, [user, error]); // ⬅️ run when user is available
+
+  // Auth check using UserContext
+  if (loading) {
+    return (
+      <LayoutWrapper>
+        <div className="min-h-[calc(100vh-124px)] sm:min-h-[calc(100vh-100px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-80px)] bg-white dark:bg-neutral-950 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500" />
+        </div>
+      </LayoutWrapper>
+    );
+  }
+
+  if (error || !user) {
+    return <AuthRequired />;
+  }
 
   // Get unique categories from saved posts
   const categories = [
@@ -99,27 +120,42 @@ const SavedPostsPage = () => {
   const handleRemoveSaved = async (postId) => {
     try {
       const endpoint = API.SAVED.SAVE_POST; // "/api/saved"
-      await axios.delete(endpoint, { data: { postId } }); // postId in body
+      await axios.delete(endpoint, {
+        data: { postId },
+        withCredentials: true,
+      });
+
+      // remove from UI
       setSavedPosts((prev) => prev.filter((post) => post.id !== postId));
     } catch (error) {
       console.error("Error removing saved post:", error);
     }
   };
+
   const handleLikeFromSaved = async (postId) => {
     try {
       const isLiked = likedPostsSet.has(postId);
 
       if (isLiked) {
-        // DELETE like for current user
-        await axios.delete(API.LIKES.LIKE_POST, { data: { postId } });
+        // REMOVE LIKE
+        await axios.delete(API.LIKES.LIKE_POST, {
+          data: { postId },
+          withCredentials: true, // ⬅️ required
+        });
+
         setLikedPostsSet((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(postId);
-          return newSet;
+          const next = new Set(prev);
+          next.delete(postId);
+          return next;
         });
       } else {
-        // ADD like for current user
-        await axios.post(API.LIKES.ADD_LIKE, { postId });
+        // ADD LIKE
+        await axios.post(
+          API.LIKES.ADD_LIKE,
+          { postId },
+          { withCredentials: true } // ⬅️ required
+        );
+
         setLikedPostsSet((prev) => new Set(prev).add(postId));
       }
     } catch (error) {

@@ -1,29 +1,55 @@
+// src/app/settings/page.jsx (or whatever your path is)
 "use client";
 
 import { useRouter } from "next/navigation";
-import useUserRole from "@/hooks/useUserRole";
+import { useUser } from "@/context/UserContext";
 import AuthRequired from "@/components/ui/AuthRequired";
-import UserSettings from "./user/page"; // explicit page import
-import AdminSettings from "./admin/page"; // explicit page import
+import UserSettings from "./user/page"; // user settings page
+import AdminSettings from "./admin/page"; // admin settings page
 
 export default function Settings() {
-  const { userRole, loading, error } = useUserRole();
+  const { user, loading, error } = useUser();
   const router = useRouter();
 
-  // Show authentication required if no valid role
-  if (error) {
-    return <AuthRequired error={error} />;
+  const userRole = user?.role || null;
+
+  // 🔄 Loading state (while UserContext is fetching /me)
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white dark:bg-neutral-950 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500" />
+      </div>
+    );
   }
+
+  // 🔐 Not authenticated or error → show AuthRequired
+  if (error || !user) {
+    return <AuthRequired />;
+  }
+
+  // 🧭 Route based on role
   if (userRole === "admin") {
     return <AdminSettings />;
-  } else if (userRole === "user") {
+  }
+
+  if (userRole === "user") {
     return <UserSettings />;
   }
 
-  // This shouldn't be reached as users are redirected, but just in case
+  // 🛑 Fallback if role is unknown / malformed
   return (
     <div className="min-h-screen bg-white dark:bg-neutral-950 flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500"></div>
+      <div className="text-center space-y-4">
+        <p className="text-gray-700 dark:text-gray-300">
+          We couldn&apos;t determine your account permissions for settings.
+        </p>
+        <button
+          onClick={() => router.push("/auth")}
+          className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg text-sm font-medium"
+        >
+          Sign in again
+        </button>
+      </div>
     </div>
   );
 }
