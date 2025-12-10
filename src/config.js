@@ -1,5 +1,7 @@
 // config.js
 
+import { LogOut } from "lucide-react";
+
 export const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL; // backend base url
 export const SOCKET_IO_URL = process.env.NEXT_PUBLIC_SOCKET_IO_URL; // backend socket url
 
@@ -9,6 +11,7 @@ export const API = {
 
   AUTH: {
     LOGIN: `${BASE_URL}${process.env.NEXT_PUBLIC_AUTH_LOGIN_ENDPOINT}`,
+    LOGOUT: `${BASE_URL}${process.env.NEXT_PUBLIC_AUTH_LOGOUT_ENDPOINT}`,
     SIGNUP: `${BASE_URL}${process.env.NEXT_PUBLIC_AUTH_SIGNUP_ENDPOINT}`,
     SEND_VERIFICATION: `${BASE_URL}${process.env.NEXT_PUBLIC_AUTH_SEND_VERIFICATION_ENDPOINT}`,
     VERIFY: `${BASE_URL}${process.env.NEXT_PUBLIC_AUTH_VERIFY_ENDPOINT}`,

@@ -37,13 +37,60 @@ export function UserProvider({ children }) {
     fetchProfile();
   }, []);
 
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === "logout") {
+        setUser(null);
+        setLoading(false);
+      }
+    };
+    window.addEventListener("storage", onStorage);
+
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
   const logout = async () => {
     try {
+      // 1) Call backend to clear HttpOnly cookie
       await axios.post(API.AUTH.LOGOUT, {}, { withCredentials: true });
-    } catch (err) {
-      // ignore errors
-    } finally {
+
+      // 2) Clear client-side stored tokens (if any)
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      sessionStorage.clear();
+
+      // 3) Remove global axios Authorization header (if you ever set it)
+      if (axios.defaults.headers?.common?.Authorization) {
+        delete axios.defaults.headers.common["Authorization"];
+      }
+
+      // 4) Reset React state
       setUser(null);
+      setLoading(false); // <- ensure consumers know auth check finished
+
+      // 5) Tell other tabs user logged out
+      try {
+        localStorage.setItem("logout", Date.now().toString());
+      } catch (e) {
+        /* ignore storage errors */
+      }
+    } catch (err) {
+      console.error("Logout failed:", err);
+
+      // Best effort cleanup
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      sessionStorage.clear();
+      if (axios.defaults.headers?.common?.Authorization) {
+        delete axios.defaults.headers.common["Authorization"];
+      }
+      setUser(null);
+      setLoading(false); // <- also ensure loading false on error
+      try {
+        localStorage.setItem("logout", Date.now().toString());
+      } catch (e) {
+        /* ignore storage errors */
+      }
     }
   };
 

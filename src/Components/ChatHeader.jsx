@@ -2,6 +2,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { API } from "@/config";
 
 export default function ChatHeader({
   chatId,
