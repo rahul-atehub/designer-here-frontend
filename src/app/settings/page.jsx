@@ -36,7 +36,7 @@ export default function Settings() {
     return <UserSettings />;
   }
 
-  // 🛑 Fallback if role is unknown / malformed
+  //  Fallback if role is unknown / malformed
   return (
     <div className="min-h-screen bg-white dark:bg-neutral-950 flex items-center justify-center">
       <div className="text-center space-y-4">

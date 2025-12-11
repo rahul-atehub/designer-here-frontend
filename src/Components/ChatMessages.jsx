@@ -141,9 +141,9 @@ export default function ChatMessages({
       >
         <motion.div
           whileHover={{ scale: 1.02 }}
-          className={`relative px-4 py-2 rounded-2xl break-words ${
+          className={`relative px-4 py-2 rounded-2xl wrap-break-word ${
             isOwn
-              ? "bg-gradient-to-r from-red-500 to-red-600 text-white ml-auto"
+              ? "bg-linear-to-r from-red-500 to-red-600 text-white ml-auto"
               : "bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white"
           }`}
         >
@@ -247,7 +247,7 @@ export default function ChatMessages({
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center justify-center h-full text-center py-12"
           >
-            <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-violet-600 rounded-full flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-linear-to-r from-red-500 to-violet-600 rounded-full flex items-center justify-center mb-4">
               <svg
                 className="w-8 h-8 text-white"
                 fill="none"

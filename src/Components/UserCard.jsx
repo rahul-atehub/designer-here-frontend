@@ -99,7 +99,7 @@ const UserCard = () => {
       >
         {/* Profile Image/Avatar */}
         <div className="relative">
-          <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-gradient-to-br from-[#EF4444] to-[#F97316] shadow-sm">
+          <div className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center bg-linear-to-br from-[#EF4444] to-[#F97316] shadow-sm">
             {isAuthenticated && user?.profileImage ? (
               <Image
                 src={user.profileImage}

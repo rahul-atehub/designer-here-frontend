@@ -5,6 +5,8 @@ import { motion } from "framer-motion";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import LayoutWrapper from "@/Components/LayoutWrapper";
+import { useUser } from "@/context/UserContext";
+import { API } from "@/config";
 
 import {
   Settings,
@@ -30,35 +32,51 @@ export default function AdminProfile() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
   const router = useRouter();
+  const {
+    user: currentUser,
+    loading: userLoading,
+    error: userError,
+  } = useUser();
 
   useEffect(() => {
-    fetchAdminProfile();
-  }, []);
+    // wait for context to finish loading
+    if (userLoading) return;
 
-  const fetchAdminProfile = async () => {
-    try {
-      setLoading(true);
-      // Replace with your actual API endpoint
-      const response = await axios.get(API.ADMIN.PROFILE, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
-      setUser(response.data);
-    } catch (error) {
-      console.error("Error fetching admin profile:", error);
-      if (error.response?.status === 401) {
-        setError("Please log in to view your profile");
-      } else if (error.response?.status === 403) {
-        setError("Access denied. Admin privileges required.");
-      } else {
-        setError("Failed to load profile");
-      }
-    } finally {
+    if (userError) {
+      setError(
+        typeof userError === "string" ? userError : "Failed to load user"
+      );
       setLoading(false);
+      return;
     }
-  };
+
+    // not authenticated
+    if (!currentUser) {
+      setError("Please log in to view your profile");
+      setLoading(false);
+      return;
+    }
+
+    // not admin
+    if (currentUser.role !== "admin") {
+      setError("Access denied. Admin privileges required.");
+      setLoading(false);
+      return;
+    }
+
+    // user is admin -> normalize and set local user state
+    const normalizedUser = {
+      name: currentUser.name ?? currentUser.username ?? "Admin",
+      email: currentUser.email ?? "",
+      profilePicture:
+        currentUser.profilePicture ?? currentUser.profilePic ?? null,
+      id: currentUser._id ?? currentUser.id ?? null,
+    };
+
+    setUser(normalizedUser);
+    setError(null);
+    setLoading(false);
+  }, [currentUser, userLoading, userError]);
 
   const handleSettingsToggle = () => {
     setShowSettings(!showSettings);
@@ -77,8 +95,19 @@ export default function AdminProfile() {
   const handleAuthRedirect = () => {
     router.push("/auth");
   };
-
   const handleUploadClick = () => {
+    if (!user?.id) {
+      setUploadStatus({
+        show: true,
+        type: "error",
+        message: "Unable to upload: missing user id.",
+      });
+      setTimeout(
+        () => setUploadStatus({ show: false, type: "", message: "" }),
+        3000
+      );
+      return;
+    }
     fileInputRef.current?.click();
   };
 
@@ -121,14 +150,12 @@ export default function AdminProfile() {
       // Create FormData for file upload
       const formData = new FormData();
       formData.append("artwork", file);
-      formData.append("uploadedBy", user.id);
+      formData.append("uploadedBy", user?.id ?? "");
 
       // Upload artwork - replace with your actual API endpoint
       const response = await axios.post(API.PORTFOLIO.UPLOAD, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true, // use cookies for auth if your backend uses them
       });
 
       setUploadStatus({
@@ -238,9 +265,9 @@ export default function AdminProfile() {
             >
               <div className="flex items-center gap-3">
                 {uploadStatus.type === "success" ? (
-                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0" />
+                  <CheckCircle className="w-5 h-5 text-green-500 shrink-0" />
                 ) : (
-                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                  <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
                 )}
                 <p
                   className={`text-sm ${
@@ -276,7 +303,7 @@ export default function AdminProfile() {
                     className="w-24 h-24 rounded-full object-cover ring-4 ring-red-500/20"
                   />
                 ) : (
-                  <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-violet-600 rounded-full flex items-center justify-center">
+                  <div className="w-24 h-24 bg-linear-to-br from-red-500 to-violet-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-2xl font-bold">
                       {user?.name?.charAt(0).toUpperCase()}
                     </span>
@@ -339,8 +366,18 @@ export default function AdminProfile() {
               <motion.button
                 whileTap={{ scale: 0.98 }}
                 onClick={handleUploadClick}
-                disabled={uploading}
-                className="w-full bg-gradient-to-r from-red-500 to-violet-600 hover:from-red-600 hover:to-violet-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl p-8 text-left hover:shadow-lg transition-all duration-200 group relative overflow-hidden"
+                disabled={uploading || userLoading || !user?.id}
+                aria-disabled={uploading || userLoading || !user?.id}
+                title={
+                  uploading
+                    ? "Uploading..."
+                    : userLoading
+                    ? "Loading user..."
+                    : !user?.id
+                    ? "User not ready"
+                    : "Upload new artwork"
+                }
+                className="w-full bg-linear-to-r from-red-500 to-violet-600 hover:from-red-600 hover:to-violet-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-xl p-8 text-left hover:shadow-lg transition-all duration-200 group relative overflow-hidden"
               >
                 {uploading && (
                   <div className="absolute inset-0 bg-black/20 flex items-center justify-center">

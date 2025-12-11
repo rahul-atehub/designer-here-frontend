@@ -149,7 +149,7 @@ const GraphicDesignPortfolio = () => {
         className="text-center py-24"
       >
         <div className="relative mb-8">
-          <div className="w-32 h-32 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-950/50 dark:to-red-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="w-32 h-32 bg-linear-to-br from-red-100 to-red-200 dark:from-red-950/50 dark:to-red-900/50 rounded-full flex items-center justify-center mx-auto mb-6">
             <Pen size={48} className="text-red-500" />
           </div>
           <motion.div
@@ -191,7 +191,7 @@ const GraphicDesignPortfolio = () => {
               whileTap={{ scale: 0.95 }}
               type="submit"
               disabled={isSubmitting}
-              className="px-8 py-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-2xl font-bold transition-all duration-300 shadow-xl shadow-red-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="px-8 py-4 bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-2xl font-bold transition-all duration-300 shadow-xl shadow-red-500/25 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
               {isSubmitting ? "Submitting..." : "Notify Me"}
@@ -201,7 +201,7 @@ const GraphicDesignPortfolio = () => {
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="max-w-md mx-auto p-8 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/50 rounded-3xl border border-green-200/50 dark:border-green-800/50"
+            className="max-w-md mx-auto p-8 bg-linear-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/50 rounded-3xl border border-green-200/50 dark:border-green-800/50"
           >
             <div className="text-green-600 dark:text-green-400 text-2xl font-bold mb-2">
               ✓ You're on the list!
@@ -227,7 +227,7 @@ const GraphicDesignPortfolio = () => {
           className="group relative bg-white/70 dark:bg-neutral-900/70 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-neutral-800/50 shadow-xl shadow-black/5 overflow-hidden p-6"
         >
           <div className="text-center text-gray-500 dark:text-neutral-400 py-12">
-            <div className="w-16 h-16 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-950/50 dark:to-red-900/50 rounded-2xl mb-4 mx-auto animate-pulse" />
+            <div className="w-16 h-16 bg-linear-to-br from-red-100 to-red-200 dark:from-red-950/50 dark:to-red-900/50 rounded-2xl mb-4 mx-auto animate-pulse" />
             <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded mb-2 animate-pulse" />
             <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mx-auto mb-3 animate-pulse" />
             <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2 mx-auto mb-4 animate-pulse" />
@@ -243,7 +243,7 @@ const GraphicDesignPortfolio = () => {
 
   return (
     <LayoutWrapper>
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-neutral-950 dark:via-neutral-950 dark:to-neutral-900">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100 dark:from-neutral-950 dark:via-neutral-950 dark:to-neutral-900">
         {/* Floating Animated Elements */}
         <div className="fixed inset-0 overflow-hidden pointer-events-none">
           <motion.div
@@ -291,7 +291,7 @@ const GraphicDesignPortfolio = () => {
           style={{ y: parallaxY }}
           className="relative py-20 overflow-hidden"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-red-50/50 via-transparent to-red-100/30 dark:from-red-950/20 dark:via-transparent dark:to-red-900/10" />
+          <div className="absolute inset-0 bg-linear-to-br from-red-50/50 via-transparent to-red-100/30 dark:from-red-950/20 dark:via-transparent dark:to-red-900/10" />
 
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative">
             <motion.div
@@ -306,7 +306,7 @@ const GraphicDesignPortfolio = () => {
               </div>
 
               <h2 className="text-6xl md:text-8xl font-black leading-tight">
-                <span className="bg-gradient-to-r from-[#EF4444] to-blue-500 bg-clip-text text-transparent">
+                <span className="bg-linear-to-r from-[#EF4444] to-blue-500 bg-clip-text text-transparent">
                   Designer
                 </span>
                 <br />
@@ -410,7 +410,7 @@ const GraphicDesignPortfolio = () => {
                   <motion.div
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-red-500/10 to-red-600/10 border border-red-500/20 rounded-2xl backdrop-blur-sm"
+                    className="flex items-center gap-2 px-4 py-3 bg-linear-to-r from-red-500/10 to-red-600/10 border border-red-500/20 rounded-2xl backdrop-blur-sm"
                   >
                     <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                     <span className="text-sm font-semibold text-red-500 dark:text-red-400">
@@ -425,7 +425,7 @@ const GraphicDesignPortfolio = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setIsFilterOpen(!isFilterOpen)}
-                    className="flex items-center gap-3 px-6 py-5 bg-gray-50/80 dark:bg-neutral-800/80 hover:bg-gray-100 dark:hover:bg-neutral-700/80 border border-gray-200 dark:border-neutral-700 rounded-2xl transition-all duration-300 text-gray-700 dark:text-neutral-300 font-semibold min-w-[160px] backdrop-blur-sm"
+                    className="flex items-center gap-3 px-6 py-5 bg-gray-50/80 dark:bg-neutral-800/80 hover:bg-gray-100 dark:hover:bg-neutral-700/80 border border-gray-200 dark:border-neutral-700 rounded-2xl transition-all duration-300 text-gray-700 dark:text-neutral-300 font-semibold min-w-40 backdrop-blur-sm"
                   >
                     <Layers size={20} />
                     <span className="capitalize">{filterBy}</span>
@@ -461,7 +461,7 @@ const GraphicDesignPortfolio = () => {
                               }}
                               className={`w-full px-6 py-4 text-left hover:bg-gray-50 dark:hover:bg-neutral-800 transition-all duration-200 capitalize font-medium ${
                                 filterBy === category
-                                  ? "bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950/50 dark:to-red-900/50 text-red-600 dark:text-red-400 border-r-4 border-red-500"
+                                  ? "bg-linear-to-r from-red-50 to-red-100 dark:from-red-950/50 dark:to-red-900/50 text-red-600 dark:text-red-400 border-r-4 border-red-500"
                                   : "text-gray-700 dark:text-neutral-300"
                               }`}
                             >
@@ -487,7 +487,7 @@ const GraphicDesignPortfolio = () => {
                     onClick={() => setViewMode("grid")}
                     className={`p-3 rounded-xl transition-all duration-300 ${
                       viewMode === "grid"
-                        ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/25"
+                        ? "bg-linear-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/25"
                         : "text-gray-600 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-700"
                     }`}
                   >
@@ -499,7 +499,7 @@ const GraphicDesignPortfolio = () => {
                     onClick={() => setViewMode("list")}
                     className={`p-3 rounded-xl transition-all duration-300 ${
                       viewMode === "list"
-                        ? "bg-gradient-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/25"
+                        ? "bg-linear-to-r from-red-500 to-red-600 text-white shadow-lg shadow-red-500/25"
                         : "text-gray-600 dark:text-neutral-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-neutral-700"
                     }`}
                   >
@@ -558,7 +558,7 @@ const GraphicDesignPortfolio = () => {
                 className="text-center py-24"
               >
                 <div className="relative mb-8">
-                  <div className="w-32 h-32 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-neutral-800 dark:to-neutral-900 rounded-full flex items-center justify-center mx-auto">
+                  <div className="w-32 h-32 bg-linear-to-br from-gray-100 to-gray-200 dark:from-neutral-800 dark:to-neutral-900 rounded-full flex items-center justify-center mx-auto">
                     <Search
                       size={48}
                       className="text-gray-400 dark:text-neutral-500"
@@ -592,7 +592,7 @@ const GraphicDesignPortfolio = () => {
                     onClick={() => {
                       setSearchQuery("");
                     }}
-                    className="px-8 py-4 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-2xl font-bold transition-all duration-300 shadow-xl shadow-red-500/25"
+                    className="px-8 py-4 bg-linear-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white rounded-2xl font-bold transition-all duration-300 shadow-xl shadow-red-500/25"
                   >
                     Reset All Filters
                   </motion.button>
@@ -626,7 +626,7 @@ const GraphicDesignPortfolio = () => {
                     className="w-full max-w-xs group relative bg-white/70 dark:bg-neutral-900/70 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-neutral-800/50 shadow-xl shadow-black/5 overflow-hidden"
                   >
                     {/* Hover Glow Effect */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-red-500/0 via-red-500/0 to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-linear-to-br from-red-500/0 via-red-500/0 to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                     <div className="relative z-10">
                       <ArtworkCard
@@ -712,8 +712,8 @@ const GraphicDesignPortfolio = () => {
 
         {/* Background Pattern */}
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-1/4 left-10 w-96 h-96 bg-gradient-to-r from-red-500/5 to-transparent rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-10 w-96 h-96 bg-gradient-to-l from-red-400/5 to-transparent rounded-full blur-3xl" />
+          <div className="absolute top-1/4 left-10 w-96 h-96 bg-linear-to-r from-red-500/5 to-transparent rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-10 w-96 h-96 bg-linear-to-l from-red-400/5 to-transparent rounded-full blur-3xl" />
         </div>
       </div>
 

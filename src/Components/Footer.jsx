@@ -25,7 +25,7 @@ const Footer = () => {
   const [showTerms, setShowTerms] = useState(false);
 
   return (
-    <footer className="relative bg-gradient-to-br from-white via-gray-50 to-blue-50/30 dark:from-neutral-950 dark:via-gray-900 dark:to-blue-950/20 border-t border-gray-200/60 dark:border-gray-800/60 transition-colors duration-300">
+    <footer className="relative bg-linear-to-br from-white via-gray-50 to-blue-50/30 dark:from-neutral-950 dark:via-gray-900 dark:to-blue-950/20 border-t border-gray-200/60 dark:border-gray-800/60 transition-colors duration-300">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]">
         <div
@@ -43,7 +43,7 @@ const Footer = () => {
             {/* Left Section - Main Content */}
             <div className="space-y-8">
               <div className="space-y-6">
-                <h2 className="text-4xl lg:text-5xl font-bold bg-gradient-to-br from-gray-900 via-gray-800 to-blue-900 dark:from-white dark:via-gray-100 dark:to-blue-100 bg-clip-text text-transparent leading-tight">
+                <h2 className="text-4xl lg:text-5xl font-bold bg-linear-to-br from-gray-900 via-gray-800 to-blue-900 dark:from-white dark:via-gray-100 dark:to-blue-100 bg-clip-text text-transparent leading-tight">
                   Designer Here
                 </h2>
 
@@ -57,7 +57,7 @@ const Footer = () => {
               <div className="pt-4">
                 <Link
                   href="/contact"
-                  className="group inline-flex items-center space-x-3 px-8 py-4 bg-gradient-to-r from-#EF4444 to-red-500 hover:from-red-500 hover:to-#EF4444 text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-red-500/25 hover:scale-[1.02] active:scale-[0.98] transform-gpu"
+                  className="group inline-flex items-center space-x-3 px-8 py-4 bg-linear-to-r from-#EF4444 to-red-500 hover:from-red-500 hover:to-#EF4444 text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-red-500/25 hover:scale-[1.02] active:scale-[0.98] transform-gpu"
                 >
                   <Send className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
                   <span>Tell us about your project</span>
@@ -71,7 +71,7 @@ const Footer = () => {
               <div className="space-y-8">
                 {/* Email */}
                 <div className="group flex items-start space-x-5 p-4 rounded-xl hover:bg-white/50 dark:hover:bg-gray-800/30 transition-all duration-300">
-                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-blue-500/10 to-blue-600/20 dark:from-blue-400/10 dark:to-blue-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <div className="shrink-0 w-12 h-12 bg-linear-to-br from-blue-500/10 to-blue-600/20 dark:from-blue-400/10 dark:to-blue-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <Mail className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -89,7 +89,7 @@ const Footer = () => {
 
                 {/* Phone */}
                 <div className="group flex items-start space-x-5 p-4 rounded-xl hover:bg-white/50 dark:hover:bg-gray-800/30 transition-all duration-300">
-                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-green-500/10 to-green-600/20 dark:from-green-400/10 dark:to-green-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <div className="shrink-0 w-12 h-12 bg-linear-to-br from-green-500/10 to-green-600/20 dark:from-green-400/10 dark:to-green-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <Phone className="w-6 h-6 text-green-600 dark:text-green-400" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -107,7 +107,7 @@ const Footer = () => {
 
                 {/* Address */}
                 <div className="group flex items-start space-x-5 p-4 rounded-xl hover:bg-white/50 dark:hover:bg-gray-800/30 transition-all duration-300">
-                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-#EF4444/10 to-red-600/20 dark:from-red-400/10 dark:to-red-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                  <div className="shrink-0 w-12 h-12 bg-linear-to-br from-#EF4444/10 to-red-600/20 dark:from-red-400/10 dark:to-red-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <MapPin className="w-6 h-6 text-#EF4444 dark:text-red-400" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -133,28 +133,28 @@ const Footer = () => {
                 <div className="flex space-x-4">
                   <Link
                     href="#"
-                    className="group w-12 h-12 bg-white dark:bg-gray-800 hover:bg-gradient-to-br hover:from-blue-500 hover:to-blue-600 border border-gray-200 dark:border-gray-700 hover:border-transparent rounded-xl flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25 hover:scale-110"
+                    className="group w-12 h-12 bg-white dark:bg-gray-800 hover:bg-linear-to-br hover:from-blue-500 hover:to-blue-600 border border-gray-200 dark:border-gray-700 hover:border-transparent rounded-xl flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25 hover:scale-110"
                     aria-label="Twitter"
                   >
                     <Twitter className="w-5 h-5 text-gray-600 dark:text-gray-300 group-hover:text-white transition-colors duration-300" />
                   </Link>
                   <Link
                     href="#"
-                    className="group w-12 h-12 bg-white dark:bg-gray-800 hover:bg-gradient-to-br hover:from-blue-600 hover:to-blue-700 border border-gray-200 dark:border-gray-700 hover:border-transparent rounded-xl flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-blue-600/25 hover:scale-110"
+                    className="group w-12 h-12 bg-white dark:bg-gray-800 hover:bg-linear-to-br hover:from-blue-600 hover:to-blue-700 border border-gray-200 dark:border-gray-700 hover:border-transparent rounded-xl flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-blue-600/25 hover:scale-110"
                     aria-label="Facebook"
                   >
                     <Facebook className="w-5 h-5 text-gray-600 dark:text-gray-300 group-hover:text-white transition-colors duration-300" />
                   </Link>
                   <Link
                     href="#"
-                    className="group w-12 h-12 bg-white dark:bg-gray-800 hover:bg-gradient-to-br hover:from-pink-500 hover:to-#EF4444 border border-gray-200 dark:border-gray-700 hover:border-transparent rounded-xl flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/25 hover:scale-110"
+                    className="group w-12 h-12 bg-white dark:bg-gray-800 hover:bg-linear-to-br hover:from-pink-500 hover:to-#EF4444 border border-gray-200 dark:border-gray-700 hover:border-transparent rounded-xl flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/25 hover:scale-110"
                     aria-label="Instagram"
                   >
                     <Instagram className="w-5 h-5 text-gray-600 dark:text-gray-300 group-hover:text-white transition-colors duration-300" />
                   </Link>
                   <Link
                     href="#"
-                    className="group w-12 h-12 bg-white dark:bg-gray-800 hover:bg-gradient-to-br hover:from-blue-700 hover:to-blue-800 border border-gray-200 dark:border-gray-700 hover:border-transparent rounded-xl flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-blue-700/25 hover:scale-110"
+                    className="group w-12 h-12 bg-white dark:bg-gray-800 hover:bg-linear-to-br hover:from-blue-700 hover:to-blue-800 border border-gray-200 dark:border-gray-700 hover:border-transparent rounded-xl flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-blue-700/25 hover:scale-110"
                     aria-label="LinkedIn"
                   >
                     <Linkedin className="w-5 h-5 text-gray-600 dark:text-gray-300 group-hover:text-white transition-colors duration-300" />
@@ -174,7 +174,7 @@ const Footer = () => {
               <p className="text-gray-600 dark:text-gray-400 text-sm">
                 © 2024 Designer Here. All rights reserved.
               </p>
-              <div className="hidden sm:block w-1 h-4 bg-gradient-to-b from-blue-500 to-#EF4444 rounded-full"></div>
+              <div className="hidden sm:block w-1 h-4 bg-linear-to-b from-blue-500 to-#EF4444 rounded-full"></div>
               <p className="hidden sm:block text-gray-500 dark:text-gray-500 text-xs">
                 Crafted with ❣️
               </p>
@@ -186,21 +186,21 @@ const Footer = () => {
                 className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 relative group"
               >
                 Privacy Policy
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-#EF4444 group-hover:w-full transition-all duration-300"></span>
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-linear-to-r from-blue-500 to-#EF4444 group-hover:w-full transition-all duration-300"></span>
               </button>
               <button
                 onClick={() => setShowTerms(true)}
                 className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 relative group"
               >
                 Terms of Service
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-blue-500 to-#EF4444 group-hover:w-full transition-all duration-300"></span>
+                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-linear-to-r from-blue-500 to-#EF4444 group-hover:w-full transition-all duration-300"></span>
               </button>
             </div>
           </div>
         </div>
 
         {/* Decorative bottom gradient line */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-#EF4444 opacity-60"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-blue-500 via-purple-500 to-#EF4444 opacity-60"></div>
       </div>
 
       {/* Privacy Policy Modal */}

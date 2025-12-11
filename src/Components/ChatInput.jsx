@@ -422,7 +422,7 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
       >
         <div className="flex items-end gap-3 max-w-4xl mx-auto">
           {/* Attachment Button */}
-          <div className="flex-shrink-0">
+          <div className="shrink-0">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

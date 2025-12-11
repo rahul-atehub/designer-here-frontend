@@ -294,12 +294,12 @@ export default function Home() {
           <link rel="icon" href="/favicon.ico" />
         </Head>
 
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-red-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-800 relative overflow-hidden">
+        <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-red-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-800 relative overflow-hidden">
           {/* Enhanced Background Effects */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             {/* Animated gradient orbs */}
             <motion.div
-              className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-red-400/20 to-pink-500/20 rounded-full blur-3xl"
+              className="absolute -top-40 -right-40 w-80 h-80 bg-linear-to-br from-red-400/20 to-pink-500/20 rounded-full blur-3xl"
               animate={{
                 x: [0, 100, 0],
                 y: [0, -50, 0],
@@ -313,7 +313,7 @@ export default function Home() {
             />
 
             <motion.div
-              className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-500/20 rounded-full blur-3xl"
+              className="absolute -bottom-40 -left-40 w-80 h-80 bg-linear-to-br from-blue-400/20 to-purple-500/20 rounded-full blur-3xl"
               animate={{
                 x: [0, -100, 0],
                 y: [0, 50, 0],
@@ -457,7 +457,7 @@ export default function Home() {
                           height={48}
                         />
                       </div>
-                      <span className="text-2xl font-bold bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
+                      <span className="text-2xl font-bold bg-linear-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
                         Designer Here
                       </span>
                     </motion.div>
@@ -472,7 +472,7 @@ export default function Home() {
                       >
                         Let's create{" "}
                         <motion.span
-                          className="bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-clip-text text-transparent"
+                          className="bg-linear-to-r from-red-500 via-purple-500 to-blue-500 bg-clip-text text-transparent"
                           animate={{
                             backgroundPosition: [
                               "0% 50%",
@@ -753,7 +753,7 @@ export default function Home() {
                                   />
 
                                   {/* Always visible overlay for mobile */}
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20 md:opacity-0 md:hover:opacity-100 transition-opacity duration-200" />
+                                  <div className="absolute inset-0 bg-linear-to-t from-black/30 via-transparent to-black/20 md:opacity-0 md:hover:opacity-100 transition-opacity duration-200" />
 
                                   {/* Remove button - always visible on mobile, hover on desktop */}
                                   <motion.button
@@ -867,8 +867,8 @@ export default function Home() {
                         whileHover={{ scale: isSubmitting ? 1 : 1.05 }}
                         whileTap={{ scale: isSubmitting ? 1 : 0.95 }}
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 group-hover:from-red-600 group-hover:to-orange-600 transition-all duration-300" />
-                        <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="absolute inset-0 bg-linear-to-r from-red-500 to-orange-500 group-hover:from-red-600 group-hover:to-orange-600 transition-all duration-300" />
+                        <div className="absolute inset-0 bg-linear-to-r from-red-600 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         <motion.div
                           className="relative flex items-center gap-2"
                           animate={
@@ -921,7 +921,7 @@ export default function Home() {
                     <AnimatePresence>
                       {success && (
                         <motion.div
-                          className="mt-6 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 text-green-800 dark:text-green-300 rounded-xl border border-green-200 dark:border-green-800"
+                          className="mt-6 p-4 bg-linear-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 text-green-800 dark:text-green-300 rounded-xl border border-green-200 dark:border-green-800"
                           initial={{ opacity: 0, y: 20, scale: 0.9 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -20, scale: 0.9 }}
@@ -973,7 +973,7 @@ export default function Home() {
                     <AnimatePresence>
                       {errors.api && (
                         <motion.div
-                          className="mt-6 p-4 bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 text-red-800 dark:text-red-300 rounded-xl border border-red-200 dark:border-red-800"
+                          className="mt-6 p-4 bg-linear-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 text-red-800 dark:text-red-300 rounded-xl border border-red-200 dark:border-red-800"
                           initial={{ opacity: 0, y: 20, scale: 0.9 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, y: -20, scale: 0.9 }}
@@ -1021,7 +1021,7 @@ export default function Home() {
                     </motion.div>
 
                     {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent" />
 
                     {/* Content Overlay */}
                     <motion.div
@@ -1124,7 +1124,7 @@ export default function Home() {
                 >
                   <motion.div className="flex items-center justify-center gap-3 mb-4">
                     <motion.div
-                      className="w-12 h-12 bg-gradient-to-r from-[#EF4444] to-orange-500 rounded-xl flex items-center justify-center"
+                      className="w-12 h-12 bg-linear-to-r from-[#EF4444] to-orange-500 rounded-xl flex items-center justify-center"
                       whileHover={{ rotate: 5, scale: 1.1 }}
                       transition={{ duration: 0.3 }}
                     >
@@ -1142,7 +1142,7 @@ export default function Home() {
                         />
                       </svg>
                     </motion.div>
-                    <span className="text-2xl font-bold bg-gradient-to-r from-[#EF4444] to-orange-500 bg-clip-text text-transparent">
+                    <span className="text-2xl font-bold bg-linear-to-r from-[#EF4444] to-orange-500 bg-clip-text text-transparent">
                       Email Service
                     </span>
                   </motion.div>
@@ -1155,7 +1155,7 @@ export default function Home() {
                   >
                     Send us a quick{" "}
                     <motion.span
-                      className="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent"
+                      className="bg-linear-to-r from-blue-500 via-purple-500 to-pink-500 bg-clip-text text-transparent"
                       animate={{
                         backgroundPosition: ["0% 50%", "100% 50%", "0% 50%"],
                       }}
@@ -1341,8 +1341,8 @@ export default function Home() {
                       whileHover={{ scale: isEmailSubmitting ? 1 : 1.05 }}
                       whileTap={{ scale: isEmailSubmitting ? 1 : 0.95 }}
                     >
-                      <div className="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 group-hover:from-red-600 group-hover:to-orange-600 transition-all duration-300" />
-                      <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute inset-0 bg-linear-to-r from-red-500 to-orange-500 group-hover:from-red-600 group-hover:to-orange-600 transition-all duration-300" />
+                      <div className="absolute inset-0 bg-linear-to-r from-red-600 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       <motion.div
                         className="relative flex items-center gap-2"
                         animate={

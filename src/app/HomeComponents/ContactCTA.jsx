@@ -166,7 +166,7 @@ export default function ContactCTA() {
           </motion.div>
 
           <motion.h2
-            className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent"
+            className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 bg-linear-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent"
             variants={itemVariants}
           >
             Let's Create Something{" "}
@@ -266,7 +266,7 @@ export default function ContactCTA() {
           <motion.div variants={itemVariants}>
             <motion.a
               href="/contact"
-              className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-gradient-to-r from-[#EF4444] to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl shadow-lg group relative overflow-hidden"
+              className="inline-flex items-center justify-center gap-3 px-8 py-4 bg-linear-to-r from-[#EF4444] to-red-600 hover:from-red-600 hover:to-red-700 text-white font-semibold rounded-xl shadow-lg group relative overflow-hidden"
               variants={buttonVariants}
               initial="idle"
               whileHover="hover"
@@ -276,7 +276,7 @@ export default function ContactCTA() {
             >
               {/* Button Background Animation */}
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-700"
+                className="absolute inset-0 bg-linear-to-r from-red-600 to-red-700"
                 initial={{ x: "-100%" }}
                 animate={{ x: isHovered ? "0%" : "-100%" }}
                 transition={{ duration: 0.3 }}
@@ -333,7 +333,7 @@ export default function ContactCTA() {
         >
           {/* Floating decorative elements */}
           <motion.div
-            className="absolute -top-4 -left-4 w-16 h-16 bg-gradient-to-br from-red-400 to-red-600 rounded-2xl opacity-20 z-0"
+            className="absolute -top-4 -left-4 w-16 h-16 bg-linear-to-br from-red-400 to-red-600 rounded-2xl opacity-20 z-0"
             animate={{
               rotate: [0, 360],
               scale: [1, 1.1, 1],
@@ -351,7 +351,7 @@ export default function ContactCTA() {
           />
 
           <motion.div
-            className="absolute -bottom-6 -right-6 w-20 h-20 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full opacity-15 z-0"
+            className="absolute -bottom-6 -right-6 w-20 h-20 bg-linear-to-br from-blue-400 to-blue-600 rounded-full opacity-15 z-0"
             animate={{
               rotate: [360, 0],
               y: [-5, 5, -5],
@@ -376,7 +376,7 @@ export default function ContactCTA() {
           >
             {/* Image Overlay Effects */}
             <motion.div
-              className="absolute inset-0 bg-gradient-to-tr from-red-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 z-20"
+              className="absolute inset-0 bg-linear-to-tr from-red-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 z-20"
               transition={{ duration: 0.4 }}
             />
 
@@ -389,7 +389,7 @@ export default function ContactCTA() {
             />
 
             {/* Interactive Overlay */}
-            <motion.div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-6 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-30">
+            <motion.div className="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/60 to-transparent p-6 transform translate-y-full group-hover:translate-y-0 transition-transform duration-500 z-30">
               <div className="text-white">
                 <motion.p
                   className="text-sm font-medium"

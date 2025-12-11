@@ -16,7 +16,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
       {/* Sidebar Content */}
       <div className="flex flex-col h-full">
         {/* Sidebar Header */}
-        <div className="flex items-center justify-between px-4 py-3 pt-4 border-b border-gray-200/50 dark:border-gray-700/50 bg-gradient-to-r from-blue-50/50 to-red-50/50 dark:from-blue-950/20 dark:to-red-950/20">
+        <div className="flex items-center justify-between px-4 py-3 pt-4 border-b border-gray-200/50 dark:border-gray-700/50 bg-linear-to-r from-blue-50/50 to-red-50/50 dark:from-blue-950/20 dark:to-red-950/20">
           <div className="flex items-center space-x-3">
             <div className="relative">
               <Image
@@ -27,7 +27,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
                 className="rounded-lg"
               />
             </div>
-            <h2 className="font-bold text-lg bg-gradient-to-r from-[#EF4444] to-[#F97316] bg-clip-text text-transparent">
+            <h2 className="font-bold text-lg bg-linear-to-r from-[#EF4444] to-[#F97316] bg-clip-text text-transparent">
               Designer Here
             </h2>
           </div>
@@ -64,7 +64,7 @@ const Sidebar = ({ isOpen, onToggle }) => {
       </div>
 
       {/* Accent border */}
-      <div className="absolute left-0 top-0 w-1 h-full bg-gradient-to-b from-blue-500 via-purple-500 to-#EF4444"></div>
+      <div className="absolute left-0 top-0 w-1 h-full bg-linear-to-b from-blue-500 via-purple-500 to-#EF4444"></div>
     </div>
   );
 };
@@ -79,7 +79,7 @@ const SidebarItem = ({ icon: Icon, label, href, badge }) => {
       href={href}
       className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left transition-colors duration-200 ${
         isActive
-          ? "text-#EF4444 dark:text-#EF4444 bg-gradient-to-r from-red-50 to-blue-50 dark:from-red-950/20 dark:to-blue-950/20"
+          ? "text-#EF4444 dark:text-#EF4444 bg-linear-to-r from-red-50 to-blue-50 dark:from-red-950/20 dark:to-blue-950/20"
           : "text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-200 dark:hover:bg-gray-800"
       }`}
     >
@@ -89,7 +89,7 @@ const SidebarItem = ({ icon: Icon, label, href, badge }) => {
       </div>
 
       {badge && (
-        <div className="px-2 py-1 bg-#EF4444 text-white text-xs font-semibold rounded-full min-w-[20px] text-center">
+        <div className="px-2 py-1 bg-#EF4444 text-white text-xs font-semibold rounded-full min-w-5 text-center">
           {badge}
         </div>
       )}
