@@ -244,7 +244,7 @@ export default function Page({ userRole = "user" }) {
       },
     },
   };
-  // bg-gradient-to-br from-gray-50 to-gray-100 dark:from-neutral-950 dark:to-neutral-900
+  // bg-linear-to-br from-gray-50 to-gray-100 dark:from-neutral-950 dark:to-neutral-900
   return (
     <div className="min-h-screen ">
       {/* Animated Background Elements */}
@@ -287,7 +287,7 @@ export default function Page({ userRole = "user" }) {
           animate={isHeaderInView ? "visible" : "hidden"}
         >
           <motion.div
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-full text-sm font-medium text-purple-800 dark:text-purple-300 mb-6"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 rounded-full text-sm font-medium text-purple-800 dark:text-purple-300 mb-6"
             whileHover={{ scale: 1.05 }}
             animate={{
               boxShadow: [
@@ -312,7 +312,7 @@ export default function Page({ userRole = "user" }) {
           </motion.div>
 
           <motion.h1
-            className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-gray-900 via-purple-800 to-blue-800 dark:from-white dark:via-purple-300 dark:to-blue-300 bg-clip-text text-transparent mb-4"
+            className="text-4xl md:text-6xl font-bold bg-linear-to-r from-gray-900 via-purple-800 to-blue-800 dark:from-white dark:via-purple-300 dark:to-blue-300 bg-clip-text text-transparent mb-4"
             animate={{
               backgroundPosition: ["0%", "100%", "0%"],
             }}
@@ -534,7 +534,7 @@ export default function Page({ userRole = "user" }) {
 
           {isAdmin && (
             <motion.button
-              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg"
+              className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all shadow-lg"
               whileHover={{
                 scale: 1.05,
                 boxShadow: "0 10px 25px rgba(168, 85, 247, 0.3)",
@@ -597,7 +597,7 @@ export default function Page({ userRole = "user" }) {
               exit={{ opacity: 0, y: -20 }}
             >
               <motion.div
-                className="w-24 h-24 bg-gradient-to-br from-purple-100 to-blue-100 dark:from-purple-900 dark:to-blue-900 rounded-full flex items-center justify-center mx-auto mb-6"
+                className="w-24 h-24 bg-linear-to-br from-purple-100 to-blue-100 dark:from-purple-900 dark:to-blue-900 rounded-full flex items-center justify-center mx-auto mb-6"
                 animate={{ rotate: 360 }}
                 transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
               >
@@ -615,7 +615,7 @@ export default function Page({ userRole = "user" }) {
                   setSelectedCategory("all");
                   setSortBy("uploadDate");
                 }}
-                className="px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all"
+                className="px-6 py-3 bg-linear-to-r from-purple-600 to-blue-600 text-white rounded-lg hover:from-purple-700 hover:to-blue-700 transition-all"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >

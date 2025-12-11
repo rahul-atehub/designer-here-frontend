@@ -158,7 +158,7 @@ export default function Hero() {
             <Link href="/contact">
               <button
                 onClick={scrollToContact}
-                className="group inline-flex items-center justify-center px-8 py-4 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white hover:text-white hover:bg-gradient-to-r hover:from-blue-600 hover:to-blue-700 hover:border-transparent font-medium rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
+                className="group inline-flex items-center justify-center px-8 py-4 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-white hover:text-white hover:bg-linear-to-r hover:from-blue-600 hover:to-blue-700 hover:border-transparent font-medium rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-xl"
               >
                 <svg
                   className="mr-2 w-4 h-4 group-hover:animate-pulse"
@@ -225,7 +225,7 @@ export default function Hero() {
         >
           {/* Floating Elements */}
           <div
-            className="absolute -top-4 -left-4 w-24 h-24 bg-gradient-to-br from-red-400 to-red-600 rounded-2xl shadow-2xl transform rotate-12 animate-float opacity-80"
+            className="absolute -top-4 -left-4 w-24 h-24 bg-linear-to-br from-red-400 to-red-600 rounded-2xl shadow-2xl transform rotate-12 animate-float opacity-80"
             style={{
               transform: `rotate(12deg) translate(${mousePosition.x * 10}px, ${
                 mousePosition.y * 10
@@ -235,7 +235,7 @@ export default function Hero() {
           ></div>
 
           <div
-            className="absolute -bottom-6 -right-6 w-32 h-32 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full shadow-2xl animate-float delay-1000 opacity-70"
+            className="absolute -bottom-6 -right-6 w-32 h-32 bg-linear-to-br from-blue-400 to-blue-600 rounded-full shadow-2xl animate-float delay-1000 opacity-70"
             style={{
               transform: `translate(${mousePosition.x * -15}px, ${
                 mousePosition.y * -15
@@ -246,7 +246,7 @@ export default function Hero() {
 
           {/* Main Image Container */}
           <div className="relative group overflow-hidden rounded-2xl shadow-2xl">
-            <div className="absolute inset-0 bg-gradient-to-tr from-red-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
+            <div className="absolute inset-0 bg-linear-to-tr from-red-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10"></div>
 
             <Image
               src="https://res.cloudinary.com/dhsv1d1vn/image/upload/v1755348117/pngtree-red-wave-vector-png-image_4742967_ksbvjs.png"

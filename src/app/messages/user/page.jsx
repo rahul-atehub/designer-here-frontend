@@ -45,7 +45,7 @@ export default function UserChatPage() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="h-screen flex flex-col bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950"
+      className="h-screen flex flex-col bg-linear-to-br from-neutral-950 via-neutral-900 to-neutral-950"
     >
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -141,7 +141,7 @@ export default function UserChatPage() {
         transition={{ delay: 0.5 }}
         className="absolute top-4 right-4 z-20"
       >
-        <div className="bg-gradient-to-r from-violet-500 to-violet-600 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg">
+        <div className="bg-linear-to-r from-violet-500 to-violet-600 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg">
           Support Chat
         </div>
       </motion.div>
@@ -153,7 +153,7 @@ export default function UserChatPage() {
         transition={{ delay: 0.7 }}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="absolute bottom-24 left-4 z-20 bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white p-3 rounded-full shadow-lg transition-colors"
+        className="absolute bottom-24 left-4 z-20 bg-linear-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white p-3 rounded-full shadow-lg transition-colors"
         title="Quick Help"
       >
         <svg

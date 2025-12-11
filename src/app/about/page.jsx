@@ -109,8 +109,8 @@ const AboutPage = () => {
         >
           {/* Animated Background */}
           <motion.div style={{ y }} className="absolute inset-0 opacity-20">
-            <div className="absolute top-20 left-20 w-96 h-96 rounded-full blur-3xl bg-gradient-to-r from-[#EF4444]/20 to-blue-500/20 dark:from-[#EF4444]/30 dark:to-purple-500/30"></div>
-            <div className="absolute bottom-20 right-20 w-80 h-80 rounded-full blur-3xl bg-gradient-to-r from-blue-500/20 to-emerald-500/20 dark:from-blue-500/30 dark:to-emerald-500/30"></div>
+            <div className="absolute top-20 left-20 w-96 h-96 rounded-full blur-3xl bg-linear-to-r from-[#EF4444]/20 to-blue-500/20 dark:from-[#EF4444]/30 dark:to-purple-500/30"></div>
+            <div className="absolute bottom-20 right-20 w-80 h-80 rounded-full blur-3xl bg-linear-to-r from-blue-500/20 to-emerald-500/20 dark:from-blue-500/30 dark:to-emerald-500/30"></div>
           </motion.div>
 
           <div className="container mx-auto px-6 text-center relative z-10">
@@ -125,7 +125,7 @@ const AboutPage = () => {
               variants={itemVariants}
               className="text-6xl md:text-8xl font-bold mb-6 leading-tight"
             >
-              <span className="bg-gradient-to-r from-[#EF4444] to-blue-500 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-[#EF4444] to-blue-500 bg-clip-text text-transparent">
                 Designer
               </span>
               <br />
@@ -212,7 +212,7 @@ const AboutPage = () => {
               <motion.div variants={itemVariants}>
                 <h2 className="text-4xl md:text-5xl font-bold mb-8 leading-tight">
                   Our Story of
-                  <span className="block bg-gradient-to-r from-[#EF4444] to-blue-500 bg-clip-text text-transparent">
+                  <span className="block bg-linear-to-r from-[#EF4444] to-blue-500 bg-clip-text text-transparent">
                     Creative Excellence
                   </span>
                 </h2>
@@ -234,7 +234,7 @@ const AboutPage = () => {
               </motion.div>
 
               <motion.div variants={itemVariants} className="relative">
-                <div className="absolute -inset-4 rounded-3xl blur-2xl opacity-30 bg-gradient-to-r from-[#EF4444]/30 to-blue-500/30 dark:from-[#EF4444]/50 dark:to-blue-500/50"></div>
+                <div className="absolute -inset-4 rounded-3xl blur-2xl opacity-30 bg-linear-to-r from-[#EF4444]/30 to-blue-500/30 dark:from-[#EF4444]/50 dark:to-blue-500/50"></div>
                 <div className="relative p-8 rounded-3xl backdrop-blur-sm border bg-white/50 border-gray-200 dark:bg-neutral-900/50 dark:border-neutral-800">
                   <Palette className="w-16 h-16 text-[#EF4444] mb-6" />
                   <h3 className="text-2xl font-bold mb-4">Design Philosophy</h3>
@@ -300,7 +300,7 @@ const AboutPage = () => {
             <motion.div variants={itemVariants} className="text-center mb-16">
               <h2 className="text-4xl md:text-5xl font-bold mb-6">
                 Meet Our
-                <span className="block bg-gradient-to-r from-[#EF4444] to-blue-500 bg-clip-text text-transparent">
+                <span className="block bg-linear-to-r from-[#EF4444] to-blue-500 bg-clip-text text-transparent">
                   Creative Team
                 </span>
               </h2>
@@ -351,14 +351,14 @@ const AboutPage = () => {
           <div className="container mx-auto px-6">
             <motion.div
               variants={itemVariants}
-              className="relative p-12 rounded-3xl text-center overflow-hidden bg-gradient-to-r from-gray-100 to-white dark:from-neutral-900 dark:to-neutral-800"
+              className="relative p-12 rounded-3xl text-center overflow-hidden bg-linear-to-r from-gray-100 to-white dark:from-neutral-900 dark:to-neutral-800"
             >
-              <div className="absolute inset-0 opacity-20 bg-gradient-to-br from-[#EF4444]/20 via-purple-500/20 to-blue-500/20 dark:from-[#EF4444]/30 dark:via-purple-500/30 dark:to-blue-500/30"></div>
+              <div className="absolute inset-0 opacity-20 bg-linear-to-br from-[#EF4444]/20 via-purple-500/20 to-blue-500/20 dark:from-[#EF4444]/30 dark:via-purple-500/30 dark:to-blue-500/30"></div>
 
               <div className="relative z-10">
                 <h2 className="text-4xl md:text-5xl font-bold mb-6">
                   Ready to Create Something
-                  <span className="block bg-gradient-to-r from-[#EF4444] to-blue-500 bg-clip-text text-transparent">
+                  <span className="block bg-linear-to-r from-[#EF4444] to-blue-500 bg-clip-text text-transparent">
                     Extraordinary?
                   </span>
                 </h2>

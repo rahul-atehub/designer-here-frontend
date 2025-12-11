@@ -145,7 +145,7 @@ export default function UserProfile() {
                     className="w-24 h-24 rounded-full object-cover ring-4 ring-red-500/20"
                   />
                 ) : (
-                  <div className="w-24 h-24 bg-gradient-to-br from-red-500 to-violet-600 rounded-full flex items-center justify-center">
+                  <div className="w-24 h-24 bg-linear-to-br from-red-500 to-violet-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-2xl font-bold">
                       {user?.name?.charAt(0).toUpperCase()}
                     </span>

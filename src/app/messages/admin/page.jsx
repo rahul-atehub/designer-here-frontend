@@ -44,7 +44,7 @@ export default function AdminChatPage() {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="h-screen flex flex-col bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950"
+      className="h-screen flex flex-col bg-linear-to-br from-neutral-950 via-neutral-900 to-neutral-950"
     >
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -140,7 +140,7 @@ export default function AdminChatPage() {
         transition={{ delay: 0.5 }}
         className="absolute top-4 right-4 z-20"
       >
-        <div className="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg">
+        <div className="bg-linear-to-r from-red-500 to-red-600 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg">
           Admin Panel
         </div>
       </motion.div>

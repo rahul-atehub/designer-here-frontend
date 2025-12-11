@@ -45,7 +45,7 @@ export default function TermsOfServiceContent() {
       {/* Agreement Notice */}
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-8">
         <div className="flex items-start">
-          <AlertTriangle className="h-6 w-6 text-amber-600 mr-3 mt-0.5 flex-shrink-0" />
+          <AlertTriangle className="h-6 w-6 text-amber-600 mr-3 mt-0.5 shrink-0" />
           <div>
             <h2 className="text-lg font-semibold text-amber-900 mb-2">
               Important Notice

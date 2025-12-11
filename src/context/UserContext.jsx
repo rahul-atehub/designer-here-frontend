@@ -4,10 +4,16 @@ import axios from "axios";
 import { API } from "@/config";
 
 const UserContext = createContext(null);
+export function UserProvider({ children, serverUser = undefined }) {
+  // serverUser === undefined -> no server info (client-only), keep loading true until fetch
+  // serverUser === null -> server confirmed "not logged in" (no flash)
+  const [user, setUser] = useState(
+    serverUser === undefined ? null : serverUser
+  );
+  const [loading, setLoading] = useState(
+    serverUser === undefined ? true : false
+  );
 
-export function UserProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   const fetchProfile = async () => {
@@ -32,10 +38,13 @@ export function UserProvider({ children }) {
       setLoading(false);
     }
   };
-
   useEffect(() => {
+    // If SSR provided the user, do NOT fetch again immediately
+    if (serverUser !== undefined) return;
+
+    // Client-only: Fetch user on first mount
     fetchProfile();
-  }, []);
+  }, [serverUser]);
 
   useEffect(() => {
     const onStorage = (e) => {

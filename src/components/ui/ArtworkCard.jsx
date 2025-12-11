@@ -196,10 +196,10 @@ export default function ArtworkCard({
           onClick={handleCardClick}
         >
           {/* Gradient overlay for depth */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 to-red-50/20 dark:from-blue-950/10 dark:to-red-950/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"></div>
+          <div className="absolute inset-0 bg-linear-to-br from-blue-50/20 to-red-50/20 dark:from-blue-950/10 dark:to-red-950/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"></div>
 
           {/* Image Section */}
-          <div className="relative w-full aspect-square overflow-hidden rounded-t-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700">
+          <div className="relative w-full aspect-square overflow-hidden rounded-t-2xl bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700">
             <img
               src={artworkData.image}
               alt={artworkData.title}
@@ -212,7 +212,7 @@ export default function ArtworkCard({
 
             {/* Overlay gradient */}
             <div
-              className={`absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent transition-opacity duration-300 ${
+              className={`absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent transition-opacity duration-300 ${
                 isHovered ? "opacity-100" : "opacity-0"
               }`}
             ></div>
@@ -382,7 +382,7 @@ export default function ArtworkCard({
                 {artworkData.title}
               </h1>
               {!adminMode && (
-                <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
+                <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400 shrink-0">
                   <TrendingUp size={12} />
                   <span>{views.toLocaleString()}</span>
                 </div>
@@ -422,12 +422,12 @@ export default function ArtworkCard({
               </div>
 
               {/* Action indicator */}
-              <div className="w-2 h-2 bg-gradient-to-br from-blue-500 to-red-500 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <div className="w-2 h-2 bg-linear-to-br from-blue-500 to-red-500 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
             </div>
           </div>
 
           {/* Accent border */}
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-blue-500 via-purple-500 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </div>
 
         {/* Modal for full description */}
@@ -557,12 +557,12 @@ export default function ArtworkCard({
         onClick={handleCardClick}
       >
         {/* Gradient overlay for depth */}
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50/20 to-red-50/20 dark:from-blue-950/10 dark:to-red-950/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"></div>
+        <div className="absolute inset-0 bg-linear-to-br from-blue-50/20 to-red-50/20 dark:from-blue-950/10 dark:to-red-950/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"></div>
 
         {/* Main Content Container - Horizontal Layout */}
         <div className="flex items-center h-32">
           {/* Image Section - Fixed width */}
-          <div className="relative w-32 h-full flex-shrink-0 overflow-hidden rounded-l-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700">
+          <div className="relative w-32 h-full shrink-0 overflow-hidden rounded-l-2xl bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700">
             <img
               src={artworkData.image}
               alt={artworkData.title}
@@ -575,7 +575,7 @@ export default function ArtworkCard({
 
             {/* Overlay gradient */}
             <div
-              className={`absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent transition-opacity duration-300 ${
+              className={`absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent transition-opacity duration-300 ${
                 isHovered ? "opacity-100" : "opacity-0"
               }`}
             ></div>
@@ -803,7 +803,7 @@ export default function ArtworkCard({
         </div>
 
         {/* Accent border */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-blue-500 via-purple-500 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </div>
 
       {/* Modal for full description - Same modal for both views */}

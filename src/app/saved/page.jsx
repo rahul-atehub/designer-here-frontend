@@ -173,14 +173,14 @@ const SavedPostsPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 via-red-500/5 to-red-500/10"></div>
+          <div className="absolute inset-0 bg-linear-to-r from-red-500/10 via-red-500/5 to-red-500/10"></div>
           <div className="relative max-w-7xl mx-auto px-6 py-12">
             <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl">
+              <div className="p-3 bg-linear-to-r from-red-500 to-red-600 rounded-2xl">
                 <Bookmark className="w-8 h-8 text-white" fill="white" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+                <h1 className="text-4xl font-bold bg-linear-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
                   Saved Posts
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400 mt-2">
@@ -310,7 +310,7 @@ const SavedPostsPage = () => {
               transition={{ duration: 0.5 }}
               className="text-center py-16"
             >
-              <div className="w-32 h-32 mx-auto mb-6 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-900/30 dark:to-red-800/30 rounded-full flex items-center justify-center">
+              <div className="w-32 h-32 mx-auto mb-6 bg-linear-to-br from-red-100 to-red-200 dark:from-red-900/30 dark:to-red-800/30 rounded-full flex items-center justify-center">
                 <FolderOpen className="w-16 h-16 text-red-500 dark:text-red-400" />
               </div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">

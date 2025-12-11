@@ -102,9 +102,9 @@ export default function Navbar() {
                     height={40}
                     className="transition-transform duration-200 group-hover:scale-110"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#EF4444]/20 to-[#F97316]/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-md"></div>
+                  <div className="absolute inset-0 bg-linear-to-r from-[#EF4444]/20 to-[#F97316]/20 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-md"></div>
                 </div>
-                <span className="font-bold text-lg bg-gradient-to-r from-[#EF4444] to-[#F97316] bg-clip-text text-transparent">
+                <span className="font-bold text-lg bg-linear-to-r from-[#EF4444] to-[#F97316] bg-clip-text text-transparent">
                   DESIGNER HERE
                 </span>
               </div>
@@ -160,7 +160,7 @@ export default function Navbar() {
                     >
                       {label}
                       <span
-                        className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-[#EF4444] to-[#F97316] transition-all duration-300 group-hover:w-full ${
+                        className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-linear-to-r from-[#EF4444] to-[#F97316] transition-all duration-300 group-hover:w-full ${
                           isActive ? "w-full" : ""
                         }`}
                       ></span>
@@ -177,7 +177,7 @@ export default function Navbar() {
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
                     className="flex items-center space-x-2 p-2 text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
                   >
-                    <div className="w-8 h-8 bg-gradient-to-br from-[#EF4444] to-[#F97316] rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-linear-to-br from-[#EF4444] to-[#F97316] rounded-full flex items-center justify-center">
                       <User size={16} className="text-white" />
                     </div>
                     <ChevronDown
@@ -289,7 +289,7 @@ export default function Navbar() {
           }`}
         >
           {/* Enhanced Header */}
-          <div className="flex justify-between items-center p-6 bg-gradient-to-r from-[#EF4444]/10 to-[#F97316]/10 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex justify-between items-center p-6 bg-linear-to-r from-[#EF4444]/10 to-[#F97316]/10 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-3">
               <div className="relative">
                 <Image
@@ -300,7 +300,7 @@ export default function Navbar() {
                   className="rounded-lg"
                 />
               </div>
-              <span className="font-bold text-lg bg-gradient-to-r from-[#EF4444] to-[#F97316] bg-clip-text text-transparent">
+              <span className="font-bold text-lg bg-linear-to-r from-[#EF4444] to-[#F97316] bg-clip-text text-transparent">
                 DESIGNER HERE
               </span>
             </div>
@@ -329,7 +329,7 @@ export default function Navbar() {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={`relative w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all duration-200 group ${
                           isActive
-                            ? "text-white bg-gradient-to-r from-[#EF4444] to-[#F97316] shadow-lg"
+                            ? "text-white bg-linear-to-r from-[#EF4444] to-[#F97316] shadow-lg"
                             : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                         }`}
                       >
@@ -369,7 +369,7 @@ export default function Navbar() {
                         onClick={() => setIsMobileMenuOpen(false)}
                         className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
                           isActive
-                            ? "text-white bg-gradient-to-r from-[#EF4444] to-[#F97316] shadow-lg"
+                            ? "text-white bg-linear-to-r from-[#EF4444] to-[#F97316] shadow-lg"
                             : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                         }`}
                       >

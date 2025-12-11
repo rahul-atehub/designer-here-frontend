@@ -197,7 +197,7 @@ export default function UserSettings() {
         <title>User Settings - DesignStudio</title>
       </Head>
 
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-neutral-950 dark:to-neutral-900 py-8">
+      <div className="min-h-screen bg-linear-to-br from-gray-50 to-gray-100 dark:from-neutral-950 dark:to-neutral-900 py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <motion.div
@@ -205,7 +205,7 @@ export default function UserSettings() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-8"
           >
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-red-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mb-2">
+            <h1 className="text-4xl font-bold bg-linear-to-r from-red-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mb-2">
               Settings
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
@@ -228,7 +228,7 @@ export default function UserSettings() {
                       onClick={() => setActiveTab(tab.id)}
                       className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-left transition-all duration-200 ${
                         activeTab === tab.id
-                          ? "bg-gradient-to-r from-red-500 to-purple-500 text-white shadow-lg"
+                          ? "bg-linear-to-r from-red-500 to-purple-500 text-white shadow-lg"
                           : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-neutral-800"
                       }`}
                     >
@@ -263,7 +263,7 @@ export default function UserSettings() {
                       {/* Profile Picture */}
                       <div className="flex items-center space-x-6">
                         <div className="relative">
-                          <div className="w-24 h-24 rounded-full bg-gradient-to-r from-red-500 to-purple-500 p-1">
+                          <div className="w-24 h-24 rounded-full bg-linear-to-r from-red-500 to-purple-500 p-1">
                             <div className="w-full h-full rounded-full bg-white dark:bg-neutral-800 flex items-center justify-center overflow-hidden">
                               {profile.profilePicturePreview ? (
                                 <img
@@ -353,7 +353,7 @@ export default function UserSettings() {
                       <button
                         onClick={saveProfile}
                         disabled={isSaving}
-                        className="w-full bg-gradient-to-r from-red-500 to-purple-500 text-white py-3 px-6 rounded-lg font-medium hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full bg-linear-to-r from-red-500 to-purple-500 text-white py-3 px-6 rounded-lg font-medium hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isSaving ? "Saving..." : "Save Profile"}
                       </button>
@@ -431,7 +431,7 @@ export default function UserSettings() {
                       <button
                         onClick={changePassword}
                         disabled={isSaving}
-                        className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white py-3 px-6 rounded-lg font-medium hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full bg-linear-to-r from-blue-500 to-purple-500 text-white py-3 px-6 rounded-lg font-medium hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isSaving ? "Changing..." : "Change Password"}
                       </button>
