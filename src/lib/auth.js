@@ -23,7 +23,12 @@ export async function getUserFromServer() {
     });
 
     const data = res?.data?.data ?? res?.data ?? null;
-    return data;
+    return {
+      _id: data._id,
+      username: data.username,
+      email: data.email,
+      role: data.role,
+    };
   } catch (err) {
     return null; // invalid token, expired, backend error → guest
   }

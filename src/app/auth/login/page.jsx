@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import axios from "axios";
 import Link from "next/link";
@@ -24,6 +25,7 @@ export default function LoginPage() {
   const [loginError, setLoginError] = useState("");
   const [passwordError, setPasswordError] = useState("");
   const { refetchProfile, user } = useUser();
+  const router = useRouter();
 
   // Animation variants
   const containerVariants = {
@@ -179,9 +181,9 @@ export default function LoginPage() {
       // Refresh user context after login
       await refetchProfile();
 
-      // Optional: Redirect
+      // Redirect to the profile page after a short delay
       setTimeout(() => {
-        window.location.href = "/profile";
+        router.push("/profile");
       }, 1500);
     } catch (error) {
       const errorMsg = error.response?.data?.message || "Login failed";
