@@ -15,6 +15,9 @@ export function UserProvider({ children, serverUser = undefined }) {
   );
 
   const [error, setError] = useState(null);
+  // short grace window to avoid long "checking session" flicker
+  const GRACE_MS = 700; // tune (500-800ms)
+  const [gracePassed, setGracePassed] = useState(serverUser !== undefined);
 
   const fetchProfile = async () => {
     try {
@@ -45,6 +48,21 @@ export function UserProvider({ children, serverUser = undefined }) {
     // Client-only: Fetch user on first mount
     fetchProfile();
   }, [serverUser]);
+
+  // manage grace window: if serverUser provided or loading finished, mark gracePassed true
+  useEffect(() => {
+    if (serverUser !== undefined) {
+      setGracePassed(true);
+      return;
+    }
+    if (!loading) {
+      setGracePassed(true);
+      return;
+    }
+    setGracePassed(false);
+    const t = setTimeout(() => setGracePassed(true), GRACE_MS);
+    return () => clearTimeout(t);
+  }, [loading, serverUser]);
 
   useEffect(() => {
     const onStorage = (e) => {
@@ -104,6 +122,7 @@ export function UserProvider({ children, serverUser = undefined }) {
   };
 
   // Memoize value to avoid unnecessary re-renders of consumers
+
   const value = useMemo(() => {
     return {
       user,
@@ -112,8 +131,10 @@ export function UserProvider({ children, serverUser = undefined }) {
       setUser,
       refetchProfile: fetchProfile,
       logout,
+      gracePassed,
+      hasServerUser: serverUser !== undefined,
     };
-  }, [user, loading, error]);
+  }, [user, loading, error, serverUser, gracePassed]);
 
   return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }

@@ -15,7 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@/context/UserContext";
 
 const UserCard = () => {
-  const { user, loading, logout } = useUser();
+  const { user, loading, logout, hasServerUser, gracePassed } = useUser();
   const [expanded, setExpanded] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
   const dropdownRef = useRef(null);
@@ -78,7 +78,7 @@ const UserCard = () => {
   };
 
   // Loading state
-  if (loading) {
+  if (!hasServerUser && loading && !gracePassed) {
     return (
       <div className="flex items-center space-x-3 p-3 rounded-lg bg-white/80 dark:bg-gray-800/80 border border-gray-200/50 dark:border-gray-700/50">
         <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse" />

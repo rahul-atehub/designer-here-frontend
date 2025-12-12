@@ -26,13 +26,15 @@ import {
 } from "lucide-react";
 
 export default function Navbar() {
-  const { user, loading, error, logout } = useUser();
+  const { user, loading, error, logout, hasServerUser, gracePassed } =
+    useUser();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const pathname = usePathname();
   const isLoggedIn = !!user;
+  const [imgError, setImgError] = useState(false);
 
   // Enhanced scroll effect
   useEffect(() => {
@@ -177,9 +179,21 @@ export default function Navbar() {
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
                     className="flex items-center space-x-2 p-2 text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
                   >
-                    <div className="w-8 h-8 bg-linear-to-br from-[#EF4444] to-[#F97316] rounded-full flex items-center justify-center">
-                      <User size={16} className="text-white" />
+                    <div className="w-8 h-8 bg-linear-to-br from-[#EF4444] to-[#F97316] rounded-full flex items-center justify-center overflow-hidden">
+                      {isLoggedIn && user?.profileImage && !imgError ? (
+                        <Image
+                          src={user.profileImage}
+                          alt={user?.name || user?.username || "User"}
+                          width={32}
+                          height={32}
+                          className="object-cover w-full h-full"
+                          onError={() => setImgError(true)}
+                        />
+                      ) : (
+                        <User size={16} className="text-white" />
+                      )}
                     </div>
+
                     <ChevronDown
                       size={16}
                       className={`transition-transform duration-200 ${
@@ -191,7 +205,7 @@ export default function Navbar() {
                   {/* Profile Dropdown */}
                   {isProfileOpen && (
                     <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
-                      {loading ? (
+                      {!hasServerUser && loading && !gracePassed ? (
                         <div className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
                           Checking session...
                         </div>
