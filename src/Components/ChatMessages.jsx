@@ -1,4 +1,4 @@
-// src/app/components/ChatMessages.jsx
+// src/components/ChatMessages.jsx
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -61,8 +61,11 @@ export default function ChatMessages({
       if (!userScrolled) {
         setTimeout(scrollToBottom, 100);
       }
+      if (onMessageUpdate) {
+        onMessageUpdate();
+      }
     }
-  }, [newMessage, userScrolled]);
+  }, [newMessage, userScrolled, onMessageUpdate]);
 
   // Auto-scroll for new messages
   useEffect(() => {
@@ -143,15 +146,38 @@ export default function ChatMessages({
           whileHover={{ scale: 1.02 }}
           className={`relative px-4 py-2 rounded-2xl wrap-break-word ${
             isOwn
-              ? "bg-linear-to-r from-red-500 to-red-600 text-white ml-auto"
-              : "bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white"
+              ? "bg-blue-600 text-white rounded-br-none"
+              : "bg-neutral-800 text-white rounded-bl-none"
           }`}
         >
           {/* Message content */}
           {message.text && (
-            <p className="whitespace-pre-wrap text-sm leading-relaxed">
+            <p className="whitespace-pre-wrap text-sm leading-relaxed wrap-break-word">
               {message.text}
             </p>
+          )}
+
+          {/* Images */}
+          {message.images && message.images.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className={`${
+                message.text ? "mt-2" : ""
+              } rounded-lg overflow-hidden`}
+            >
+              <div className="grid grid-cols-2 gap-2">
+                {message.images.map((img, idx) => (
+                  <img
+                    key={idx}
+                    src={img.url || img}
+                    alt="Shared image"
+                    className="w-full h-auto max-w-sm rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => window.open(img.url || img, "_blank")}
+                  />
+                ))}
+              </div>
+            </motion.div>
           )}
 
           {message.image && (
@@ -176,7 +202,7 @@ export default function ChatMessages({
           {/* Timestamp */}
           <div
             className={`text-xs mt-1 ${
-              isOwn ? "text-red-100" : "text-gray-500 dark:text-neutral-400"
+              isOwn ? "text-blue-100" : "text-neutral-400"
             }`}
           >
             {formatTime(message.timestamp)}
@@ -213,7 +239,7 @@ export default function ChatMessages({
       animate={{ opacity: 1, y: 0 }}
       className="flex items-center justify-center my-6"
     >
-      <div className="bg-gray-200 dark:bg-neutral-700 text-gray-600 dark:text-neutral-300 px-3 py-1 rounded-full text-xs font-medium">
+      <div className="bg-neutral-800 text-neutral-300 px-3 py-1 rounded-full text-xs font-medium">
         {formatDate(date)}
       </div>
     </motion.div>
@@ -221,15 +247,13 @@ export default function ChatMessages({
 
   if (loading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-neutral-950">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-          className="w-8 h-8 border-3 border-red-500 border-t-transparent rounded-full"
+          className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full"
         ></motion.div>
-        <p className="mt-4 text-gray-500 dark:text-neutral-400">
-          Loading messages...
-        </p>
+        <p className="mt-4 text-neutral-400">Loading messages...</p>
       </div>
     );
   }
@@ -238,7 +262,7 @@ export default function ChatMessages({
     <div
       ref={messagesContainerRef}
       onScroll={handleScroll}
-      className="flex-1 overflow-y-auto px-4 py-4 bg-white dark:bg-neutral-950 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-neutral-700"
+      className="flex-1 overflow-y-auto px-6 py-6 bg-neutral-950 space-y-4 scrollbar-thin scrollbar-thumb-neutral-800 scrollbar-track-transparent"
     >
       <AnimatePresence mode="popLayout">
         {messages.length === 0 ? (
@@ -247,7 +271,7 @@ export default function ChatMessages({
             animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center justify-center h-full text-center py-12"
           >
-            <div className="w-16 h-16 bg-linear-to-r from-red-500 to-violet-600 rounded-full flex items-center justify-center mb-4">
+            <div className="w-16 h-16 bg-linear-to-r from-blue-600 to-violet-600 rounded-full flex items-center justify-center mb-4">
               <svg
                 className="w-8 h-8 text-white"
                 fill="none"
@@ -262,10 +286,10 @@ export default function ChatMessages({
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <h3 className="text-lg font-semibold text-white mb-2">
               No messages yet
             </h3>
-            <p className="text-gray-500 dark:text-neutral-400 max-w-sm">
+            <p className="text-neutral-400 max-w-sm">
               Start the conversation by sending your first message!
             </p>
           </motion.div>
@@ -305,7 +329,7 @@ export default function ChatMessages({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={scrollToBottom}
-            className="fixed bottom-24 right-6 bg-red-500 hover:bg-red-600 text-white p-3 rounded-full shadow-lg z-20 transition-colors"
+            className="fixed bottom-24 right-6 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg z-20 transition-colors"
           >
             <svg
               className="w-5 h-5"

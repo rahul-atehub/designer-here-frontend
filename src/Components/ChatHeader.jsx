@@ -1,4 +1,4 @@
-// src/app/components/ChatHeader.jsx
+// src/components/ChatHeader.jsx
 "use client";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
@@ -67,13 +67,13 @@ export default function ChatHeader({
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-700 px-4 py-3 flex items-center space-x-3">
+      <div className="bg-neutral-900/50 backdrop-blur-md border-b border-neutral-800 px-6 py-4 flex items-center space-x-3">
         <div className="relative">
-          <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-neutral-700 animate-pulse"></div>
+          <div className="w-10 h-10 rounded-full bg-neutral-700 animate-pulse"></div>
         </div>
         <div className="flex-1">
-          <div className="h-4 bg-gray-300 dark:bg-neutral-700 rounded animate-pulse mb-1"></div>
-          <div className="h-3 bg-gray-300 dark:bg-neutral-700 rounded w-16 animate-pulse"></div>
+          <div className="h-4 bg-neutral-700 rounded animate-pulse mb-1 w-24"></div>
+          <div className="h-3 bg-neutral-700 rounded w-16 animate-pulse"></div>
         </div>
       </div>
     );
@@ -81,10 +81,8 @@ export default function ChatHeader({
 
   if (!participant) {
     return (
-      <div className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-700 px-4 py-3 flex items-center">
-        <div className="text-gray-500 dark:text-neutral-400">
-          Failed to load participant
-        </div>
+      <div className="bg-neutral-900/50 backdrop-blur-md border-b border-neutral-800 px-6 py-4 flex items-center">
+        <div className="text-neutral-400">Failed to load participant</div>
       </div>
     );
   }
@@ -94,7 +92,7 @@ export default function ChatHeader({
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-white dark:bg-neutral-900 border-b border-gray-200 dark:border-neutral-700 px-4 py-3 flex items-center space-x-3 sticky top-0 z-10"
+        className="bg-neutral-900/50 backdrop-blur-md border-b border-neutral-800 px-6 py-4 flex items-center space-x-3 sticky top-0 z-10"
       >
         <div className="relative">
           <motion.img
@@ -109,7 +107,7 @@ export default function ChatHeader({
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, type: "spring", stiffness: 500 }}
-            className={`absolute bottom-0 right-0 w-3 h-3 ${getStatusColor()} rounded-full border-2 border-white dark:border-neutral-900`}
+            className={`absolute bottom-0 right-0 w-3 h-3 ${getStatusColor()} rounded-full border-2 border-neutral-900`}
           ></motion.div>
         </div>
 
@@ -118,7 +116,7 @@ export default function ChatHeader({
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.15 }}
-            className="text-lg font-semibold text-gray-900 dark:text-white truncate"
+            className="text-lg font-semibold text-white truncate"
           >
             {participant.name}
           </motion.h2>
@@ -128,8 +126,8 @@ export default function ChatHeader({
             transition={{ delay: 0.2 }}
             className={`text-sm ${
               participant.status === "online"
-                ? "text-green-600 dark:text-green-400"
-                : "text-gray-500 dark:text-neutral-400"
+                ? "text-green-400"
+                : "text-neutral-400"
             }`}
           >
             {getStatusText()}
@@ -142,9 +140,9 @@ export default function ChatHeader({
           transition={{ delay: 0.3 }}
           className="flex items-center space-x-2"
         >
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors">
+          <button className="p-2 rounded-lg hover:bg-neutral-800 transition-colors">
             <svg
-              className="w-5 h-5 text-gray-600 dark:text-neutral-400"
+              className="w-5 h-5 text-neutral-400 hover:text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -157,9 +155,9 @@ export default function ChatHeader({
               />
             </svg>
           </button>
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors">
+          <button className="p-2 rounded-lg hover:bg-neutral-800 transition-colors">
             <svg
-              className="w-5 h-5 text-gray-600 dark:text-neutral-400"
+              className="w-5 h-5 text-neutral-400 hover:text-white"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -170,6 +168,15 @@ export default function ChatHeader({
                 strokeWidth={2}
                 d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
               />
+            </svg>
+          </button>
+          <button className="p-2 rounded-lg hover:bg-neutral-800 transition-colors">
+            <svg
+              className="w-5 h-5 text-neutral-400 hover:text-white"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
             </svg>
           </button>
         </motion.div>

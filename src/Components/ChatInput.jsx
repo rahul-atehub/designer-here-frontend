@@ -1,4 +1,4 @@
-// src/app/components/ChatInput.jsx
+// src/components/ChatInput.jsx
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -65,42 +65,6 @@ const EMOJI_LIST = [
   "🤭",
   "🤫",
   "🤐",
-  "🤤",
-  "🤡",
-  "🥱",
-  "😴",
-  "😪",
-  "🌟",
-  "⭐",
-  "✨",
-  "💫",
-  "🔥",
-  "💯",
-  "💢",
-  "💨",
-  "💤",
-  "💦",
-  "💧",
-  "🌈",
-  "☀️",
-  "⛅",
-  "🌙",
-  "🎉",
-  "🎊",
-  "🎈",
-  "🎁",
-  "🎀",
-  "🎂",
-  "🎄",
-  "🎃",
-  "👏",
-  "👍",
-  "👎",
-  "👌",
-  "✌️",
-  "🤞",
-  "🤝",
-  "🙏",
   "❤️",
   "💛",
   "💚",
@@ -108,23 +72,19 @@ const EMOJI_LIST = [
   "💜",
   "🖤",
   "🤍",
-  "🤎",
-  "💔",
-  "❣️",
-  "💕",
-  "💖",
-  "💗",
-  "💘",
-  "💝",
-  "💞",
-  "💟",
-  "💌",
-  "💥",
-  "🚀",
-  "⚡",
-  "🌺",
-  "🌸",
-  "🌼",
+  "🎉",
+  "🎊",
+  "🎈",
+  "🔥",
+  "💯",
+  "✨",
+  "⭐",
+  "🌟",
+  "👏",
+  "👍",
+  "👎",
+  "🙏",
+  "💪",
 ];
 
 export default function ChatInput({ chatId, viewerType, onSendMessage }) {
@@ -200,7 +160,6 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
         return false;
       }
       if (file.size > 10 * 1024 * 1024) {
-        // 10MB limit
         alert(`${file.name} is too large. Please select images under 10MB.`);
         return false;
       }
@@ -209,7 +168,6 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
 
     if (validImages.length === 0) return;
 
-    // Limit total images
     if (selectedImages.length + validImages.length > 5) {
       alert("You can only upload up to 5 images at once");
       return;
@@ -247,7 +205,6 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
     if (files && files.length > 0) {
       handleImageFiles(files);
     }
-    // Reset input
     e.target.value = "";
   };
 
@@ -282,12 +239,9 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
     try {
       const senderId = viewerType === "admin" ? "admin_456" : "user_123";
 
-      // Process images
       const imageUrls = [];
       for (const imageData of selectedImages) {
         if (imageData.preview) {
-          // In a real application, you would upload to a cloud service
-          // For now, we'll use the base64 data URLs
           imageUrls.push({
             url: imageData.preview,
             name: imageData.name,
@@ -316,7 +270,6 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
           onSendMessage(data.message);
         }
 
-        // Clear input
         setMessage("");
         setSelectedImages([]);
         if (fileInputRef.current) {
@@ -341,7 +294,6 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
       const newMessage = message.slice(0, start) + emoji + message.slice(end);
       setMessage(newMessage);
 
-      // Restore cursor position
       setTimeout(() => {
         textarea.setSelectionRange(start + emoji.length, start + emoji.length);
         textarea.focus();
@@ -355,7 +307,7 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
   const hasContent = message.trim() || selectedImages.length > 0;
 
   return (
-    <div className="bg-white dark:bg-neutral-950 ">
+    <div className="bg-neutral-950 border-t border-neutral-800">
       {/* Image Previews */}
       <AnimatePresence>
         {selectedImages.length > 0 && (
@@ -363,7 +315,7 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="px-4 pt-4 pb-2"
+            className="px-6 pt-4 pb-2"
           >
             <div className="flex flex-wrap gap-2">
               {selectedImages.map((imageData) => (
@@ -378,10 +330,10 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
                     <img
                       src={imageData.preview}
                       alt={imageData.name}
-                      className="h-16 w-16 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
+                      className="h-16 w-16 object-cover rounded-lg border border-neutral-700"
                     />
                   ) : (
-                    <div className="h-16 w-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center border border-gray-300 dark:border-gray-600">
+                    <div className="h-16 w-16 bg-neutral-800 rounded-lg flex items-center justify-center border border-neutral-700">
                       <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
                     </div>
                   )}
@@ -413,43 +365,39 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
 
       {/* Main Input Area */}
       <div
-        className={`p-4 transition-colors ${
-          dragOver ? "bg-blue-50 dark:bg-blue-900/20" : ""
-        }`}
+        className={`p-6 transition-colors ${dragOver ? "bg-blue-500/10" : ""}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <div className="flex items-end gap-3 max-w-4xl mx-auto">
+        <div className="flex items-end gap-3">
           {/* Attachment Button */}
-          <div className="shrink-0">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => fileInputRef.current?.click()}
-              disabled={sending}
-              className="p-2.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              title="Attach images"
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => fileInputRef.current?.click()}
+            disabled={sending}
+            className="p-2 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+            title="Attach images"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-                />
-              </svg>
-            </motion.button>
-          </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+              />
+            </svg>
+          </motion.button>
 
           {/* Text Input Area */}
           <div className="flex-1 relative">
-            <div className="relative bg-gray-100 dark:bg-neutral-900 rounded-2xl border border-gray-200 dark:border-gray-700 focus-within:border-gray-300 dark:focus-within:border-gray-600 transition-colors">
+            <div className="relative bg-neutral-800 rounded-2xl border border-neutral-700 focus-within:border-neutral-600 transition-colors">
               <textarea
                 ref={textareaRef}
                 value={message}
@@ -458,9 +406,9 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
                 placeholder="Message..."
                 disabled={sending}
                 rows={1}
-                className="w-full px-4 py-3 bg-transparent text-gray-900 dark:text-white  placeholder-gray-500 dark:placeholder-gray-400 border-none outline-none resize-none  overflow-y-auto disabled:opacity-50 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-400 [&::-webkit-scrollbar-thumb]:rounded-full  dark:[&::-webkit-scrollbar-thumb]:bg-gray-600"
+                className="w-full px-4 py-3 bg-transparent text-white placeholder-neutral-500 border-none outline-none resize-none overflow-y-auto disabled:opacity-50 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-600 [&::-webkit-scrollbar-thumb]:rounded-full"
                 style={{
-                  minHeight: "48px",
+                  minHeight: "40px",
                   maxHeight: "150px",
                   lineHeight: "1.5",
                 }}
@@ -469,7 +417,7 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1 shrink-0">
             {/* Emoji Button */}
             <div className="relative" ref={emojiPickerRef}>
               <motion.button
@@ -477,7 +425,7 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                 disabled={sending}
-                className="p-2.5 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all disabled:opacity-50"
+                className="p-2 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-lg transition-all disabled:opacity-50"
                 title="Add emoji"
               >
                 <svg
@@ -485,7 +433,6 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
                 </svg>
               </motion.button>
@@ -497,7 +444,7 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute bottom-full right-0 mb-2 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 p-4 w-80 max-h-72 overflow-hidden"
+                    className="absolute bottom-full right-0 mb-2 bg-neutral-800 rounded-2xl shadow-xl border border-neutral-700 p-4 w-80 max-h-72 overflow-hidden"
                   >
                     <div className="h-full max-h-72 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] pr-1 pb-4">
                       <div className="grid grid-cols-8 gap-2">
@@ -507,7 +454,7 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
                             whileHover={{ scale: 1.2 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={() => handleEmojiClick(emoji)}
-                            className="text-xl p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                            className="text-xl p-2 hover:bg-neutral-700 rounded-lg transition-colors"
                           >
                             {emoji}
                           </motion.button>
@@ -525,10 +472,10 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
               whileTap={{ scale: hasContent ? 0.95 : 1 }}
               onClick={handleSend}
               disabled={!hasContent || sending}
-              className={`p-2.5 rounded-lg transition-all ${
+              className={`p-2 rounded-lg transition-all ${
                 hasContent && !sending
                   ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md"
-                  : "text-gray-400 dark:text-gray-600 cursor-not-allowed"
+                  : "text-neutral-600 cursor-not-allowed"
               }`}
               title="Send message"
             >
@@ -566,7 +513,7 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
               exit={{ opacity: 0 }}
               className="absolute inset-0 bg-blue-500/20 border-2 border-dashed border-blue-500 rounded-2xl flex items-center justify-center"
             >
-              <div className="text-blue-600 dark:text-blue-400 font-medium">
+              <div className="text-blue-400 font-medium">
                 Drop images here to upload
               </div>
             </motion.div>
