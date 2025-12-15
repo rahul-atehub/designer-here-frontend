@@ -12,7 +12,8 @@ export async function getUserFromServer() {
     const token = cookieStore.get("token")?.value ?? null;
 
     // No cookie → guest
-    if (!token) return null;
+    // No cookie visible to SSR → auth unknown
+    if (!token) return undefined;
 
     // Call backend using server-side axios (no CORS issues)
     const res = await axios.get(API.PROFILE.ME, {
