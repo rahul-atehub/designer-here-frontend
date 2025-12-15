@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import LayoutWrapper from "@/Components/LayoutWrapper";
-import { Settings, Bookmark, Heart, User } from "lucide-react";
+import { Bookmark, Heart, User } from "lucide-react";
 import axios from "axios";
 import { API } from "@/config";
 
@@ -125,12 +125,13 @@ export default function UserProfile() {
       <div className="min-h-screen bg-white dark:bg-neutral-950 py-8 px-4">
         <div className="max-w-4xl mx-auto">
           {/* Profile Header */}
+          {/* Profile Header */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white dark:bg-neutral-900 rounded-2xl p-8 shadow-lg border border-gray-200 dark:border-neutral-800 mb-8"
+            className="bg-white dark:bg-neutral-950 rounded-2xl p-8 mb-8"
           >
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+            <div className="flex items-start gap-10">
               {/* Profile Picture */}
               <motion.div
                 initial={{ scale: 0 }}
@@ -142,11 +143,11 @@ export default function UserProfile() {
                   <img
                     src={user.profilePicture}
                     alt={user.name}
-                    className="w-24 h-24 rounded-full object-cover ring-4 ring-red-500/20"
+                    className="w-36 h-36 rounded-full object-cover border border-gray-300 dark:border-neutral-700"
                   />
                 ) : (
-                  <div className="w-24 h-24 bg-linear-to-br from-red-500 to-violet-600 rounded-full flex items-center justify-center">
-                    <span className="text-white text-2xl font-bold">
+                  <div className="w-36 h-36 bg-linear-to-br from-red-500 to-violet-600 rounded-full flex items-center justify-center">
+                    <span className="text-xl font-semibold text-gray-900 dark:text-white">
                       {user?.name?.charAt(0).toUpperCase()}
                     </span>
                   </div>
@@ -154,14 +155,14 @@ export default function UserProfile() {
               </motion.div>
 
               {/* User Info */}
-              <div className="flex-1 text-center md:text-left">
+              <div className="flex flex-col gap-1">
                 <motion.h1
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="text-3xl font-bold text-gray-900 dark:text-white mb-2"
+                  className="text-sm text-gray-600 dark:text-neutral-400"
                 >
-                  {user?.name || "User"}
+                  {user?.name || "Admin"}
                 </motion.h1>
 
                 <motion.p
@@ -172,22 +173,20 @@ export default function UserProfile() {
                 >
                   {user?.email}
                 </motion.p>
-              </div>
 
-              {/* Settings Button */}
-              <motion.button
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5 }}
-                whileHover={{ scale: 1.1, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={handleSettingsToggle}
-                className="p-3 bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded-full transition-colors duration-200"
-              >
-                <Settings className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-              </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="mt-3 w-full py-1.5 rounded-lg border border-gray-300 dark:border-neutral-700 text-sm font-medium text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
+                >
+                  Edit profile
+                </motion.button>
+              </div>
             </div>
           </motion.div>
+
+          {/* posts on home page */}
+          <div className="mt-8 flex justify-center border-t border-gray-200 dark:border-neutral-800 pt-3"></div>
 
           {/* Action Buttons */}
           <motion.div
@@ -196,34 +195,12 @@ export default function UserProfile() {
             transition={{ delay: 0.6 }}
             className="grid grid-cols-1 md:grid-cols-2 gap-6"
           >
-            {/* Saved Posts */}
-            <motion.button
-              whileHover={{ scale: 1.02, y: -2 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={handleSavedPosts}
-              className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl p-6 text-left hover:shadow-lg transition-all duration-200 group"
-            >
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-violet-100 dark:bg-violet-900/20 rounded-lg group-hover:bg-violet-200 dark:group-hover:bg-violet-900/30 transition-colors duration-200">
-                  <Bookmark className="w-6 h-6 text-violet-600 dark:text-violet-400" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-                    Saved Posts
-                  </h3>
-                  <p className="text-gray-600 dark:text-gray-400 text-sm">
-                    View your bookmarked artworks
-                  </p>
-                </div>
-              </div>
-            </motion.button>
-
             {/* Liked Posts */}
             <motion.button
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
               onClick={handleLikedPosts}
-              className="bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl p-6 text-left hover:shadow-lg transition-all duration-200 group"
+              className="bg-white dark:bg-neutral-950 rounded-xl p-6 text-left hover:shadow-lg transition-all duration-200 group"
             >
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-red-100 dark:bg-red-900/20 rounded-lg group-hover:bg-red-200 dark:group-hover:bg-red-900/30 transition-colors duration-200">
@@ -235,6 +212,28 @@ export default function UserProfile() {
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400 text-sm">
                     Your favorite artworks
+                  </p>
+                </div>
+              </div>
+            </motion.button>
+
+            {/* Saved Posts */}
+            <motion.button
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleSavedPosts}
+              className="bg-white dark:bg-neutral-950 rounded-xl p-6 text-left hover:shadow-lg transition-all duration-200 group"
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-violet-100 dark:bg-violet-900/20 rounded-lg group-hover:bg-violet-200 dark:group-hover:bg-violet-900/30 transition-colors duration-200">
+                  <Bookmark className="w-6 h-6 text-violet-600 dark:text-violet-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                    Saved Posts
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    View your bookmarked artworks
                   </p>
                 </div>
               </div>
