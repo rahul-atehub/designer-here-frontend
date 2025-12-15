@@ -262,7 +262,7 @@ export default function ChatMessages({
     <div
       ref={messagesContainerRef}
       onScroll={handleScroll}
-      className="flex-1 overflow-y-auto px-6 py-6 bg-neutral-950 space-y-4 scrollbar-thin scrollbar-thumb-neutral-800 scrollbar-track-transparent"
+      className="flex-1 overflow-y-auto px-6 py-6 bg-neutral-950 space-y-4 scrollbar-thin scrollbar-thumb-neutral-800 scrollbar-track-transparent [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-600 [&::-webkit-scrollbar-thumb]:rounded-full"
     >
       <AnimatePresence mode="popLayout">
         {messages.length === 0 ? (

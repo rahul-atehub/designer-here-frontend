@@ -133,62 +133,6 @@ export default function UserChatPage() {
           />
         </motion.div>
       </div>
-
-      {/* Support Badge */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.5 }}
-        className="absolute top-4 right-4 z-20"
-      >
-        <div className="bg-linear-to-r from-violet-500 to-violet-600 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg">
-          Support Chat
-        </div>
-      </motion.div>
-
-      {/* Help Button */}
-      <motion.button
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.7 }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="absolute bottom-24 left-4 z-20 bg-linear-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white p-3 rounded-full shadow-lg transition-colors"
-        title="Quick Help"
-      >
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      </motion.button>
-
-      {/* Connection Status */}
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
-        className="absolute bottom-4 right-4 z-20"
-      >
-        <div className="flex items-center space-x-2 bg-white dark:bg-neutral-800 rounded-full px-3 py-1 shadow-lg">
-          <motion.div
-            animate={{ scale: [1, 1.2, 1] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="w-2 h-2 bg-green-500 rounded-full"
-          />
-          <span className="text-xs text-gray-600 dark:text-neutral-300">
-            Connected
-          </span>
-        </div>
-      </motion.div>
     </motion.div>
   );
 }
