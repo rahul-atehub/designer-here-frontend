@@ -205,18 +205,6 @@ export default function AdminChatPage() {
           </div>
         )}
       </motion.div>
-
-      {/* Admin Badge */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.5 }}
-        className="fixed top-4 right-4 z-50"
-      >
-        <div className="bg-linear-to-r from-red-500 to-red-600 text-white px-3 py-1 rounded-full text-xs font-medium shadow-lg">
-          Admin Panel
-        </div>
-      </motion.div>
     </div>
   );
 }
