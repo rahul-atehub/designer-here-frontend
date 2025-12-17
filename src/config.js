@@ -87,6 +87,7 @@ export const API = {
     MESSAGES_USER_CHATS: (userID) =>
       `${BASE_URL}${process.env.NEXT_PUBLIC_USER_CHATS_ENDPOINT}/${userID}`, // to fetch his chat with admin.[debatable]
     MESSAGE_USERS_SEARCH: `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_USER_SEARCH_ENDPOINT}`, // to search user's inbox. [make it admin only.]
+    MESSAGES_SEND: `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_SEND_ENDPOINT}`, // for sending messages through contact form or inbox.
   },
 };
 
