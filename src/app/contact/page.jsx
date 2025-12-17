@@ -175,7 +175,7 @@ export default function Home() {
       formPayload.append("message", formData.message);
 
       attachments.forEach((att) => {
-        formPayload.append("attachments", att.file);
+        formPayload.append("image", attachments[0].file);
       });
 
       const response = await axios.post(API.MESSAGES, formPayload, {
