@@ -20,6 +20,9 @@ export default function Home() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [attachments, setAttachments] = useState([]);
   const fileInputRef = useRef(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMessage, setAuthMessage] = useState("");
+  const authTimeoutRef = useRef(null);
 
   // Email service form state
   const [emailFormData, setEmailFormData] = useState({
@@ -144,17 +147,42 @@ export default function Home() {
     e.preventDefault();
     setIsSubmitting(true);
 
+    if (userLoading) {
+      setIsSubmitting(false);
+      return;
+    }
+
     // 1️⃣ Not logged in
     if (!user && !userLoading) {
-      setErrors({ api: "Please log in to send a message." });
+      setAuthMessage("Please log in to send a message.");
+      setShowAuthModal(true);
       setIsSubmitting(false);
+
+      if (authTimeoutRef.current) {
+        clearTimeout(authTimeoutRef.current);
+      }
+
+      authTimeoutRef.current = setTimeout(() => {
+        setShowAuthModal(false);
+      }, 3000);
+
       return;
     }
 
     // 2️⃣ Logged in but NOT a normal user
     if (user && user.role !== "user") {
-      setErrors({ api: "Admins cannot send messages from this form." });
+      setAuthMessage("Admins cannot send messages from this form.");
+      setShowAuthModal(true);
       setIsSubmitting(false);
+
+      if (authTimeoutRef.current) {
+        clearTimeout(authTimeoutRef.current);
+      }
+
+      authTimeoutRef.current = setTimeout(() => {
+        setShowAuthModal(false);
+      }, 3000);
+
       return;
     }
 
@@ -532,14 +560,13 @@ export default function Home() {
                         onBlur={() => setFocusedField(null)}
                         placeholder="Tell us about your project..."
                         rows={8}
-                        className={`w-full px-4 py-4 bg-gray-50/50 dark:bg-neutral-800/50 border-2 rounded-xl focus:outline-none transition-all duration-300 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 resize-none backdrop-blur-sm ${
+                        className={`w-full px-4 py-4 bg-gray-50/50 dark:bg-neutral-800/50 border-2 rounded-xl focus:outline-none transition-all duration-300 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 resize-none  ${
                           focusedField === "message"
                             ? "border-red-500 shadow-lg shadow-red-500/20 bg-white dark:bg-neutral-800"
                             : errors.message
                             ? "border-red-400"
                             : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600"
                         }`}
-                        whileFocus={{ scale: 1.02 }}
                       />
                       <AnimatePresence>
                         {errors.message && (
@@ -718,7 +745,7 @@ export default function Home() {
 
                       <motion.button
                         type="submit"
-                        disabled={isSubmitting || !user || user.role !== "user"}
+                        disabled={isSubmitting}
                         className="relative px-8 py-3 rounded-xl font-medium text-white overflow-hidden group disabled:opacity-50 disabled:cursor-not-allowed"
                         whileHover={{ scale: isSubmitting ? 1 : 1.05 }}
                         whileTap={{ scale: isSubmitting ? 1 : 0.95 }}
@@ -772,6 +799,23 @@ export default function Home() {
                         </motion.div>
                       </motion.button>
                     </div>
+
+                    <AnimatePresence>
+                      {showAuthModal && (
+                        <motion.div
+                          className="mt-4 p-3 rounded-lg text-sm
+                 bg-yellow-50 text-yellow-800
+                 dark:bg-yellow-900/20 dark:text-yellow-300
+                 border border-yellow-200 dark:border-yellow-800"
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          {authMessage}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     {/* Enhanced Success message */}
                     <AnimatePresence>
@@ -1058,14 +1102,13 @@ export default function Home() {
                       onFocus={() => setEmailFocusedField("name")}
                       onBlur={() => setEmailFocusedField(null)}
                       placeholder="Your name"
-                      className={`w-full px-4 py-4 bg-gray-50/50 dark:bg-neutral-800/50 border-2 rounded-xl focus:outline-none transition-all duration-300 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 backdrop-blur-sm ${
+                      className={`w-full px-4 py-4 bg-gray-50/50 dark:bg-neutral-800/50 border-2 rounded-xl focus:outline-none transition-all duration-300 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500  ${
                         emailFocusedField === "name"
                           ? "border-red-500 shadow-lg shadow-red-500/20 bg-white dark:bg-neutral-800"
                           : emailErrors.name
                           ? "border-red-400"
                           : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600"
                       }`}
-                      whileFocus={{ scale: 1.02 }}
                     />
                     <AnimatePresence>
                       {emailErrors.name && (
@@ -1106,14 +1149,13 @@ export default function Home() {
                       onFocus={() => setEmailFocusedField("email")}
                       onBlur={() => setEmailFocusedField(null)}
                       placeholder="Your email address"
-                      className={`w-full px-4 py-4 bg-gray-50/50 dark:bg-neutral-800/50 border-2 rounded-xl focus:outline-none transition-all duration-300 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 backdrop-blur-sm ${
+                      className={`w-full px-4 py-4 bg-gray-50/50 dark:bg-neutral-800/50 border-2 rounded-xl focus:outline-none transition-all duration-300 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 ${
                         emailFocusedField === "email"
                           ? "border-red-500 shadow-lg shadow-red-500/20 bg-white dark:bg-neutral-800"
                           : emailErrors.email
                           ? "border-red-400"
                           : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600"
                       }`}
-                      whileFocus={{ scale: 1.02 }}
                     />
                     <AnimatePresence>
                       {emailErrors.email && (
@@ -1154,14 +1196,13 @@ export default function Home() {
                       onBlur={() => setEmailFocusedField(null)}
                       placeholder="Your message..."
                       rows="4"
-                      className={`w-full px-4 py-4 bg-gray-50/50 dark:bg-neutral-800/50 border-2 rounded-xl focus:outline-none transition-all duration-300 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 resize-none backdrop-blur-sm ${
+                      className={`w-full px-4 py-4 bg-gray-50/50 dark:bg-neutral-800/50 border-2 rounded-xl focus:outline-none transition-all duration-300 text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 resize-none  ${
                         emailFocusedField === "message"
                           ? "border-red-500 shadow-lg shadow-red-500/20 bg-white dark:bg-neutral-800"
                           : emailErrors.message
                           ? "border-red-400"
                           : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600"
                       }`}
-                      whileFocus={{ scale: 1.02 }}
                     />
                     <AnimatePresence>
                       {emailErrors.message && (
