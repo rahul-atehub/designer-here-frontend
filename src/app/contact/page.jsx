@@ -178,7 +178,7 @@ export default function Home() {
         formPayload.append("image", attachments[0].file);
       });
 
-      const response = await axios.post(API.MESSAGES, formPayload, {
+      const response = await axios.post(API.CHAT.MESSAGES_SEND, formPayload, {
         withCredentials: true,
       });
 
