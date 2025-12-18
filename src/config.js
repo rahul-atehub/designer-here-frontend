@@ -1,8 +1,21 @@
 // config.js
+const isDev = process.env.NODE_ENV === "development";
 
-import { LogOut } from "lucide-react";
+const resolvedBaseUrl = isDev
+  ? process.env.NEXT_PUBLIC_API_BASE_URL
+  : process.env.NEXT_PUBLIC_API_BASE_URL_ALT ??
+    process.env.NEXT_PUBLIC_API_BASE_URL;
 
-export const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL; // backend base url
+if (!resolvedBaseUrl) {
+  throw new Error("BASE_URL could not be resolved from environment variables");
+}
+
+export const BASE_URL = resolvedBaseUrl;
+
+if (!process.env.NEXT_PUBLIC_SOCKET_IO_URL) {
+  console.warn("NEXT_PUBLIC_SOCKET_IO_URL is not defined");
+}
+
 export const SOCKET_IO_URL = process.env.NEXT_PUBLIC_SOCKET_IO_URL; // backend socket url
 
 export const API = {
@@ -15,6 +28,17 @@ export const API = {
     SIGNUP: `${BASE_URL}${process.env.NEXT_PUBLIC_AUTH_SIGNUP_ENDPOINT}`,
     SEND_VERIFICATION: `${BASE_URL}${process.env.NEXT_PUBLIC_AUTH_SEND_VERIFICATION_ENDPOINT}`,
     VERIFY: `${BASE_URL}${process.env.NEXT_PUBLIC_AUTH_VERIFY_ENDPOINT}`,
+    DEACTIVATE: process.env.NEXT_PUBLIC_AUTH_DEACTIVATE_ACCOUNT_ENDPOINT
+      ? `${BASE_URL}${process.env.NEXT_PUBLIC_AUTH_DEACTIVATE_ACCOUNT_ENDPOINT}`
+      : null,
+
+    DELETE: process.env.NEXT_PUBLIC_AUTH_DELETE_ACCOUNT_ENDPOINT
+      ? `${BASE_URL}${process.env.NEXT_PUBLIC_AUTH_DELETE_ACCOUNT_ENDPOINT}`
+      : null,
+
+    ROLE: process.env.NEXT_PUBLIC_AUTH_ROLE_ENDPOINT
+      ? `${BASE_URL}${process.env.NEXT_PUBLIC_AUTH_ROLE_ENDPOINT}`
+      : null,
   },
 
   USER: {
@@ -23,7 +47,10 @@ export const API = {
     CHANGE_PASSWORD: `${BASE_URL}${process.env.NEXT_PUBLIC_ADMIN_CHANGE_PASSWORD_ENDPOINT}`, // to change the password .
     DELETE_ACCOUNT: `${BASE_URL}${process.env.NEXT_PUBLIC_ADMIN_DELETE_ACCOUNT_ENDPOINT}`,
     DEACTIVATE_ACCOUNT: `${BASE_URL}${process.env.NEXT_PUBLIC_ADMIN_DEACTIVATE_ACCOUNT_ENDPOINT}`,
-    STATE: `${BASE_URL}${process.env.NEXT_PUBLIC_USER_STATE_ENDPOINT}`, // this doesn't exist anywhere in the backend or env file.
+    STATE: process.env.NEXT_PUBLIC_USER_STATE_ENDPOINT
+      ? `${BASE_URL}${process.env.NEXT_PUBLIC_USER_STATE_ENDPOINT}`
+      : null,
+    // this doesn't exist anywhere in the backend or env file.
   },
 
   ADMIN: {
@@ -84,10 +111,10 @@ export const API = {
     MESSAGES_READ: (chatID) =>
       `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_READ_ENDPOINT}/${chatID}`, // to mark messages as read.[read only]
     MESSAGES_STATS: `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_STATS_ENDPOINT}`, // Get overall chat statistics. [don't know the use .]
-    MESSAGES_USER_CHATS: (userID) =>
-      `${BASE_URL}${process.env.NEXT_PUBLIC_USER_CHATS_ENDPOINT}/${userID}`, // to fetch his chat with admin.[debatable]
+    MESSAGES_USERS_CHATS: (userID) =>
+      `${BASE_URL}${process.env.NEXT_PUBLIC_USERS_CHATS_ENDPOINT}/${userID}`, // to fetch his chat with admin.[debatable]
     MESSAGE_USERS_SEARCH: `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_USER_SEARCH_ENDPOINT}`, // to search user's inbox. [make it admin only.]
-    MESSAGES_SEND: process.env.NEXT_PUBLIC_MESSAGES_SEND_ENDPOINT, // to send a messages through contact form.
+    MESSAGES_SEND: `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_SEND_ENDPOINT}`, // to send a messages through contact form.
   },
 };
 
