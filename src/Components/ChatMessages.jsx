@@ -183,33 +183,14 @@ export default function ChatMessages({
               onClick={() =>
                 setOpenMenuId(openMenuId === message.id ? null : message.id)
               }
-              className="
-    w-8 h-8
-    flex items-center justify-center
-    rounded-full
-    text-neutral-400
-    hover:text-white
-    hover:bg-white/10
-    transition-colors duration-150
-  "
+              className=" w-8 h-8 flex items-center justify-center rounded-full text-neutral-400 hover:text-white hover:bg-white/10 transition-colors duration-150 "
             >
               ⋮
             </button>
 
             {/* MENU */}
             {openMenuId === message.id && (
-              <div
-                className="
-    absolute bottom-full left-1/2 -translate-x-1/2 mb-2
-    bg-[#262626]
-    rounded-xl
-    shadow-[0_4px_20px_rgba(0,0,0,0.4)]
-    py-1
-    text-sm
-    z-50
-    min-w-[160px]
-  "
-              >
+              <div className=" absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#262626] rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.4)] py-10 text-sm z-50 min-w-40  ">
                 {/* Timestamp */}
                 <div className="px-4 py-2 text-neutral-400 text-xs">
                   {formatTime(message.timestamp)}
@@ -223,12 +204,7 @@ export default function ChatMessages({
                     navigator.clipboard.writeText(message.text || "");
                     setOpenMenuId(null);
                   }}
-                  className="
-    w-full px-4 py-2
-    text-left text-white
-    hover:bg-white/5
-    transition-colors
-  "
+                  className=" w-full px-4 py-2 text-left text-white hover:bg-white/5 transition-colors "
                 >
                   Copy
                 </button>
@@ -239,12 +215,7 @@ export default function ChatMessages({
                     handleUnsendMessage(message.id);
                     setOpenMenuId(null);
                   }}
-                  className="
-    w-full px-4 py-2
-    text-left text-red-500
-    hover:bg-white/5
-    transition-colors
-  "
+                  className=" w-full px-4 py-2 text-left text-red-500 hover:bg-white/5 transition-colors "
                 >
                   Unsend
                 </button>
@@ -255,15 +226,7 @@ export default function ChatMessages({
           {/* REPLY BUTTON */}
           <div className="relative group/reply">
             <button
-              className="
-    w-8 h-8
-    flex items-center justify-center
-    rounded-full
-    text-neutral-400
-    hover:text-white
-    hover:bg-white/10
-    transition-colors duration-150
-  "
+              className=" w-8 h-8 flex items-center justify-center rounded-full text-neutral-400 hover:text-white hover:bg-white/10 transition-colors duration-150 "
               aria-label="Reply"
             >
               <svg
