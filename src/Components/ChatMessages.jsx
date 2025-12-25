@@ -17,6 +17,7 @@ export default function ChatMessages({
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const [userScrolled, setUserScrolled] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -162,15 +163,133 @@ export default function ChatMessages({
       console.error("Failed to unsend message:", error);
     }
   };
-
   const MessageBubble = ({ message, isOwn, index }) => (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.95, height: 0 }}
       transition={{ duration: 0.3, delay: index * 0.05 }}
-      className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-4 group`}
+      className={`flex ${
+        isOwn ? "justify-end" : "justify-start"
+      } mb-4 group relative`}
+      onMouseLeave={() => setOpenMenuId(null)}
     >
+      {/* ACTION BUTTONS — only for own messages, hover only */}
+      {isOwn && (
+        <div className=" relative mr-2 self-start opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-2">
+          {/* 3 DOTS BUTTON */}
+          <div className="relative">
+            <button
+              onClick={() =>
+                setOpenMenuId(openMenuId === message.id ? null : message.id)
+              }
+              className="
+    w-8 h-8
+    flex items-center justify-center
+    rounded-full
+    text-neutral-400
+    hover:text-white
+    hover:bg-white/10
+    transition-colors duration-150
+  "
+            >
+              ⋮
+            </button>
+
+            {/* MENU */}
+            {openMenuId === message.id && (
+              <div
+                className="
+    absolute bottom-full left-1/2 -translate-x-1/2 mb-2
+    bg-[#262626]
+    rounded-xl
+    shadow-[0_4px_20px_rgba(0,0,0,0.4)]
+    py-1
+    text-sm
+    z-50
+    min-w-[160px]
+  "
+              >
+                {/* Timestamp */}
+                <div className="px-4 py-2 text-neutral-400 text-xs">
+                  {formatTime(message.timestamp)}
+                </div>
+
+                <div className="mx-4 h-px bg-white/10" />
+
+                {/* Copy */}
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(message.text || "");
+                    setOpenMenuId(null);
+                  }}
+                  className="
+    w-full px-4 py-2
+    text-left text-white
+    hover:bg-white/5
+    transition-colors
+  "
+                >
+                  Copy
+                </button>
+
+                {/* Unsend */}
+                <button
+                  onClick={() => {
+                    handleUnsendMessage(message.id);
+                    setOpenMenuId(null);
+                  }}
+                  className="
+    w-full px-4 py-2
+    text-left text-red-500
+    hover:bg-white/5
+    transition-colors
+  "
+                >
+                  Unsend
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* REPLY BUTTON */}
+          <div className="relative group/reply">
+            <button
+              className="
+    w-8 h-8
+    flex items-center justify-center
+    rounded-full
+    text-neutral-400
+    hover:text-white
+    hover:bg-white/10
+    transition-colors duration-150
+  "
+              aria-label="Reply"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M9 17l-5-5 5-5M4 12h11a4 4 0 014 4v1"
+                />
+              </svg>
+            </button>
+
+            {/* TOOLTIP */}
+            <div className=" absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-neutral-900 text-neutral-200 text-xs px-2 py-1 rounded-md shadow-lg opacity-0 group-hover/reply:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none">
+              Reply to message from Rahul
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MESSAGE */}
       <div
         className={`max-w-xs lg:max-w-md xl:max-w-lg ${
           isOwn ? "order-2" : "order-1"
@@ -184,84 +303,22 @@ export default function ChatMessages({
               : "bg-neutral-800 text-white rounded-bl-none"
           }`}
         >
-          {/* Message content */}
+          {/* 🔽 MESSAGE CONTENT — UNCHANGED */}
           {message.text && (
             <p className="whitespace-pre-wrap text-sm leading-relaxed wrap-break-word">
               {message.text}
             </p>
           )}
 
-          {/* Images */}
-          {message.images && message.images.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className={`${
-                message.text ? "mt-2" : ""
-              } rounded-lg overflow-hidden`}
-            >
-              <div className="grid grid-cols-2 gap-2">
-                {message.images.map((img, idx) => (
-                  <img
-                    key={idx}
-                    src={img.url || img}
-                    alt="Shared image"
-                    className="w-full h-auto max-w-sm rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                    onClick={() => window.open(img.url || img, "_blank")}
-                  />
-                ))}
-              </div>
-            </motion.div>
-          )}
-
           {message.image && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className={`${
-                message.text ? "mt-2" : ""
-              } rounded-lg overflow-hidden`}
-            >
-              <img
-                src={message.image}
-                alt="Shared image"
-                className="w-full h-auto max-w-sm rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                onClick={() => window.open(message.image, "_blank")}
-              />
-            </motion.div>
+            <img
+              src={message.image}
+              alt="Shared"
+              className="mt-2 rounded-lg cursor-pointer"
+            />
           )}
 
           {message.emoji && <div className="text-3xl">{message.emoji}</div>}
-
-          {/* Timestamp */}
-          <div
-            className={`text-xs mt-1 ${
-              isOwn ? "text-blue-100" : "text-neutral-400"
-            }`}
-          >
-            {formatTime(message.timestamp)}
-          </div>
-
-          {/* Unsend button for own messages */}
-          {isOwn && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => handleUnsendMessage(message.id)}
-              className="absolute -top-2 -left-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg"
-            >
-              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </motion.button>
-          )}
         </motion.div>
       </div>
     </motion.div>
