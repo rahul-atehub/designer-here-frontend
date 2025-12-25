@@ -83,6 +83,13 @@ export function UserProvider({ children, serverUser = undefined }) {
 
       // Log the error details for debugging
       const status = err?.response?.status ?? null;
+
+      // ✅ Expected case: guest user (DO NOT treat as error)
+      if (status === 401 || status === 403) {
+        setUser(null);
+        setError(null);
+        return;
+      }
       console.error(
         "[UserProvider] fetchProfile ERROR",
         status,

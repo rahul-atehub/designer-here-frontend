@@ -2,17 +2,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
 import { useUser } from "@/context/UserContext";
+import MessagePage from "@/app/messages/messagepage";
 import AuthRequired from "@/components/ui/AuthRequired";
-import UserChatPage from "./user/page";
-import AdminChatPage from "./admin/page";
 
 export default function MessagesRouter() {
   const { user, loading, error } = useUser();
-  const router = useRouter();
-
-  const userRole = user?.role || null;
 
   // 🔄 Loading state (similar vibe to ProfileRouter)
   if (loading) {
@@ -46,73 +41,5 @@ export default function MessagesRouter() {
     return <AuthRequired />;
   }
 
-  // 🧭 Route based on user role
-  if (userRole === "admin") {
-    return <AdminChatPage />;
-  }
-
-  if (userRole === "user") {
-    return <UserChatPage />;
-  }
-
-  // 🛑 Fallback for unknown / weird roles
-  return (
-    <div className="min-h-[calc(100vh-124px)] sm:min-h-[calc(100vh-100px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-80px)] bg-white dark:bg-neutral-950 flex items-center justify-center">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center max-w-md mx-auto px-4"
-      >
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="w-20 h-20 bg-yellow-100 dark:bg-yellow-900/20 rounded-full flex items-center justify-center mx-auto mb-6"
-        >
-          <svg
-            className="w-10 h-10 text-yellow-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-            />
-          </svg>
-        </motion.div>
-
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-          Access Issue
-        </h2>
-
-        <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
-          We're having trouble determining your account permissions for
-          messages. Please contact support or try signing in again.
-        </p>
-
-        <div className="space-y-4">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => router.push("/auth")}
-            className="w-full bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-medium transition-colors duration-200"
-          >
-            Sign In Again
-          </motion.button>
-
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => router.push("/contact")}
-            className="w-full bg-gray-100 dark:bg-neutral-800 hover:bg-gray-200 dark:hover:bg-neutral-700 text-gray-700 dark:text-gray-300 px-8 py-3 rounded-lg font-medium transition-colors duration-200"
-          >
-            Contact Support
-          </motion.button>
-        </div>
-      </motion.div>
-    </div>
-  );
+  return <MessagePage />;
 }

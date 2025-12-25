@@ -112,7 +112,7 @@ export const API = {
       `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_READ_ENDPOINT}/${chatID}`, // to mark messages as read.[read only]
     MESSAGES_STATS: `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_STATS_ENDPOINT}`, // Get overall chat statistics. [don't know the use .]
     MESSAGES_USERS_CHATS: (userID) =>
-      `${BASE_URL}${process.env.NEXT_PUBLIC_USERS_CHATS_ENDPOINT}/${userID}`, // to fetch his chat with admin.[debatable]
+      `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_USERS_CHATS_ENDPOINT}/${userID}`, // to fetch all the messages of a inbox, based on the user id.
     MESSAGE_USERS_SEARCH: `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_USER_SEARCH_ENDPOINT}`, // to search user's inbox. [make it admin only.]
     MESSAGES_SEND: `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_SEND_ENDPOINT}`, // to send a messages through contact form.
   },

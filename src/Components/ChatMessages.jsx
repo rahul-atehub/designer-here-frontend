@@ -3,16 +3,17 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { API } from "@/config";
+import axios from "axios";
 
 export default function ChatMessages({
   chatId,
   viewerType,
+  currentUserId,
   newMessage,
   onMessageUpdate,
 }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentUserId, setCurrentUserId] = useState(null);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const [userScrolled, setUserScrolled] = useState(false);
@@ -36,13 +37,36 @@ export default function ChatMessages({
     const fetchMessages = async () => {
       try {
         setLoading(true);
-        const endpoint = `${API.CHAT.MESSAGES}/${chatId}?viewerType=${viewerType}`;
-        const response = await fetch(endpoint, { method: "GET" });
-        const data = await response.json();
 
-        if (data.messages) {
-          setMessages(data.messages);
-          setCurrentUserId(viewerType === "admin" ? "admin_456" : "user_123");
+        const endpoint = API.CHAT.MESSAGES(chatId);
+        const { data } = await axios.get(endpoint, {
+          withCredentials: true,
+        });
+
+        const messagesPayload = data?.messages ?? data?.data?.messages ?? [];
+
+        console.log("RAW MESSAGE RESPONSE:", messagesPayload);
+
+        const rawMessages = Array.isArray(messagesPayload)
+          ? messagesPayload
+          : [];
+
+        if (rawMessages.length > 0) {
+          const normalizedMessages = rawMessages.map((msg) => ({
+            id: msg._id,
+            senderId:
+              typeof msg.senderId === "object"
+                ? msg.senderId._id
+                : msg.senderId,
+            sender: msg.senderId,
+            text: msg.text || "",
+            image: msg.imageUrl || null,
+            timestamp: msg.createdAt,
+          }));
+
+          setMessages(normalizedMessages);
+        } else {
+          setMessages([]);
         }
       } catch (error) {
         console.error("Failed to fetch messages:", error);
@@ -57,22 +81,34 @@ export default function ChatMessages({
   // Handle new messages
   useEffect(() => {
     if (newMessage) {
-      setMessages((prev) => [...prev, newMessage]);
+      const normalized = {
+        ...newMessage,
+        id: newMessage._id ?? newMessage.id,
+        sender: newMessage.senderId ?? newMessage.sender,
+        timestamp: newMessage.createdAt ?? newMessage.timestamp,
+      };
+
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === normalized.id)) return prev;
+        return [...prev, normalized];
+      });
+
       if (!userScrolled) {
         setTimeout(scrollToBottom, 100);
       }
-      if (onMessageUpdate) {
-        onMessageUpdate();
-      }
+
+      onMessageUpdate?.();
     }
   }, [newMessage, userScrolled, onMessageUpdate]);
 
   // Auto-scroll for new messages
   useEffect(() => {
-    if (!loading && !userScrolled) {
-      scrollToBottom();
+    if (!newMessage) return;
+
+    if (!userScrolled) {
+      messagesContainerRef.current.scrollTop = 0; // bottom (flex-col-reverse)
     }
-  }, [messages, loading, userScrolled]);
+  }, [newMessage, userScrolled]);
 
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
@@ -114,16 +150,14 @@ export default function ChatMessages({
 
   const handleUnsendMessage = async (messageId) => {
     try {
-      const response = await fetch(`${API.CHAT.MESSAGES}/${chatId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "unsend", messageId }),
-      });
+      await axios.post(
+        `${API.CHAT.MESSAGES}/${chatId}`,
+        { action: "unsend", messageId },
+        { withCredentials: true }
+      );
 
-      if (response.ok) {
-        setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
-        if (onMessageUpdate) onMessageUpdate();
-      }
+      setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
+      onMessageUpdate?.();
     } catch (error) {
       console.error("Failed to unsend message:", error);
     }
@@ -262,9 +296,9 @@ export default function ChatMessages({
     <div
       ref={messagesContainerRef}
       onScroll={handleScroll}
-      className="flex-1 overflow-y-auto px-6 py-6 bg-neutral-950 space-y-4 scrollbar-thin scrollbar-thumb-neutral-800 scrollbar-track-transparent [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-600 [&::-webkit-scrollbar-thumb]:rounded-full"
+      className="flex-1 overflow-y-auto px-6 py-6 bg-neutral-950 flex flex-col-reverse space-y-reverse space-y-4 scrollbar-thin scrollbar-thumb-neutral-800 scrollbar-track-transparent [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-600 [&::-webkit-scrollbar-thumb]:rounded-full"
     >
-      <AnimatePresence mode="popLayout">
+      <AnimatePresence>
         {messages.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -296,7 +330,7 @@ export default function ChatMessages({
         ) : (
           <>
             {messages.map((message, index) => {
-              const isOwn = message.sender === currentUserId;
+              const isOwn = message.senderId === currentUserId;
               const showDateSeparator = shouldShowDateSeparator(
                 message,
                 messages[index - 1]
@@ -316,35 +350,6 @@ export default function ChatMessages({
               );
             })}
           </>
-        )}
-      </AnimatePresence>
-
-      {/* Scroll to bottom indicator */}
-      <AnimatePresence>
-        {userScrolled && (
-          <motion.button
-            initial={{ opacity: 0, y: 20, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.8 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={scrollToBottom}
-            className="fixed bottom-24 right-6 bg-blue-600 hover:bg-blue-700 text-white p-3 rounded-full shadow-lg z-20 transition-colors"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 14l-7 7m0 0l-7-7m7 7V3"
-              />
-            </svg>
-          </motion.button>
         )}
       </AnimatePresence>
 

@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { API } from "@/config";
+import axios from "axios";
 
 const EMOJI_LIST = [
   "😀",
@@ -237,50 +238,50 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
     setSending(true);
 
     try {
+      // ⚠️ TEMP ONLY — backend should derive sender from auth later
       const senderId = viewerType === "admin" ? "admin_456" : "user_123";
 
-      const imageUrls = [];
-      for (const imageData of selectedImages) {
-        if (imageData.preview) {
-          imageUrls.push({
-            url: imageData.preview,
-            name: imageData.name,
-            size: imageData.size,
-          });
+      const imageUrls = selectedImages
+        .filter((img) => img.preview)
+        .map((img) => ({
+          url: img.preview,
+          name: img.name,
+          size: img.size,
+        }));
+
+      const endpoint = API.CHAT.MESSAGES(chatId);
+
+      const { data } = await axios.post(
+        endpoint,
+        {
+          action: "send",
+          sender: senderId, // TODO: remove when backend auth is enforced
+          text: message.trim(),
+          images: imageUrls.length ? imageUrls : undefined,
+        },
+        {
+          withCredentials: true, // important if you use cookies/session
         }
+      );
+
+      if (onSendMessage) {
+        onSendMessage(data.message);
       }
 
-      const endpoint = API.CHAT.MESSAGES.replace("{chatId}", chatId);
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          action: "send",
-          sender: senderId,
-          text: message.trim(),
-          images: imageUrls.length > 0 ? imageUrls : undefined,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (onSendMessage) {
-          onSendMessage(data.message);
-        }
-
-        setMessage("");
-        setSelectedImages([]);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = "";
-        }
-      } else {
-        throw new Error("Failed to send message");
+      setMessage("");
+      setSelectedImages([]);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
       }
     } catch (error) {
       console.error("Failed to send message:", error);
-      alert("Failed to send message. Please try again.");
+
+      const errorMsg =
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to send message";
+
+      alert(errorMsg);
     } finally {
       setSending(false);
     }

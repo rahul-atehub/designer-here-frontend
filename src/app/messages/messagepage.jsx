@@ -1,35 +1,77 @@
-// src/app/messages/admin/page.jsx
 "use client";
+
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Search } from "lucide-react";
 import ChatHeader from "@/Components/ChatHeader";
 import ChatMessages from "@/Components/ChatMessages";
 import ChatInput from "@/Components/ChatInput";
+import { useUser } from "@/context/UserContext";
+import TypingIndicator from "@/Components/TypingIndicator";
+import axios from "axios";
+import { API } from "@/config";
 
-export default function AdminChatPage() {
+export default function MessagePage() {
   const [conversations, setConversations] = useState([]);
   const [selectedChatId, setSelectedChatId] = useState(null);
-  const [selectedConversation, setSelectedConversation] = useState(null);
+
+  // NOTE: This holds the active conversation summary (not just a user)
+  const [activeChatParticipant, setActiveChatParticipant] = useState(null);
   const [newMessage, setNewMessage] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const { user } = useUser();
+  const viewerType = user?.role;
 
-  // Fetch conversations on mount
+  if (!viewerType) {
+    return (
+      <div className="h-screen flex items-center justify-center text-gray-400">
+        Loading messages...
+      </div>
+    );
+  }
+
+  const getOtherParticipant = (chat) => {
+    if (!chat || !user?._id) return null;
+
+    return chat.participants
+      ?.map((p) => p.userId)
+      ?.find((u) => u._id !== user._id);
+  };
+
+  const [typing, setTyping] = useState(false);
+
   useEffect(() => {
+    const interval = setInterval(() => {
+      if (Math.random() > 0.95) {
+        setTyping(true);
+        setTimeout(() => setTyping(false), 3000);
+      }
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (!user?._id) return;
     const fetchConversations = async () => {
       try {
         setLoading(true);
-        // Replace with your actual API endpoint
-        const response = await fetch("/api/message/admin");
-        const data = await response.json();
 
-        if (data.conversations) {
-          setConversations(data.conversations);
-          if (data.conversations.length > 0) {
-            setSelectedChatId(data.conversations[0].id);
-            setSelectedConversation(data.conversations[0]);
-          }
+        const { data } = await axios.get(
+          viewerType === "admin"
+            ? API.CHAT.MESSAGES_CHATS // ADMIN backend file
+            : API.CHAT.MESSAGES_USERS_CHATS(user._id), // USER backend file
+          { withCredentials: true }
+        );
+
+        const chats = data?.data?.chats || [];
+
+        setConversations(chats);
+
+        if (chats.length > 0) {
+          setSelectedChatId(chats[0]._id);
+          setActiveChatParticipant(getOtherParticipant(chats[0]));
         }
       } catch (error) {
         console.error("Failed to fetch conversations:", error);
@@ -39,33 +81,24 @@ export default function AdminChatPage() {
     };
 
     fetchConversations();
-  }, []);
+  }, [viewerType, user?._id]);
 
-  const handleParticipantUpdate = (participantData) => {
-    if (selectedConversation) {
-      setSelectedConversation((prev) => ({
-        ...prev,
-        ...participantData,
-      }));
-    }
+  const handleSelectConversation = (conversation) => {
+    setSelectedChatId(conversation._id);
+    setActiveChatParticipant(getOtherParticipant(conversation));
   };
 
   const handleSendMessage = (message) => {
     setNewMessage(message);
     setTimeout(() => setNewMessage(null), 100);
   };
-
   const handleMessageUpdate = () => {
-    // Trigger any necessary updates when messages change
+    // read receipts, refetch, etc
   };
-
-  const handleSelectConversation = (conversation) => {
-    setSelectedChatId(conversation.id);
-    setSelectedConversation(conversation);
-  };
-
-  const filteredConversations = conversations.filter((conv) =>
-    conv.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredConversations = conversations.filter(
+    (conv) =>
+      conv &&
+      (conv.name || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -130,38 +163,51 @@ export default function AdminChatPage() {
           {loading ? (
             <div className="p-4 text-neutral-400 text-center">Loading...</div>
           ) : filteredConversations.length > 0 ? (
-            filteredConversations.map((conv) => (
-              <motion.button
-                key={conv.id}
-                onClick={() => handleSelectConversation(conv)}
-                whileHover={{ backgroundColor: "rgba(64, 64, 64, 0.5)" }}
-                className={`w-full p-4 border-b border-neutral-800 text-left transition-colors ${
-                  selectedChatId === conv.id ? "bg-neutral-800" : ""
-                }`}
-              >
-                <div className="flex items-start space-x-3">
-                  <div className="relative">
-                    <img
-                      src={conv.avatar}
-                      alt={conv.name}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    {conv.status === "online" && (
-                      <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-neutral-900" />
-                    )}
+            filteredConversations.map((conv) => {
+              const other = getOtherParticipant(conv);
+              console.log("OTHER:", other); // temperoary log
+              return (
+                <motion.button
+                  key={conv._id}
+                  onClick={() => handleSelectConversation(conv)}
+                  whileHover={{ backgroundColor: "rgba(64, 64, 64, 0.5)" }}
+                  className={`w-full p-4 border-b border-neutral-800 text-left transition-colors ${
+                    selectedChatId === conv._id ? "bg-neutral-800" : ""
+                  }`}
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className="relative">
+                      <img
+                        src={other?.avatar || "/avatar-placeholder.png"}
+                        alt={other?.name || "User"}
+                        onError={(e) => {
+                          e.currentTarget.src = "/avatar-placeholder.png";
+                        }}
+                        className="w-10 h-10 rounded-full object-cover"
+                      />
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">
+                        {other?.name || "Unknown"}
+                      </p>
+
+                      <p className="text-xs text-neutral-400 truncate">
+                        {conv.lastMessage?.text || "No messages yet"}
+                      </p>
+
+                      <p className="text-xs text-neutral-500 mt-1">
+                        {conv.lastMessage?.createdAt
+                          ? new Date(
+                              conv.lastMessage.createdAt
+                            ).toLocaleTimeString()
+                          : ""}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm truncate">{conv.name}</p>
-                    <p className="text-xs text-neutral-400 truncate">
-                      {conv.lastMessage}
-                    </p>
-                    <p className="text-xs text-neutral-500 mt-1">
-                      {conv.timestamp}
-                    </p>
-                  </div>
-                </div>
-              </motion.button>
-            ))
+                </motion.button>
+              );
+            })
           ) : (
             <div className="p-4 text-neutral-400 text-center">
               No conversations found
@@ -177,23 +223,26 @@ export default function AdminChatPage() {
         transition={{ delay: 0.2 }}
         className="flex-1 flex flex-col relative z-10"
       >
-        {selectedConversation ? (
+        {activeChatParticipant ? (
           <>
-            <ChatHeader
-              chatId={selectedChatId}
-              viewerType="admin"
-              onParticipantUpdate={handleParticipantUpdate}
-              conversation={selectedConversation}
+            <ChatHeader participant={activeChatParticipant} />
+
+            <TypingIndicator
+              show={typing}
+              participant={activeChatParticipant}
             />
+
             <ChatMessages
               chatId={selectedChatId}
-              viewerType="admin"
+              viewerType={viewerType}
+              currentUserId={user._id}
               newMessage={newMessage}
               onMessageUpdate={handleMessageUpdate}
             />
+
             <ChatInput
               chatId={selectedChatId}
-              viewerType="admin"
+              viewerType={viewerType}
               onSendMessage={handleSendMessage}
             />
           </>
