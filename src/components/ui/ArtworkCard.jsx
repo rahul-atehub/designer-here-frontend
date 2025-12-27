@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import socket from "@/lib/socket"; //  reuse global socket
+import socket from "@/lib/socket-client";
 import axios from "axios";
 import { API } from "@/config";
 import { useLikedPosts } from "@/context/LikedPostsContext";

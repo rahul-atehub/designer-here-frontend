@@ -2,26 +2,17 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import socketClient from "@/lib/socket-client";
 import { API } from "@/config";
 import axios from "axios";
 
-export default function ChatMessages({
-  chatId,
-  viewerType,
-  currentUserId,
-  newMessage,
-  onMessageUpdate,
-}) {
+export default function ChatMessages({ chatId, viewerType, currentUserId }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const [userScrolled, setUserScrolled] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
 
   const handleScroll = () => {
     if (messagesContainerRef.current) {
@@ -31,6 +22,80 @@ export default function ChatMessages({
       setUserScrolled(!isNearBottom);
     }
   };
+
+  useEffect(() => {
+    const handler = (e) => {
+      addOptimisticMessage(e.detail);
+    };
+
+    window.addEventListener("optimistic-message", handler);
+    return () => window.removeEventListener("optimistic-message", handler);
+  }, []);
+
+  const addOptimisticMessage = ({ tempId, text, imageUrl }) => {
+    setMessages((prev) => [
+      {
+        id: tempId, // temporary key
+        tempId, // keep it
+        senderId: currentUserId,
+        text,
+        image: imageUrl,
+        timestamp: new Date().toISOString(),
+        optimistic: true,
+      },
+      ...prev,
+    ]);
+  };
+
+  useEffect(() => {
+    if (!chatId || !currentUserId) return;
+
+    socketClient.joinChat(chatId);
+
+    const onNewMessage = (msg) => {
+      setMessages((prev) => {
+        //  Replace optimistic message
+        const hasTemp = prev.some((m) => m.tempId === msg.tempId);
+
+        if (hasTemp) {
+          return prev.map((m) => {
+            if (m.tempId !== msg.tempId) return m;
+
+            // 🔥 strip tempId permanently
+            const { tempId, ...cleanMsg } = msg;
+
+            return {
+              id: cleanMsg._id,
+              senderId: cleanMsg.senderId._id ?? cleanMsg.senderId,
+              text: cleanMsg.text,
+              image: cleanMsg.imageUrl,
+              timestamp: cleanMsg.createdAt,
+              optimistic: false,
+            };
+          });
+        }
+
+        // Fallback (normal incoming message)
+        return [
+          {
+            id: msg._id,
+            senderId: msg.senderId._id ?? msg.senderId,
+            text: msg.text,
+            image: msg.imageUrl,
+            timestamp: msg.createdAt,
+          },
+          ...prev,
+        ];
+      });
+    };
+
+    socketClient.on("new_message", onNewMessage);
+
+    return () => {
+      socketClient.off("new_message", onNewMessage);
+      socketClient.leaveChat(chatId);
+    };
+  }, [chatId, currentUserId]);
 
   useEffect(() => {
     if (!chatId || !viewerType) return;
@@ -65,7 +130,24 @@ export default function ChatMessages({
             timestamp: msg.createdAt,
           }));
 
-          setMessages(normalizedMessages);
+          setMessages((prev) => {
+            const existingIds = new Set(
+              prev
+                .map((m) => m.id)
+                .concat(prev.map((m) => m.tempId).filter(Boolean))
+            );
+            const merged = [...prev];
+
+            normalizedMessages.forEach((msg) => {
+              if (!existingIds.has(msg.id)) {
+                merged.push(msg);
+              }
+            });
+
+            return merged.sort(
+              (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+            );
+          });
         } else {
           setMessages([]);
         }
@@ -78,47 +160,6 @@ export default function ChatMessages({
 
     fetchMessages();
   }, [chatId, viewerType]);
-
-  // Handle new messages
-  useEffect(() => {
-    if (newMessage) {
-      const normalized = {
-        ...newMessage,
-        id: newMessage._id ?? newMessage.id,
-        sender: newMessage.senderId ?? newMessage.sender,
-        timestamp: newMessage.createdAt ?? newMessage.timestamp,
-      };
-
-      setMessages((prev) => {
-        if (prev.some((m) => m.id === normalized.id)) return prev;
-        return [...prev, normalized];
-      });
-
-      if (!userScrolled) {
-        setTimeout(scrollToBottom, 100);
-      }
-
-      onMessageUpdate?.();
-    }
-  }, [newMessage, userScrolled, onMessageUpdate]);
-
-  // Auto-scroll for new messages
-  useEffect(() => {
-    if (!newMessage) return;
-
-    if (!userScrolled) {
-      messagesContainerRef.current.scrollTop = 0; // bottom (flex-col-reverse)
-    }
-  }, [newMessage, userScrolled]);
-
-  const formatTime = (timestamp) => {
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-  };
 
   const formatDate = (timestamp) => {
     const date = new Date(timestamp);
@@ -140,6 +181,14 @@ export default function ChatMessages({
     }
   };
 
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const shouldShowDateSeparator = (currentMsg, prevMsg) => {
     if (!prevMsg) return true;
 
@@ -149,20 +198,19 @@ export default function ChatMessages({
     return currentDate !== prevDate;
   };
 
-  const handleUnsendMessage = async (messageId) => {
-    try {
-      await axios.post(
-        `${API.CHAT.MESSAGES}/${chatId}`,
-        { action: "unsend", messageId },
-        { withCredentials: true }
-      );
-
-      setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
-      onMessageUpdate?.();
-    } catch (error) {
-      console.error("Failed to unsend message:", error);
-    }
+  const handleUnsendMessage = (messageId) => {
+    socketClient.deleteMessage(messageId, chatId);
   };
+
+  useEffect(() => {
+    const onDeleted = ({ messageId }) => {
+      setMessages((prev) => prev.filter((m) => m.id !== messageId));
+    };
+
+    socketClient.on("message_deleted", onDeleted);
+    return () => socketClient.off("message_deleted", onDeleted);
+  }, [chatId]);
+
   const MessageBubble = ({ message, isOwn, index }) => (
     <motion.div
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
@@ -183,16 +231,16 @@ export default function ChatMessages({
               onClick={() =>
                 setOpenMenuId(openMenuId === message.id ? null : message.id)
               }
-              className=" w-8 h-8 flex items-center justify-center rounded-full text-neutral-400 hover:text-white hover:bg-white/10 transition-colors duration-150 "
+              className=" w-8 h-8 flex items-center justify-center rounded-full text-gray-400 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-colors duration-150 "
             >
               ⋮
             </button>
 
             {/* MENU */}
             {openMenuId === message.id && (
-              <div className=" absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-[#262626] rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.4)] py-10 text-sm z-50 min-w-40  ">
+              <div className=" absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-200 dark:bg-[#262626] rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.4)] py-10 text-sm z-50 min-w-40  ">
                 {/* Timestamp */}
-                <div className="px-4 py-2 text-neutral-400 text-xs">
+                <div className="px-4 py-2 text-gray-400 dark:text-neutral-400 text-xs">
                   {formatTime(message.timestamp)}
                 </div>
 
@@ -204,7 +252,7 @@ export default function ChatMessages({
                     navigator.clipboard.writeText(message.text || "");
                     setOpenMenuId(null);
                   }}
-                  className=" w-full px-4 py-2 text-left text-white hover:bg-white/5 transition-colors "
+                  className=" w-full px-4 py-2 text-left text-black dark:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-colors "
                 >
                   Copy
                 </button>
@@ -215,7 +263,7 @@ export default function ChatMessages({
                     handleUnsendMessage(message.id);
                     setOpenMenuId(null);
                   }}
-                  className=" w-full px-4 py-2 text-left text-red-500 hover:bg-white/5 transition-colors "
+                  className=" w-full px-4 py-2 text-left text-red-500 hover:bg-black/5 dark:hover:bg-white/5 transition-colors "
                 >
                   Unsend
                 </button>
@@ -226,7 +274,7 @@ export default function ChatMessages({
           {/* REPLY BUTTON */}
           <div className="relative group/reply">
             <button
-              className=" w-8 h-8 flex items-center justify-center rounded-full text-neutral-400 hover:text-white hover:bg-white/10 transition-colors duration-150 "
+              className=" w-8 h-8 flex items-center justify-center rounded-full text-gray-400 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-colors duration-150 "
               aria-label="Reply"
             >
               <svg
@@ -245,7 +293,7 @@ export default function ChatMessages({
             </button>
 
             {/* TOOLTIP */}
-            <div className=" absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-neutral-900 text-neutral-200 text-xs px-2 py-1 rounded-md shadow-lg opacity-0 group-hover/reply:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none">
+            <div className=" absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-200 dark:bg-neutral-900 text-gray-700 dark:text-neutral-200 text-xs px-2 py-1 rounded-md shadow-lg opacity-0 group-hover/reply:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none">
               Reply to message from Rahul
             </div>
           </div>
@@ -263,7 +311,7 @@ export default function ChatMessages({
           className={`relative px-4 py-2 rounded-2xl wrap-break-word ${
             isOwn
               ? "bg-blue-600 text-white rounded-br-none"
-              : "bg-neutral-800 text-white rounded-bl-none"
+              : "bg-gray-200 dark:bg-neutral-800 text-black dark:text-white rounded-bl-none"
           }`}
         >
           {/* 🔽 MESSAGE CONTENT — UNCHANGED */}
@@ -293,7 +341,7 @@ export default function ChatMessages({
       animate={{ opacity: 1, y: 0 }}
       className="flex items-center justify-center my-6"
     >
-      <div className="bg-neutral-800 text-neutral-300 px-3 py-1 rounded-full text-xs font-medium">
+      <div className="bg-gray-200 dark:bg-neutral-800 text-gray-600 dark:text-neutral-300 px-3 py-1 rounded-full text-xs font-medium">
         {formatDate(date)}
       </div>
     </motion.div>
@@ -301,13 +349,15 @@ export default function ChatMessages({
 
   if (loading) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-neutral-950">
+      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white dark:bg-neutral-950">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
           className="w-8 h-8 border-3 border-blue-500 border-t-transparent rounded-full"
         ></motion.div>
-        <p className="mt-4 text-neutral-400">Loading messages...</p>
+        <p className="mt-4 text-gray-400 dark:text-neutral-400">
+          Loading messages...
+        </p>
       </div>
     );
   }
@@ -316,7 +366,7 @@ export default function ChatMessages({
     <div
       ref={messagesContainerRef}
       onScroll={handleScroll}
-      className="flex-1 overflow-y-auto px-6 py-6 bg-neutral-950 flex flex-col-reverse space-y-reverse space-y-4 scrollbar-thin scrollbar-thumb-neutral-800 scrollbar-track-transparent [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-600 [&::-webkit-scrollbar-thumb]:rounded-full"
+      className="flex-1 overflow-y-auto px-6 py-6 bg-white dark:bg-neutral-950 flex flex-col-reverse space-y-reverse space-y-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-neutral-800 scrollbar-track-transparent [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-400 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-600 [&::-webkit-scrollbar-thumb]:rounded-full"
     >
       <AnimatePresence>
         {messages.length === 0 ? (
@@ -340,10 +390,10 @@ export default function ChatMessages({
                 />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-white mb-2">
+            <h3 className="text-lg font-semibold text-black dark:text-white mb-2">
               No messages yet
             </h3>
-            <p className="text-neutral-400 max-w-sm">
+            <p className="text-gray-400 dark:text-neutral-400 max-w-sm">
               Start the conversation by sending your first message!
             </p>
           </motion.div>

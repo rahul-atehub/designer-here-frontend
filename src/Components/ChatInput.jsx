@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { API } from "@/config";
-import axios from "axios";
+import socketClient from "@/lib/socket-client";
 
 const EMOJI_LIST = [
   "😀",
@@ -88,7 +88,7 @@ const EMOJI_LIST = [
   "💪",
 ];
 
-export default function ChatInput({ chatId, viewerType, onSendMessage }) {
+export default function ChatInput({ chatId }) {
   const [message, setMessage] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedImages, setSelectedImages] = useState([]);
@@ -98,6 +98,77 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const emojiPickerRef = useRef(null);
+
+  const handleSend = async () => {
+    if (!message.trim() && selectedImages.length === 0) return;
+    if (sending) return;
+
+    try {
+      setSending(true);
+
+      let imageUrl = null;
+      if (selectedImages.length > 0) {
+        const res = await uploadChatImage(selectedImages[0].file);
+        imageUrl = res.imageUrl;
+      }
+
+      const tempId = crypto.randomUUID();
+
+      socketClient.sendMessage({
+        chatId,
+        text: message,
+        imageUrl,
+        tempId,
+      });
+
+      socketClient.stopTyping(chatId);
+
+      setMessage("");
+      setSelectedImages([]);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (typingTimeout.current) {
+        clearTimeout(typingTimeout.current);
+      }
+    };
+  }, []);
+
+  const uploadChatImage = async (file) => {
+    const formData = new FormData();
+    formData.append("image", file);
+    formData.append("chatId", chatId);
+
+    const res = await fetch(API.CHAT.SEND_MESSAGE, {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      throw new Error("Image upload failed");
+    }
+
+    return res.json(); // must return { imageUrl }
+  };
+
+  const typingTimeout = useRef(null);
+
+  const handleTyping = () => {
+    socketClient.startTyping(chatId);
+
+    if (typingTimeout.current) {
+      clearTimeout(typingTimeout.current);
+    }
+
+    typingTimeout.current = setTimeout(() => {
+      socketClient.stopTyping(chatId);
+    }, 1200);
+  };
 
   // Auto-resize textarea
   useEffect(() => {
@@ -232,61 +303,6 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
     }
   };
 
-  const handleSend = async () => {
-    if ((!message.trim() && selectedImages.length === 0) || sending) return;
-
-    setSending(true);
-
-    try {
-      // ⚠️ TEMP ONLY — backend should derive sender from auth later
-      const senderId = viewerType === "admin" ? "admin_456" : "user_123";
-
-      const imageUrls = selectedImages
-        .filter((img) => img.preview)
-        .map((img) => ({
-          url: img.preview,
-          name: img.name,
-          size: img.size,
-        }));
-
-      const endpoint = API.CHAT.MESSAGES(chatId);
-
-      const { data } = await axios.post(
-        endpoint,
-        {
-          action: "send",
-          sender: senderId, // TODO: remove when backend auth is enforced
-          text: message.trim(),
-          images: imageUrls.length ? imageUrls : undefined,
-        },
-        {
-          withCredentials: true, // important if you use cookies/session
-        }
-      );
-
-      if (onSendMessage) {
-        onSendMessage(data.message);
-      }
-
-      setMessage("");
-      setSelectedImages([]);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
-    } catch (error) {
-      console.error("Failed to send message:", error);
-
-      const errorMsg =
-        error.response?.data?.error ||
-        error.message ||
-        "Failed to send message";
-
-      alert(errorMsg);
-    } finally {
-      setSending(false);
-    }
-  };
-
   const handleEmojiClick = (emoji) => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -308,7 +324,7 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
   const hasContent = message.trim() || selectedImages.length > 0;
 
   return (
-    <div className="bg-neutral-950 border-t border-neutral-800">
+    <div className="bg-white dark:bg-neutral-950 border-t border-gray-300 dark:border-neutral-800">
       {/* Image Previews */}
       <AnimatePresence>
         {selectedImages.length > 0 && (
@@ -331,10 +347,10 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
                     <img
                       src={imageData.preview}
                       alt={imageData.name}
-                      className="h-16 w-16 object-cover rounded-lg border border-neutral-700"
+                      className="h-16 w-16 object-cover rounded-lg border border-gray-300 dark:border-neutral-700"
                     />
                   ) : (
-                    <div className="h-16 w-16 bg-neutral-800 rounded-lg flex items-center justify-center border border-neutral-700">
+                    <div className="h-16 w-16 bg-gray-200 dark:bg-neutral-800 rounded-lg flex items-center justify-center border border-gray-300 dark:border-neutral-700">
                       <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-500 border-t-transparent"></div>
                     </div>
                   )}
@@ -378,7 +394,7 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
             whileTap={{ scale: 0.95 }}
             onClick={() => fileInputRef.current?.click()}
             disabled={sending}
-            className="p-2 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+            className="p-2 text-gray-400 dark:text-neutral-400 hover:text-gray-200 dark:hover:text-neutral-200 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
             title="Attach images"
           >
             <svg
@@ -398,16 +414,19 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
 
           {/* Text Input Area */}
           <div className="flex-1 relative">
-            <div className="relative bg-neutral-800 rounded-2xl border border-neutral-700 focus-within:border-neutral-600 transition-colors">
+            <div className="relative bg-gray-200 dark:bg-neutral-800 rounded-2xl border border-gray-300 dark:border-neutral-700 focus-within:border-gray-400 dark:focus-within:border-neutral-600 transition-colors">
               <textarea
                 ref={textareaRef}
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={(e) => {
+                  setMessage(e.target.value);
+                  handleTyping();
+                }}
                 onKeyDown={handleKeyDown}
                 placeholder="Message..."
                 disabled={sending}
                 rows={1}
-                className="w-full px-4 py-3 bg-transparent text-white placeholder-neutral-500 border-none outline-none resize-none overflow-y-auto disabled:opacity-50 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-neutral-600 [&::-webkit-scrollbar-thumb]:rounded-full"
+                className="w-full px-4 py-3 bg-transparent text-black dark:text-white placeholder-gray-500 dark:placeholder-neutral-500 border-none outline-none resize-none overflow-y-auto disabled:opacity-50 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-400 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-600 [&::-webkit-scrollbar-thumb]:rounded-full"
                 style={{
                   minHeight: "40px",
                   maxHeight: "150px",
@@ -426,7 +445,7 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setShowEmojiPicker(!showEmojiPicker)}
                 disabled={sending}
-                className="p-2 text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 rounded-lg transition-all disabled:opacity-50"
+                className="p-2 text-gray-400 dark:text-neutral-400 hover:text-gray-200 dark:hover:text-neutral-200 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-lg transition-all disabled:opacity-50"
                 title="Add emoji"
               >
                 <svg
@@ -445,7 +464,7 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute bottom-full right-0 mb-2 bg-neutral-800 rounded-2xl shadow-xl border border-neutral-700 p-4 w-80 max-h-72 overflow-hidden"
+                    className="absolute bottom-full right-0 mb-2 bg-gray-200 dark:bg-neutral-800 rounded-2xl shadow-xl border border-gray-300 dark:border-neutral-700 p-4 w-80 max-h-72 overflow-hidden"
                   >
                     <div className="h-full max-h-72 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] pr-1 pb-4">
                       <div className="grid grid-cols-8 gap-2">
@@ -455,7 +474,7 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
                             whileHover={{ scale: 1.2 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={() => handleEmojiClick(emoji)}
-                            className="text-xl p-2 hover:bg-neutral-700 rounded-lg transition-colors"
+                            className="text-xl p-2 hover:bg-gray-300 dark:hover:bg-neutral-700 rounded-lg transition-colors"
                           >
                             {emoji}
                           </motion.button>
@@ -476,7 +495,7 @@ export default function ChatInput({ chatId, viewerType, onSendMessage }) {
               className={`p-2 rounded-lg transition-all ${
                 hasContent && !sending
                   ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md"
-                  : "text-neutral-600 cursor-not-allowed"
+                  : "text-gray-400 dark:text-neutral-600 cursor-not-allowed"
               }`}
               title="Send message"
             >

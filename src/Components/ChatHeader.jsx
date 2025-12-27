@@ -5,8 +5,10 @@ import { motion } from "framer-motion";
 export default function ChatHeader({ participant }) {
   if (!participant) {
     return (
-      <div className="bg-neutral-900/50 border-b border-neutral-800 px-6 py-4">
-        <div className="text-neutral-400">Loading chat...</div>
+      <div className="bg-gray-100/50 dark:bg-neutral-900/50 border-b border-gray-300 dark:border-neutral-800 px-6 py-4">
+        <div className="text-gray-400 dark:text-neutral-400">
+          Loading chat...
+        </div>
       </div>
     );
   }
@@ -26,7 +28,7 @@ export default function ChatHeader({ participant }) {
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-neutral-900/50 backdrop-blur-md border-b border-neutral-800 px-6 py-4 flex items-center space-x-3"
+      className="bg-gray-100/50 dark:bg-neutral-900/50 backdrop-blur-md border-b border-gray-300 dark:border-neutral-800 px-6 py-4 flex items-center space-x-3"
     >
       <img
         src={participant.avatar || "/avatar-placeholder.png"}
@@ -38,10 +40,12 @@ export default function ChatHeader({ participant }) {
       />
 
       <div className="flex-1 min-w-0">
-        <h2 className="text-lg font-semibold text-white truncate">
+        <h2 className="text-lg font-semibold text-black dark:text-white truncate">
           {participant.name}
         </h2>
-        <p className="text-sm text-neutral-400">{getStatusText()}</p>
+        <p className="text-sm text-gray-400 dark:text-neutral-400">
+          {getStatusText()}
+        </p>
       </div>
     </motion.div>
   );

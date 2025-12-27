@@ -7,6 +7,7 @@ import ChatHeader from "@/Components/ChatHeader";
 import ChatMessages from "@/Components/ChatMessages";
 import ChatInput from "@/Components/ChatInput";
 import { useUser } from "@/context/UserContext";
+import socketClient from "@/lib/socket-client";
 import TypingIndicator from "@/Components/TypingIndicator";
 import axios from "axios";
 import { API } from "@/config";
@@ -17,7 +18,7 @@ export default function MessagePage() {
 
   // NOTE: This holds the active conversation summary (not just a user)
   const [activeChatParticipant, setActiveChatParticipant] = useState(null);
-  const [newMessage, setNewMessage] = useState(null);
+  const [typing, setTyping] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const { user } = useUser();
@@ -25,11 +26,16 @@ export default function MessagePage() {
 
   if (!viewerType) {
     return (
-      <div className="h-screen flex items-center justify-center text-gray-400">
+      <div className="h-screen flex items-center justify-center text-gray-400 dark:text-neutral-400">
         Loading messages...
       </div>
     );
   }
+
+  useEffect(() => {
+    socketClient.connect();
+    return () => socketClient.disconnect();
+  }, []);
 
   const getOtherParticipant = (chat) => {
     if (!chat || !user?._id) return null;
@@ -39,18 +45,20 @@ export default function MessagePage() {
       ?.find((u) => u._id !== user._id);
   };
 
-  const [typing, setTyping] = useState(false);
+  useEffect(() => {
+    const onTyping = ({ chatId: incomingChatId, isTyping }) => {
+      if (incomingChatId === selectedChatId) {
+        setTyping(isTyping);
+      }
+    };
+
+    socketClient.on("typing_status", onTyping);
+    return () => socketClient.off("typing_status", onTyping);
+  }, [selectedChatId]);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() > 0.95) {
-        setTyping(true);
-        setTimeout(() => setTyping(false), 3000);
-      }
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
+    setTyping(false);
+  }, [selectedChatId]);
 
   useEffect(() => {
     if (!user?._id) return;
@@ -88,13 +96,6 @@ export default function MessagePage() {
     setActiveChatParticipant(getOtherParticipant(conversation));
   };
 
-  const handleSendMessage = (message) => {
-    setNewMessage(message);
-    setTimeout(() => setNewMessage(null), 100);
-  };
-  const handleMessageUpdate = () => {
-    // read receipts, refetch, etc
-  };
   const filteredConversations = conversations.filter(
     (conv) =>
       conv &&
@@ -102,7 +103,7 @@ export default function MessagePage() {
   );
 
   return (
-    <div className="h-screen flex bg-neutral-950 text-white overflow-hidden relative">
+    <div className="h-screen flex bg-white dark:bg-neutral-950 text-black dark:text-white overflow-hidden relative">
       {/* Background Gradient */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <motion.div
@@ -122,13 +123,13 @@ export default function MessagePage() {
         initial={{ x: -300, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="w-80 bg-neutral-900/50 backdrop-blur-md border-r border-neutral-800 flex flex-col z-20 relative"
+        className="w-80 bg-gray-100/50 dark:bg-neutral-900/50 backdrop-blur-md border-r border-gray-300 dark:border-neutral-800 flex flex-col z-20 relative"
       >
         {/* Header */}
-        <div className="p-4 border-b border-neutral-800">
+        <div className="p-4 border-b border-gray-300 dark:border-neutral-800">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-xl font-bold">Messages</h1>
-            <button className="p-2 hover:bg-neutral-800 rounded-lg transition-colors">
+            <button className="p-2 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-lg transition-colors">
               <svg
                 className="w-5 h-5"
                 fill="none"
@@ -147,13 +148,13 @@ export default function MessagePage() {
 
           {/* Search */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-neutral-500" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-neutral-500" />
             <input
               type="text"
               placeholder="Search conversations"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-neutral-800 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-white placeholder-neutral-500"
+              className="w-full bg-gray-200 dark:bg-neutral-800 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black dark:text-white placeholder-gray-500 dark:placeholder-neutral-500"
             />
           </div>
         </div>
@@ -161,7 +162,9 @@ export default function MessagePage() {
         {/* Conversations List */}
         <div className="flex-1 overflow-y-auto">
           {loading ? (
-            <div className="p-4 text-neutral-400 text-center">Loading...</div>
+            <div className="p-4 text-gray-400 dark:text-neutral-400 text-center">
+              Loading...
+            </div>
           ) : filteredConversations.length > 0 ? (
             filteredConversations.map((conv) => {
               const other = getOtherParticipant(conv);
@@ -171,8 +174,10 @@ export default function MessagePage() {
                   key={conv._id}
                   onClick={() => handleSelectConversation(conv)}
                   whileHover={{ backgroundColor: "rgba(64, 64, 64, 0.5)" }}
-                  className={`w-full p-4 border-b border-neutral-800 text-left transition-colors ${
-                    selectedChatId === conv._id ? "bg-neutral-800" : ""
+                  className={`w-full p-4 border-b border-gray-300 dark:border-neutral-800 text-left transition-colors ${
+                    selectedChatId === conv._id
+                      ? "bg-gray-200 dark:bg-neutral-800"
+                      : ""
                   }`}
                 >
                   <div className="flex items-start space-x-3">
@@ -192,11 +197,11 @@ export default function MessagePage() {
                         {other?.name || "Unknown"}
                       </p>
 
-                      <p className="text-xs text-neutral-400 truncate">
+                      <p className="text-xs text-gray-400 dark:text-neutral-400 truncate">
                         {conv.lastMessage?.text || "No messages yet"}
                       </p>
 
-                      <p className="text-xs text-neutral-500 mt-1">
+                      <p className="text-xs text-gray-500 dark:text-neutral-500 mt-1">
                         {conv.lastMessage?.createdAt
                           ? new Date(
                               conv.lastMessage.createdAt
@@ -209,7 +214,7 @@ export default function MessagePage() {
               );
             })
           ) : (
-            <div className="p-4 text-neutral-400 text-center">
+            <div className="p-4 text-gray-400 dark:text-neutral-400 text-center">
               No conversations found
             </div>
           )}
@@ -236,19 +241,13 @@ export default function MessagePage() {
               chatId={selectedChatId}
               viewerType={viewerType}
               currentUserId={user._id}
-              newMessage={newMessage}
-              onMessageUpdate={handleMessageUpdate}
             />
 
-            <ChatInput
-              chatId={selectedChatId}
-              viewerType={viewerType}
-              onSendMessage={handleSendMessage}
-            />
+            <ChatInput chatId={selectedChatId} />
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-neutral-400 text-center">
+            <div className="text-gray-400 dark:text-neutral-400 text-center">
               <p>Select a conversation to start messaging</p>
             </div>
           </div>
