@@ -34,7 +34,6 @@ export default function MessagePage() {
 
   useEffect(() => {
     socketClient.connect();
-    return () => socketClient.disconnect();
   }, []);
 
   const getOtherParticipant = (chat) => {
@@ -237,11 +236,7 @@ export default function MessagePage() {
               participant={activeChatParticipant}
             />
 
-            <ChatMessages
-              chatId={selectedChatId}
-              viewerType={viewerType}
-              currentUserId={user._id}
-            />
+            <ChatMessages chatId={selectedChatId} currentUserId={user._id} />
 
             <ChatInput chatId={selectedChatId} />
           </>

@@ -5,6 +5,7 @@ class SocketClient {
   constructor() {
     this.socket = null;
     this.listeners = new Map();
+    this.currentChatId = null;
   }
 
   // Helper to get auth token from cookies
@@ -66,16 +67,19 @@ class SocketClient {
 
   // Chat methods
   joinChat(chatId) {
-    if (!this.socket?.connected) {
-      console.warn("Socket not connected, cannot join chat");
-      return;
-    }
+    if (!this.socket?.connected) return;
+    if (this.currentChatId === chatId) return;
+
+    this.currentChatId = chatId;
     this.socket.emit("join_chat", chatId);
   }
 
   leaveChat(chatId) {
     if (!this.socket?.connected) return;
+    if (this.currentChatId !== chatId) return;
+
     this.socket.emit("leave_chat", chatId);
+    this.currentChatId = null;
   }
 
   sendMessage(messageData) {
