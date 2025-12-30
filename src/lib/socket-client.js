@@ -50,6 +50,7 @@ class SocketClient {
   setupDefaultListeners() {
     this.socket.on("connect", () => {
       console.log("✅ Socket connected:", this.socket.id);
+      this.setupOfflineHandlers();
     });
 
     this.socket.on("disconnect", (reason) => {
@@ -84,17 +85,71 @@ class SocketClient {
 
   sendMessage(messageData) {
     if (!this.socket?.connected) {
-      console.warn("Socket not connected, cannot send message");
+      console.warn("Socket not connected, message will be sent via API only");
+      // Message will still send via API route - socket is secondary
       return;
     }
-    // EMIT
+
+    // Emit for acknowledgment (optional backup)
     this.socket.emit("send_message", messageData);
-    // LET UI RENDER IMMEDIATELY
+
+    // Optimistic update - message appears immediately
     window.dispatchEvent(
       new CustomEvent("optimistic-message", {
-        detail: messageData,
+        detail: {
+          ...messageData,
+          tempId: `temp-${Date.now()}-${Math.random()}`,
+        },
       })
     );
+  }
+
+  // Handle queued messages from offline period
+  setupOfflineHandlers() {
+    if (!this.socket) return;
+
+    this.socket.on("queued_messages", (payload) => {
+      const { messages } = payload;
+      console.log(`Received ${messages.length} queued messages`);
+
+      messages.forEach((msgData) => {
+        window.dispatchEvent(
+          new CustomEvent("queued-message-received", {
+            detail: msgData,
+          })
+        );
+      });
+    });
+
+    this.socket.on("message_queued", (payload) => {
+      console.log("Message queued on server:", payload);
+    });
+
+    // ✅ ADD THIS - Read receipts from other users
+    this.socket.on("messages_read", (payload) => {
+      window.dispatchEvent(
+        new CustomEvent("messages-read", {
+          detail: payload,
+        })
+      );
+    });
+
+    // ✅ ADD THIS - Delivery confirmations
+    this.socket.on("messages_delivered", (payload) => {
+      window.dispatchEvent(
+        new CustomEvent("messages-delivered", {
+          detail: payload,
+        })
+      );
+    });
+  }
+
+  emit(event, data) {
+    if (!this.socket?.connected) {
+      console.warn(`Socket not connected, cannot emit ${event}`);
+      return;
+    }
+    this.socket.emit(event, data);
   }
 
   deleteMessage(messageId, chatId) {

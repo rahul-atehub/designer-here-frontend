@@ -33,7 +33,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
 
     window.addEventListener("optimistic-message", handler);
     return () => window.removeEventListener("optimistic-message", handler);
-  }, [chatId]);
+  }, [chatId, currentUserId]);
 
   const addOptimisticMessage = ({ tempId, text, imageUrl, chatId }) => {
     setMessages((prev) => [
@@ -51,6 +51,39 @@ export default function ChatMessages({ chatId, currentUserId }) {
     ]);
   };
 
+  useEffect(() => {
+    const onMessagesDelivered = (payload) => {
+      if (payload.chatId !== chatId) return;
+
+      // Update message statuses
+      setMessages((prev) =>
+        prev.map((msg) =>
+          payload.messageIds.includes(msg.id)
+            ? { ...msg, status: "delivered" }
+            : msg
+        )
+      );
+    };
+
+    socketClient.on("messages_delivered", onMessagesDelivered);
+    return () => socketClient.off("messages_delivered", onMessagesDelivered);
+  }, [chatId]);
+
+  useEffect(() => {
+    const onMessagesRead = (payload) => {
+      if (payload.chatId !== chatId) return;
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          payload.messageIds.includes(msg.id) ? { ...msg, status: "read" } : msg
+        )
+      );
+    };
+
+    socketClient.on("messages_read", onMessagesRead);
+    return () => socketClient.off("messages_read", onMessagesRead);
+  }, [chatId]);
+
   const prevChatIdRef = useRef(null);
 
   useEffect(() => {
@@ -64,41 +97,56 @@ export default function ChatMessages({ chatId, currentUserId }) {
     socketClient.joinChat(chatId);
     prevChatIdRef.current = chatId;
 
-    const onNewMessage = (msg) => {
-      if (msg.chatId !== chatId) return;
+    const onNewMessage = (payload) => {
+      if (payload.chatId !== chatId) return;
+
+      const incomingMessages = Array.isArray(payload.messages)
+        ? payload.messages
+        : [];
+
+      if (incomingMessages.length === 0) return;
+
       setMessages((prev) => {
-        //  Replace optimistic message
-        const hasTemp = prev.some((m) => m.tempId === msg.tempId);
+        let next = [...prev];
 
-        if (hasTemp) {
-          return prev.map((m) => {
-            if (m.tempId !== msg.tempId) return m;
+        incomingMessages.forEach((msg) => {
+          // ✅ Skip if already exists (by real ID)
+          if (next.some((m) => m.id === msg._id)) return;
 
-            // 🔥 strip tempId permanently
-            const { tempId, ...cleanMsg } = msg;
+          // ✅ NEW: Remove optimistic version if it exists
+          // When sender gets confirmation from server,
+          // replace the optimistic version with the real one
+          if (msg.senderId && typeof msg.senderId === "object") {
+            const senderId = msg.senderId._id;
+            if (senderId === currentUserId) {
+              // This is our message - remove optimistic version
+              next = next.filter((m) => {
+                // Remove if it's optimistic and from us
+                if (m.optimistic && m.senderId === currentUserId) {
+                  return false;
+                }
+                return true;
+              });
+            }
+          }
 
-            return {
-              id: cleanMsg._id,
-              senderId: cleanMsg.senderId._id ?? cleanMsg.senderId,
-              text: cleanMsg.text,
-              image: cleanMsg.imageUrl,
-              timestamp: cleanMsg.createdAt,
-              optimistic: false,
-            };
-          });
-        }
-
-        // Fallback (normal incoming message)
-        return [
-          {
+          // ✅ Add the real message
+          next.unshift({
             id: msg._id,
-            senderId: msg.senderId._id ?? msg.senderId,
-            text: msg.text,
-            image: msg.imageUrl,
+            senderId:
+              typeof msg.senderId === "object"
+                ? msg.senderId._id
+                : msg.senderId,
+            sender: msg.senderId,
+            text: msg.text || "",
+            image: msg.imageUrl || null,
             timestamp: msg.createdAt,
-          },
-          ...prev,
-        ];
+            optimistic: false, // ✅ Mark as confirmed/real
+            status: msg.status || "sent",
+          });
+        });
+
+        return next;
       });
     };
 
@@ -108,6 +156,13 @@ export default function ChatMessages({ chatId, currentUserId }) {
       socketClient.off("new_message", onNewMessage);
     };
   }, [chatId]);
+
+  // Scroll to bottom on new messages, so curretnly commented out because don't know if wanted
+  //   useEffect(() => {
+  //   if (messagesContainerRef.current) {
+  //     messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+  //   }
+  // }, [messages]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -132,6 +187,46 @@ export default function ChatMessages({ chatId, currentUserId }) {
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
+
+  useEffect(() => {
+    const handleQueuedMessages = (e) => {
+      const msgData = e.detail;
+
+      // Add queued messages to UI
+      setMessages((prev) => {
+        // Dedupe by checking if message already exists
+        if (prev.some((m) => m.id === msgData.messages?.[0]?._id)) {
+          return prev;
+        }
+
+        const newMessages =
+          msgData.messages?.map((msg) => ({
+            id: msg._id,
+            senderId:
+              typeof msg.senderId === "object"
+                ? msg.senderId._id
+                : msg.senderId,
+            sender: msg.senderId,
+            text: msg.text || "",
+            image: msg.imageUrl || null,
+            timestamp: msg.createdAt,
+            optimistic: false,
+            delivered: true,
+          })) || [];
+
+        return [...prev, ...newMessages].sort(
+          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+        );
+      });
+    };
+
+    window.addEventListener("queued-message-received", handleQueuedMessages);
+    return () =>
+      window.removeEventListener(
+        "queued-message-received",
+        handleQueuedMessages
+      );
+  }, [chatId]);
 
   useEffect(() => {
     if (!chatId) return;
@@ -171,6 +266,20 @@ export default function ChatMessages({ chatId, currentUserId }) {
               (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
             )
           );
+
+          // Mark unread messages as delivered
+          const unreadMessageIds = rawMessages
+            .filter(
+              (msg) => !msg.deliveredTo?.some((d) => d.userId === currentUserId)
+            )
+            .map((msg) => msg._id);
+
+          if (unreadMessageIds.length > 0) {
+            socketClient.emit("mark_delivered", {
+              messageIds: unreadMessageIds,
+              chatId,
+            });
+          }
         } else {
           setMessages([]);
         }
@@ -388,6 +497,19 @@ export default function ChatMessages({ chatId, currentUserId }) {
           )}
 
           {message.emoji && <div className="text-3xl">{message.emoji}</div>}
+
+          {/* ✅ NEW: Message Status Indicator */}
+
+          {isOwn && (
+            <div className="text-xs text-gray-400 dark:text-neutral-500 mt-1 flex gap-1">
+              {message.status === "sending" && <span>Sending...</span>}
+              {message.status === "sent" && <span>✓ Sent</span>}
+              {message.status === "delivered" && <span>✓✓ Delivered</span>}
+              {message.status === "read" && (
+                <span className="text-blue-500">✓✓ Read</span>
+              )}
+            </div>
+          )}
         </motion.div>
       </div>
     </motion.div>

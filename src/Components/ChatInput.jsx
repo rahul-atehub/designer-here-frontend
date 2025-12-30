@@ -1,8 +1,14 @@
+// there's still a small problem , when i send the message, it's appears instantly on the screen, that's good, but the send button still in the loading stage,
+//  so this way if the message fails, it won't show that so we've to fix that,
+// the message should only appear on the screen once the message is sent and also i want the message to be sent quickly ,
+//  it's takes too much time in sending the message .
+
 // src/components/ChatInput.jsx
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { API } from "@/config";
+import axios from "axios";
 import socketClient from "@/lib/socket-client";
 
 const EMOJI_LIST = [
@@ -101,30 +107,55 @@ export default function ChatInput({ chatId }) {
 
   const handleSend = async () => {
     if (!message.trim() && selectedImages.length === 0) return;
-    if (sending) return;
+    if (sending || !chatId) return;
 
     try {
       setSending(true);
 
-      let imageUrl = null;
-      if (selectedImages.length > 0) {
-        const res = await uploadChatImage(selectedImages[0].file);
-        imageUrl = res.imageUrl;
-      }
+      // ✅ STEP 1: Create optimistic message ID immediately
+      const tempId = `temp-${Date.now()}-${Math.random()}`;
 
-      const tempId = crypto.randomUUID();
+      // ✅ STEP 2: Dispatch optimistic event BEFORE sending
+      // This makes message appear instantly on sender's screen
+      window.dispatchEvent(
+        new CustomEvent("optimistic-message", {
+          detail: {
+            tempId,
+            chatId,
+            text: message.trim(),
+            imageUrl: null, // Images will be handled after upload
+          },
+        })
+      );
 
-      socketClient.sendMessage({
-        chatId,
-        text: message,
-        imageUrl,
-        tempId,
+      const formData = new FormData();
+      formData.append("text", message);
+
+      selectedImages.forEach((img) => {
+        formData.append("images", img.file);
+      });
+
+      // ✅ STEP 3: Send to backend
+      // Backend will broadcast via socket to other users
+      await axios.post(API.CHAT.MESSAGES(chatId), formData, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
       socketClient.stopTyping(chatId);
-
       setMessage("");
       setSelectedImages([]);
+    } catch (error) {
+      console.error("Message send failed:", error);
+
+      // ✅ STEP 4: On error, remove optimistic message
+      window.dispatchEvent(
+        new CustomEvent("remove-optimistic-message", {
+          detail: { tempId: `temp-${Date.now()}` },
+        })
+      );
     } finally {
       setSending(false);
     }
@@ -137,24 +168,6 @@ export default function ChatInput({ chatId }) {
       }
     };
   }, []);
-
-  const uploadChatImage = async (file) => {
-    const formData = new FormData();
-    formData.append("image", file);
-    formData.append("chatId", chatId);
-
-    const res = await fetch(API.CHAT.SEND_MESSAGE, {
-      method: "POST",
-      body: formData,
-      credentials: "include",
-    });
-
-    if (!res.ok) {
-      throw new Error("Image upload failed");
-    }
-
-    return res.json(); // must return { imageUrl }
-  };
 
   const typingTimeout = useRef(null);
 
