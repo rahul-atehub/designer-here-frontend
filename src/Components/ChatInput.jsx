@@ -1,165 +1,107 @@
-// there's still a small problem , when i send the message, it's appears instantly on the screen, that's good, but the send button still in the loading stage,
-//  so this way if the message fails, it won't show that so we've to fix that,
-// the message should only appear on the screen once the message is sent and also i want the message to be sent quickly ,
-//  it's takes too much time in sending the message .
-
 // src/components/ChatInput.jsx
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { API } from "@/config";
 import axios from "axios";
+import EmojiPicker from "@/components/ui/EmojiPicker";
 import socketClient from "@/lib/socket-client";
-
-const EMOJI_LIST = [
-  "😀",
-  "😃",
-  "😄",
-  "😁",
-  "😆",
-  "😅",
-  "😂",
-  "🤣",
-  "😊",
-  "😇",
-  "🙂",
-  "😍",
-  "🥰",
-  "😘",
-  "😗",
-  "😙",
-  "😚",
-  "😋",
-  "😛",
-  "😝",
-  "😜",
-  "🤪",
-  "🤨",
-  "🧐",
-  "🤓",
-  "😎",
-  "🤩",
-  "🥳",
-  "😏",
-  "😒",
-  "😞",
-  "😔",
-  "😟",
-  "😕",
-  "🙁",
-  "😣",
-  "😖",
-  "😫",
-  "😩",
-  "🥺",
-  "😢",
-  "😭",
-  "😤",
-  "😠",
-  "😡",
-  "🤬",
-  "🤯",
-  "😳",
-  "🥵",
-  "🥶",
-  "😱",
-  "😨",
-  "😰",
-  "😥",
-  "😓",
-  "🤗",
-  "🤔",
-  "🤭",
-  "🤫",
-  "🤐",
-  "❤️",
-  "💛",
-  "💚",
-  "💙",
-  "💜",
-  "🖤",
-  "🤍",
-  "🎉",
-  "🎊",
-  "🎈",
-  "🔥",
-  "💯",
-  "✨",
-  "⭐",
-  "🌟",
-  "👏",
-  "👍",
-  "👎",
-  "🙏",
-  "💪",
-];
 
 export default function ChatInput({ chatId }) {
   const [message, setMessage] = useState("");
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [selectedImages, setSelectedImages] = useState([]);
   const [sending, setSending] = useState(false);
   const [dragOver, setDragOver] = useState(false);
-
+  const [showMenu, setShowMenu] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
-  const emojiPickerRef = useRef(null);
+  const menuRef = useRef(null);
 
   const handleSend = async () => {
     if (!message.trim() && selectedImages.length === 0) return;
     if (sending || !chatId) return;
 
     try {
-      setSending(true);
-
-      // ✅ STEP 1: Create optimistic message ID immediately
       const tempId = `temp-${Date.now()}-${Math.random()}`;
 
-      // ✅ STEP 2: Dispatch optimistic event BEFORE sending
-      // This makes message appear instantly on sender's screen
       window.dispatchEvent(
         new CustomEvent("optimistic-message", {
           detail: {
             tempId,
             chatId,
             text: message.trim(),
-            imageUrl: null, // Images will be handled after upload
+            imageUrl: null,
+            status: "sending",
           },
         })
       );
 
+      setMessage("");
+      setSelectedImages([]);
+
       const formData = new FormData();
       formData.append("text", message);
-
       selectedImages.forEach((img) => {
         formData.append("images", img.file);
       });
 
-      // ✅ STEP 3: Send to backend
-      // Backend will broadcast via socket to other users
-      await axios.post(API.CHAT.MESSAGES(chatId), formData, {
-        withCredentials: true,
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      axios
+        .post(API.CHAT.MESSAGES(chatId), formData, {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        .then((response) => {
+          socketClient.stopTyping(chatId);
 
-      socketClient.stopTyping(chatId);
-      setMessage("");
-      setSelectedImages([]);
+          if (response.data?.messageId) {
+            window.dispatchEvent(
+              new CustomEvent("message-confirmed", {
+                detail: {
+                  tempId,
+                  messageId: response.data.messageId,
+                  status: "sent",
+                },
+              })
+            );
+          }
+        })
+        .catch((error) => {
+          console.error("Message send failed:", error);
+
+          window.dispatchEvent(
+            new CustomEvent("message-failed", {
+              detail: { tempId },
+            })
+          );
+        });
     } catch (error) {
-      console.error("Message send failed:", error);
-
-      // ✅ STEP 4: On error, remove optimistic message
+      console.error("Unexpected error:", error);
       window.dispatchEvent(
-        new CustomEvent("remove-optimistic-message", {
-          detail: { tempId: `temp-${Date.now()}` },
+        new CustomEvent("message-failed", {
+          detail: { tempId: `temp-${Date.now()}-${Math.random()}` },
         })
       );
-    } finally {
-      setSending(false);
     }
   };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setShowMenu(false);
+      }
+    };
+
+    if (showMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showMenu]);
 
   useEffect(() => {
     return () => {
@@ -183,7 +125,6 @@ export default function ChatInput({ chatId }) {
     }, 1200);
   };
 
-  // Auto-resize textarea
   useEffect(() => {
     const textarea = textareaRef.current;
     if (textarea) {
@@ -193,21 +134,6 @@ export default function ChatInput({ chatId }) {
     }
   }, [message]);
 
-  // Close emoji picker when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        emojiPickerRef.current &&
-        !emojiPickerRef.current.contains(event.target)
-      ) {
-        setShowEmojiPicker(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  // Handle paste events for images
   useEffect(() => {
     const handlePaste = (e) => {
       const items = e.clipboardData?.items;
@@ -316,24 +242,6 @@ export default function ChatInput({ chatId }) {
     }
   };
 
-  const handleEmojiClick = (emoji) => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const newMessage = message.slice(0, start) + emoji + message.slice(end);
-      setMessage(newMessage);
-
-      setTimeout(() => {
-        textarea.setSelectionRange(start + emoji.length, start + emoji.length);
-        textarea.focus();
-      }, 0);
-    } else {
-      setMessage((prev) => prev + emoji);
-    }
-    setShowEmojiPicker(false);
-  };
-
   const hasContent = message.trim() || selectedImages.length > 0;
 
   return (
@@ -401,33 +309,93 @@ export default function ChatInput({ chatId }) {
         onDrop={handleDrop}
       >
         <div className="flex items-end gap-3">
-          {/* Attachment Button */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => fileInputRef.current?.click()}
-            disabled={sending}
-            className="p-2 text-gray-400 dark:text-neutral-400 hover:text-gray-200 dark:hover:text-neutral-200 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-            title="Attach images"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          {/* 3-DOT MENU (Attachment + Emoji) */}
+          <div ref={menuRef} className="relative">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowMenu((v) => !v)}
+              disabled={sending}
+              className="p-2 text-gray-400 dark:text-neutral-400 hover:text-gray-600 dark:hover:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-lg transition-all disabled:opacity-50 shrink-0"
+              title="More options"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
-              />
-            </svg>
-          </motion.button>
+              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
+              </svg>
+            </motion.button>
 
-          {/* Text Input Area */}
+            {/* Dropdown Menu */}
+            <AnimatePresence>
+              {showMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute bottom-full left-0 mb-10 bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border border-gray-300 dark:border-neutral-700 overflow-hidden w-64 z-50"
+                >
+                  {/* Attachment Option */}
+                  <motion.button
+                    whileHover={{ backgroundColor: "rgba(0,0,0,0.05)" }}
+                    onClick={() => {
+                      fileInputRef.current?.click();
+                      setShowMenu(false);
+                    }}
+                    disabled={sending}
+                    className="w-full px-4 py-3 flex items-center gap-3 text-left text-black dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50"
+                  >
+                    <svg
+                      className="w-5 h-5 text-gray-600 dark:text-neutral-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+                      />
+                    </svg>
+                    <span className="font-medium">Photo or video</span>
+                  </motion.button>
+
+                  <div className="h-px bg-gray-200 dark:bg-neutral-800" />
+
+                  {/* Emoji Option */}
+                  <motion.button
+                    whileHover={{ backgroundColor: "rgba(0,0,0,0.05)" }}
+                    onClick={() => {
+                      setShowEmojiPicker(!showEmojiPicker);
+                      setShowMenu(false);
+                    }}
+                    disabled={sending}
+                    className="w-full px-4 py-3 flex items-center gap-3 text-left text-black dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50"
+                  >
+                    <span className="text-lg">😊</span>
+                    <span className="font-medium">Emoji</span>
+                  </motion.button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* ✅ EMOJI PICKER POPUP - PLACED HERE */}
+            <div className="relative">
+              <AnimatePresence>
+                {showEmojiPicker && (
+                  <EmojiPicker
+                    onEmojiSelect={(emoji) => {
+                      setMessage((prev) => prev + emoji);
+                    }}
+                    onClose={() => setShowEmojiPicker(false)}
+                  />
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+
+          {/* Text Input Area - FULL WIDTH */}
           <div className="flex-1 relative">
-            <div className="relative bg-gray-200 dark:bg-neutral-800 rounded-2xl border border-gray-300 dark:border-neutral-700 focus-within:border-gray-400 dark:focus-within:border-neutral-600 transition-colors">
+            <div className="relative flex items-end bg-gray-200 dark:bg-neutral-800 rounded-2xl border border-gray-300 dark:border-neutral-700 focus-within:border-gray-400 dark:focus-within:border-neutral-600 transition-colors">
               <textarea
                 ref={textareaRef}
                 value={message}
@@ -446,94 +414,27 @@ export default function ChatInput({ chatId }) {
                   lineHeight: "1.5",
                 }}
               />
-            </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-1 shrink-0">
-            {/* Emoji Button */}
-            <div className="relative" ref={emojiPickerRef}>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                disabled={sending}
-                className="p-2 text-gray-400 dark:text-neutral-400 hover:text-gray-200 dark:hover:text-neutral-200 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-lg transition-all disabled:opacity-50"
-                title="Add emoji"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z" />
-                </svg>
-              </motion.button>
-
-              {/* Emoji Picker */}
+              {/* Send Button - ONLY SHOW ON CONTENT */}
               <AnimatePresence>
-                {showEmojiPicker && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute bottom-full right-0 mb-2 bg-gray-200 dark:bg-neutral-800 rounded-2xl shadow-xl border border-gray-300 dark:border-neutral-700 p-4 w-80 max-h-72 overflow-hidden"
+                {hasContent && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.15 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={handleSend}
+                    disabled={sending}
+                    className="px-3 py-1 pb-3.5  text-blue-600 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shrink-0"
+                    title="Send message"
                   >
-                    <div className="h-full max-h-72 overflow-y-auto overflow-x-hidden [&::-webkit-scrollbar]:hidden [-ms-overflow-style:'none'] [scrollbar-width:'none'] pr-1 pb-4">
-                      <div className="grid grid-cols-8 gap-2">
-                        {EMOJI_LIST.map((emoji, index) => (
-                          <motion.button
-                            key={`${emoji}-${index}`}
-                            whileHover={{ scale: 1.2 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => handleEmojiClick(emoji)}
-                            className="text-xl p-2 hover:bg-gray-300 dark:hover:bg-neutral-700 rounded-lg transition-colors"
-                          >
-                            {emoji}
-                          </motion.button>
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
+                    {sending ? "Sending..." : "Send"}
+                  </motion.button>
                 )}
               </AnimatePresence>
             </div>
-
-            {/* Send Button */}
-            <motion.button
-              whileHover={{ scale: hasContent ? 1.05 : 1 }}
-              whileTap={{ scale: hasContent ? 0.95 : 1 }}
-              onClick={handleSend}
-              disabled={!hasContent || sending}
-              className={`p-2 rounded-lg transition-all ${
-                hasContent && !sending
-                  ? "bg-blue-600 hover:bg-blue-700 text-white shadow-md"
-                  : "text-gray-400 dark:text-neutral-600 cursor-not-allowed"
-              }`}
-              title="Send message"
-            >
-              {sending ? (
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-                  className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
-                />
-              ) : (
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                  />
-                </svg>
-              )}
-            </motion.button>
           </div>
         </div>
 

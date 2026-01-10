@@ -1,3 +1,8 @@
+// make some change in the appearance , show it something like insta at the basic level,
+//  show the data in the place of the reach , and don't show the description in the basic state ,
+//  once the user clicks on the card, then show all of the features, and add a comment section like instagram if possible,
+//  and the comment section should be added on the last, when the project is complete, and every else thing is done.
+
 "use client";
 import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";

@@ -50,7 +50,7 @@ export default function AuthRequired() {
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => router.push("/auth")}
+            onClick={() => router.push("/auth/login")}
             className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-medium transition-colors duration-200"
           >
             Sign In

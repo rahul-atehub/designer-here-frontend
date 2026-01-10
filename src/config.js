@@ -16,7 +16,7 @@ if (!process.env.NEXT_PUBLIC_SOCKET_IO_URL) {
   console.warn("NEXT_PUBLIC_SOCKET_IO_URL is not defined");
 }
 
-export const SOCKET_IO_URL = process.env.NEXT_PUBLIC_SOCKET_IO_URL; // backend socket url
+export const SOCKET_IO_URL = process.env.NEXT_PUBLIC_SOCKET_URL; // backend socket url
 
 export const API = {
   BASE_URL,
@@ -67,7 +67,7 @@ export const API = {
   },
   PORTFOLIO: {
     LIST: `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT}`, // fetch all portfolios
-    UPLOAD: `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT}/upload`, // create a new portfolio (POST)
+    UPLOAD: `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT}`, // create new portfolio post
     DELETE: (id) =>
       `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT}/${id}`,
     UPDATE: (id) =>

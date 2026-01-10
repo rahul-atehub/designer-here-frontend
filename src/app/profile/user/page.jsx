@@ -146,10 +146,12 @@ export default function UserProfile() {
                     className="w-36 h-36 rounded-full object-cover border border-gray-300 dark:border-neutral-700"
                   />
                 ) : (
-                  <div className="w-36 h-36 bg-linear-to-br from-red-500 to-violet-600 rounded-full flex items-center justify-center">
-                    <span className="text-xl font-semibold text-gray-900 dark:text-white">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </span>
+                  <div className="w-36 h-36 rounded-full border border-gray-300 dark:border-neutral-700 overflow-hidden">
+                    <img
+                      src="/avatar-placeholder.png"
+                      alt={user?.name || "User"}
+                      className="w-full h-full object-cover scale-120"
+                    />
                   </div>
                 )}
               </motion.div>

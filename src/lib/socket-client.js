@@ -47,14 +47,34 @@ class SocketClient {
     return this.socket;
   }
 
+  // Add this to setupDefaultListeners() in socket-client.js
+
   setupDefaultListeners() {
     this.socket.on("connect", () => {
       console.log("✅ Socket connected:", this.socket.id);
-      this.setupOfflineHandlers();
     });
 
     this.socket.on("disconnect", (reason) => {
       console.log("❌ Socket disconnected:", reason);
+    });
+
+    // GLOBAL LISTENERS
+    this.socket.on("messages_delivered", (payload) => {
+      console.log("📦 Messages delivered:", payload);
+      window.dispatchEvent(
+        new CustomEvent("messages-delivered", {
+          detail: payload,
+        })
+      );
+    });
+
+    this.socket.on("messages_read", (payload) => {
+      console.log("👁️ Messages read:", payload);
+      window.dispatchEvent(
+        new CustomEvent("messages-read", {
+          detail: payload,
+        })
+      );
     });
 
     this.socket.on("socket_error", (error) => {

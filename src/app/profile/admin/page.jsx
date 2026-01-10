@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import { useUser } from "@/context/UserContext";
 import { API } from "@/config";
+import CreatePost from "@/components/ui/createPost";
 
 import {
   Bookmark,
@@ -24,6 +25,7 @@ export default function AdminProfile() {
   const [showSettings, setShowSettings] = useState(false);
   const [hasPosts, setHasPosts] = useState(false);
   const [error, setError] = useState(null);
+  const [showCreatePost, setShowCreatePost] = useState(false);
   const [uploadStatus, setUploadStatus] = useState({
     show: false,
     type: "",
@@ -32,6 +34,7 @@ export default function AdminProfile() {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
   const router = useRouter();
+
   const {
     user: currentUser,
     loading: userLoading,
@@ -64,16 +67,7 @@ export default function AdminProfile() {
       return;
     }
 
-    // user is admin -> normalize and set local user state
-    const normalizedUser = {
-      name: currentUser.name ?? currentUser.username ?? "Admin",
-      email: currentUser.email ?? "",
-      profilePicture:
-        currentUser.profilePicture ?? currentUser.profilePic ?? null,
-      id: currentUser._id ?? currentUser.id ?? null,
-    };
-
-    setUser(normalizedUser);
+    setUser(currentUser);
     setError(null);
     setLoading(false);
   }, [currentUser, userLoading, userError]);
@@ -95,8 +89,9 @@ export default function AdminProfile() {
   const handleAuthRedirect = () => {
     router.push("/auth");
   };
+
   const handleUploadClick = () => {
-    if (!user?.id) {
+    if (!currentUser?._id) {
       setUploadStatus({
         show: true,
         type: "error",
@@ -108,7 +103,7 @@ export default function AdminProfile() {
       );
       return;
     }
-    fileInputRef.current?.click();
+    setShowCreatePost(true); // Open the modal instead of file input
   };
 
   const handleFileUpload = async (event) => {
@@ -303,14 +298,15 @@ export default function AdminProfile() {
                     className="w-36 h-36 rounded-full object-cover border border-gray-300 dark:border-neutral-700"
                   />
                 ) : (
-                  <div className="w-36 h-36 bg-linear-to-br from-red-500 to-violet-600 rounded-full flex items-center justify-center">
-                    <span className="text-xl font-semibold text-gray-900 dark:text-white">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </span>
+                  <div className="w-36 h-36 rounded-full border border-gray-300 dark:border-neutral-700 overflow-hidden">
+                    <img
+                      src="/avatar-placeholder.png"
+                      alt={user?.name || "User"}
+                      className="w-full h-full object-cover scale-120"
+                    />
                   </div>
                 )}
               </motion.div>
-
               {/* User Info */}
               <div className="flex flex-col gap-1">
                 <motion.h1
@@ -349,8 +345,8 @@ export default function AdminProfile() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleUploadClick}
-                disabled={uploading || userLoading || !user?.id}
-                aria-disabled={uploading || userLoading || !user?.id}
+                disabled={uploading || userLoading || !currentUser?._id}
+                aria-disabled={uploading || userLoading || !currentUser?._id}
                 title={
                   uploading
                     ? "Uploading..."
@@ -395,8 +391,8 @@ export default function AdminProfile() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleUploadClick}
-                disabled={uploading || userLoading || !user?.id}
-                aria-disabled={uploading || userLoading || !user?.id}
+                disabled={uploading || userLoading || !currentUser?._id}
+                aria-disabled={uploading || userLoading || !currentUser?._id}
                 className="w-20 h-20 rounded-full border border-gray-300 dark:border-neutral-700 flex items-center justify-center mb-4 hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
               >
                 {uploading ? (
@@ -425,6 +421,12 @@ export default function AdminProfile() {
           )}
         </div>
       </div>
+      {showCreatePost && (
+        <CreatePost
+          onClose={() => setShowCreatePost(false)}
+          userId={currentUser?._id}
+        />
+      )}
     </LayoutWrapper>
   );
 }
