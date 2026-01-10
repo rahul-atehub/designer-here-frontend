@@ -607,14 +607,14 @@ const GraphicDesignPortfolio = () => {
               layout
               className={`grid gap-8 ${
                 viewMode === "grid"
-                  ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5"
-                  : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
-              } justify-items-center`}
+                  ? "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3"
+                  : "grid-cols-1 max-w-4xl mx-auto"
+              }`}
             >
               <AnimatePresence mode="popLayout">
                 {filteredArtworks.map((artwork, index) => (
                   <motion.div
-                    key={artwork.id}
+                    key={artwork._id}
                     layout
                     initial={{ opacity: 0, y: 40, scale: 0.9 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -625,59 +625,54 @@ const GraphicDesignPortfolio = () => {
                       ease: "easeOut",
                       layout: { duration: 0.3 },
                     }}
-                    className="w-full max-w-xs group relative bg-white/70 dark:bg-neutral-900/70 backdrop-blur-xl rounded-3xl border border-gray-200/50 dark:border-neutral-800/50 shadow-xl shadow-black/5 overflow-hidden"
+                    whileHover={{ y: -10 }}
+                    className="transform-gpu"
                   >
-                    {/* Hover Glow Effect */}
-                    <div className="absolute inset-0 bg-linear-to-br from-red-500/0 via-red-500/0 to-red-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <ArtworkCard
+                      artwork={artwork}
+                      viewMode={viewMode}
+                      isAdmin={isAdminMode}
+                      onDelete={(_id) => {
+                        setArtworks((prev) =>
+                          prev.filter((art) => art._id !== _id)
+                        );
 
-                    <div className="relative z-10">
-                      <ArtworkCard
-                        artwork={artwork}
-                        isAdmin={isAdminMode}
-                        onDelete={(id) => {
-                          setArtworks((prev) =>
-                            prev.filter((art) => art.id !== id)
+                        api.delete(API.PORTFOLIO.DELETE(_id)).catch((error) => {
+                          console.error(
+                            "Failed to delete portfolio item:",
+                            error
                           );
+                        });
+                      }}
+                      onEdit={(_id) => {
+                        console.log("Edit artwork:", _id);
+                      }}
+                      onToggleVisibility={(_id, visible) => {
+                        setArtworks((prev) =>
+                          prev.map((art) =>
+                            art._id === _id ? { ...art, visible } : art
+                          )
+                        );
 
-                          api
-                            .delete(API.PORTFOLIO.DELETE(id))
-                            .catch((error) => {
-                              console.error(
-                                "Failed to delete portfolio item:",
-                                error
-                              );
-                            });
-                        }}
-                        onEdit={(id) => {
-                          console.log("Edit artwork:", id);
-                        }}
-                        onToggleVisibility={(id, visible) => {
-                          setArtworks((prev) =>
-                            prev.map((art) =>
-                              art.id === id ? { ...art, visible } : art
-                            )
-                          );
-
-                          api
-                            .patch(API.PORTFOLIO.TOGGLE_VISIBILITY(id), {
-                              visible,
-                            })
-                            .catch((error) => {
-                              console.error(
-                                "Failed to update portfolio visibility:",
-                                error
-                              );
-                              setArtworks((prev) =>
-                                prev.map((art) =>
-                                  art.id === id
-                                    ? { ...art, visible: !visible }
-                                    : art
-                                )
-                              );
-                            });
-                        }}
-                      />
-                    </div>
+                        api
+                          .patch(API.PORTFOLIO.TOGGLE_VISIBILITY(_id), {
+                            visible,
+                          })
+                          .catch((error) => {
+                            console.error(
+                              "Failed to update portfolio visibility:",
+                              error
+                            );
+                            setArtworks((prev) =>
+                              prev.map((art) =>
+                                art._id === _id
+                                  ? { ...art, visible: !visible }
+                                  : art
+                              )
+                            );
+                          });
+                      }}
+                    />
                   </motion.div>
                 ))}
               </AnimatePresence>

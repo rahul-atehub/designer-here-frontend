@@ -53,24 +53,24 @@ export default function ArtworkCard({
   if (!artwork) return null;
 
   const { savedPosts, toggleSave } = useSavedPosts();
-  const isSaved = savedPosts.some((p) => p.id === artworkData.id);
+  const isSaved = savedPosts.some((p) => p.id === artworkData._id);
 
   const [likes, setLikes] = useState(artwork?.likes ?? 0);
   const { likedPosts, toggleLike } = useLikedPosts();
-  const isLiked = likedPosts.some((p) => p.id === artworkData.id);
+  const isLiked = likedPosts.some((p) => p.id === artworkData._id);
 
   // 🔌 Connect to WebSocket server and listen for like updates
   useEffect(() => {
     // Subscribe only to this artwork's like updates
-    socket.on(`likes-update-${artworkData.id}`, (newCount) => {
+    socket.on(`likes-update-${artworkData._id}`, (newCount) => {
       setLikes(newCount);
     });
 
     // Clean up (unsubscribe) when component unmounts
     return () => {
-      socket.off(`likes-update-${artworkData.id}`);
+      socket.off(`likes-update-${artworkData._id}`);
     };
-  }, [artworkData.id]);
+  }, [artworkData._id]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [, forceUpdate] = useState({});
@@ -87,7 +87,7 @@ export default function ArtworkCard({
     const newVisibility = !visible;
     setVisible(newVisibility);
     if (onToggleVisibility) {
-      onToggleVisibility(artworkData.id, newVisibility);
+      onToggleVisibility(artworkData._id, newVisibility);
     }
   };
   const handleDelete = async () => {
@@ -98,14 +98,14 @@ export default function ArtworkCard({
     try {
       // Call API to delete post
       await axios.delete(
-        API.PORTFOLIO.DELETE.replace("{postId}", artworkData.id),
+        API.PORTFOLIO.DELETE.replace("{postId}", artworkData._id),
         { withCredentials: true }
       );
 
       console.log("Post deleted on server");
 
       // Remove post from UI
-      if (onDelete) onDelete(artworkData.id);
+      if (onDelete) onDelete(artworkData._id);
     } catch (err) {
       console.error("Error deleting post:", err);
       setIsDeleting(false); // rollback UI
@@ -114,7 +114,7 @@ export default function ArtworkCard({
 
   const handleEdit = () => {
     if (onEdit) {
-      onEdit(artworkData.id);
+      onEdit(artworkData._id);
     }
   };
 
@@ -130,7 +130,7 @@ export default function ArtworkCard({
 
     try {
       // Use single toggle endpoint for like/unlike
-      const endpoint = API.LIKES.ADD_LIKE.replace("{postId}", artworkData.id);
+      const endpoint = API.LIKES.ADD_LIKE.replace("{postId}", artworkData._id);
       await axios.post(endpoint, {}, { withCredentials: true });
 
       console.log("Like saved on server");
@@ -148,7 +148,7 @@ export default function ArtworkCard({
     toggleSave(artworkData);
 
     try {
-      const endpoint = API.SAVED.SAVE_POST.replace("{postId}", artworkData.id);
+      const endpoint = API.SAVED.SAVE_POST.replace("{postId}", artworkData._id);
       await axios.post(endpoint, {}, { withCredentials: true });
 
       console.log("Save/Unsave updated on server");
@@ -188,7 +188,7 @@ export default function ArtworkCard({
     return (
       <>
         <div
-          className={`group relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200/60 dark:border-gray-700/60 shadow-lg hover:shadow-2xl hover:shadow-blue-500/10 dark:hover:shadow-blue-500/5 rounded-2xl overflow-hidden transition-all duration-300 ease-out transform w-full max-w-xs cursor-pointer ${
+          className={`group relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200/60 dark:border-gray-700/60 shadow-lg hover:shadow-2xl hover:shadow-blue-500/10 dark:hover:shadow-blue-500/5 rounded-2xl overflow-hidden transition-all duration-300 ease-out transform w-full cursor-pointer ${
             isDeleting
               ? "scale-95 opacity-0 translate-y-4"
               : "hover:-translate-y-2 hover:scale-[1.02] scale-100 opacity-100 translate-y-0"
@@ -200,10 +200,7 @@ export default function ArtworkCard({
           }}
           onClick={handleCardClick}
         >
-          {/* Gradient overlay for depth */}
-          <div className="absolute inset-0 bg-linear-to-br from-blue-50/20 to-red-50/20 dark:from-blue-950/10 dark:to-red-950/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"></div>
-
-          {/* Image Section */}
+          {/* Image Section - Takes up most of the card */}
           <div className="relative w-full aspect-square overflow-hidden rounded-t-2xl bg-linear-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700">
             <img
               src={artworkData.image}
@@ -237,7 +234,7 @@ export default function ArtworkCard({
               </div>
             )}
 
-            {/* Admin Menu - Always visible */}
+            {/* Admin Menu */}
             {adminMode && (
               <div className="absolute top-3 right-3">
                 <button
@@ -351,91 +348,53 @@ export default function ArtworkCard({
             )}
           </div>
 
-          {/* Content Section */}
-          <div className="relative p-4 space-y-3">
-            {/* Like and Bookmark buttons - Always visible, above title */}
+          {/* Content Section - MINIMAL like Instagram */}
+          <div className="relative p-3 space-y-2">
+            {/* Like button and count */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={handleLike}
-                  className={`flex items-center space-x-1 p-1.5 rounded-full transition-all duration-200 hover:scale-110 ${
-                    isLiked
-                      ? "text-red-500"
-                      : "text-gray-600 dark:text-gray-400 hover:text-red-500"
-                  }`}
-                >
-                  <Heart size={16} className={isLiked ? "fill-current" : ""} />
-                  <span className="text-sm font-medium">{likes}</span>
-                </button>
-              </div>
+              <button
+                onClick={handleLike}
+                className={`flex items-center space-x-1 transition-all duration-200 hover:scale-100 ${
+                  isLiked
+                    ? "text-red-500"
+                    : "text-gray-600 dark:text-gray-400 hover:text-red-500"
+                }`}
+              >
+                <Heart size={18} className={isLiked ? "fill-current" : ""} />
+                <span className="text-sm font-medium">{likes}</span>
+              </button>
 
               <button
                 onClick={handleBookmark}
-                className={`p-1.5 rounded-full transition-all duration-200 hover:scale-110 ${
+                className={`transition-all duration-200 hover:scale-110 ${
                   isSaved
                     ? "text-blue-500"
                     : "text-gray-600 dark:text-gray-400 hover:text-blue-500"
                 }`}
               >
-                <Bookmark size={16} className={isSaved ? "fill-current" : ""} />
+                <Bookmark size={18} className={isSaved ? "fill-current" : ""} />
               </button>
             </div>
 
-            {/* Title */}
-            <div className="flex items-start justify-between">
-              <h1 className="text-lg font-bold text-gray-900 dark:text-white truncate flex-1 pr-2">
-                {artworkData.title}
-              </h1>
-              {!adminMode && (
-                <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400 shrink-0">
-                  <TrendingUp size={12} />
-                  <span>{views.toLocaleString()}</span>
-                </div>
-              )}
-            </div>
+            {/* Title only */}
+            <h1 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+              {artworkData.title}
+            </h1>
 
-            {/* Description with "more" option */}
-            <div className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
-              <p>
-                {truncatedDescription}
-                {isDescriptionLong && (
-                  <button
-                    onClick={handleMoreClick}
-                    className="ml-1 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-                  >
-                    more
-                  </button>
-                )}
-              </p>
-            </div>
-
-            {/* Footer stats */}
-            <div className="flex items-center justify-between pt-2 border-t border-gray-200/50 dark:border-gray-700/50">
-              <div className="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                <div className="flex items-center space-x-1">
-                  <Calendar size={12} />
-                  <span>
-                    {new Date(artworkData.uploadDate).toLocaleDateString(
-                      "en-US",
-                      {
-                        month: "short",
-                        day: "numeric",
-                      }
-                    )}
-                  </span>
-                </div>
+            {/* Views count */}
+            {!adminMode && (
+              <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                <TrendingUp size={12} />
+                <span>{views.toLocaleString()} views</span>
               </div>
-
-              {/* Action indicator */}
-              <div className="w-2 h-2 bg-linear-to-br from-blue-500 to-red-500 rounded-full opacity-60 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </div>
+            )}
           </div>
 
           {/* Accent border */}
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-blue-500 via-purple-500 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </div>
 
-        {/* Modal for full description */}
+        {/* Modal - Full details shown here */}
         {isModalOpen &&
           typeof document !== "undefined" &&
           createPortal(
@@ -469,7 +428,7 @@ export default function ArtworkCard({
                 </div>
 
                 {/* Modal content */}
-                <div className="p-6 space-y-4">
+                <div className="p-2 space-y-1">
                   {/* Like and Bookmark buttons */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
@@ -509,13 +468,13 @@ export default function ArtworkCard({
                     {artworkData.title}
                   </h2>
 
-                  {/* Full description */}
+                  {/* Full description - ONLY shown in modal */}
                   <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
                     {artworkData.description}
                   </p>
 
                   {/* Stats */}
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between pt-0.5 border-t border-gray-200 dark:border-gray-700">
                     <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
                       <div className="flex items-center space-x-1">
                         <Calendar size={14} />
@@ -529,10 +488,6 @@ export default function ArtworkCard({
                             }
                           )}
                         </span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <TrendingUp size={14} />
-                        <span>{views.toLocaleString()} views</span>
                       </div>
                     </div>
                   </div>
