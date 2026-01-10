@@ -3,8 +3,12 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import Footer from "@/Components/Footer";
 import ArtworkCard from "@/components/ui/ArtworkCard";
-import { API as CONFIG } from "@/config";
-import api from "@/lib/api";
+import { API } from "@/config";
+import axios from "axios";
+const api = axios.create({
+  baseURL: API.BASE_URL,
+  withCredentials: true,
+});
 
 import {
   motion,
@@ -40,8 +44,7 @@ const GraphicDesignPortfolio = () => {
     const checkAdmin = async () => {
       try {
         // api.defaults.baseURL should include /api, so this hits: <BASE_URL>/api/auth/me
-        const res = await api.get("/auth/me", { withCredentials: true });
-        // protect against unexpected shapes
+        const res = await api.get(API.PROFILE.ME);
         const role = res?.data?.role;
         setIsAdminMode(role === "admin");
       } catch (err) {
@@ -63,12 +66,11 @@ const GraphicDesignPortfolio = () => {
 
   // Fetch artworks from backend
   useEffect(() => {
-    console.log("API client baseURL ->", api.defaults.baseURL);
     const fetchPortfolio = async () => {
       try {
         setLoading(true);
-        const response = await api.get("/portfolio"); // since api.baseURL includes /api
-        setArtworks(response.data || []); // ✅ axios returns data directly
+        const response = await api.get(API.PORTFOLIO.LIST);
+        setArtworks(response.data.data || []);
       } catch (error) {
         console.error("Error fetching portfolio:", error);
         setArtworks([]);
@@ -386,7 +388,7 @@ const GraphicDesignPortfolio = () => {
                     placeholder="Search designs, clients, artists, or creative concepts..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-14 pr-5 py-5 bg-gray-50/80 dark:bg-neutral-800/80 border border-gray-200 dark:border-neutral-700 rounded-2xl focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-300 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-neutral-400 text-lg backdrop-blur-sm"
+                    className="w-full pl-14 pr-5 py-5 bg-gray-50/80 dark:bg-neutral-800/80 rounded-2xl focus:ring-1 focus:ring-red-500 transition-all duration-300 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-neutral-400 text-lg backdrop-blur-sm outline-none"
                   />
                   {searchQuery && (
                     <motion.button
@@ -637,12 +639,14 @@ const GraphicDesignPortfolio = () => {
                             prev.filter((art) => art.id !== id)
                           );
 
-                          api.delete(`/portfolio/${id}`).catch((error) => {
-                            console.error(
-                              "Failed to delete portfolio item:",
-                              error
-                            );
-                          });
+                          api
+                            .delete(API.PORTFOLIO.DELETE(id))
+                            .catch((error) => {
+                              console.error(
+                                "Failed to delete portfolio item:",
+                                error
+                              );
+                            });
                         }}
                         onEdit={(id) => {
                           console.log("Edit artwork:", id);
@@ -655,7 +659,7 @@ const GraphicDesignPortfolio = () => {
                           );
 
                           api
-                            .patch(`/portfolio/${id}/visibility`, {
+                            .patch(API.PORTFOLIO.TOGGLE_VISIBILITY(id), {
                               visible,
                             })
                             .catch((error) => {
