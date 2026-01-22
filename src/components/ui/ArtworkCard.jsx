@@ -1,10 +1,7 @@
-// make some change in the appearance , show it something like insta at the basic level,
-//  show the data in the place of the reach , and don't show the description in the basic state ,
-//  once the user clicks on the card, then show all of the features, and add a comment section like instagram if possible,
-//  and the comment section should be added on the last, when the project is complete, and every else thing is done.
+// make the ui section transparent like iphone, so it'll give the classic frosted glass effect.
 
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import socket from "@/lib/socket-client";
 import axios from "axios";
@@ -24,14 +21,17 @@ import {
   Heart,
   Bookmark,
   X,
+  Zap,
+  Archive,
+  ArchiveRestore,
+  Star,
 } from "lucide-react";
 
 export default function ArtworkCard({
   artwork,
-
   onDelete,
   onEdit,
-  onToggleVisibility,
+  onArchive,
   viewMode = "grid", // New prop with default value
 }) {
   const [adminMode, setAdminMode] = useState(false);
@@ -43,11 +43,17 @@ export default function ArtworkCard({
     }
   }, [user, loading]);
 
-  const [visible, setVisible] = useState(artwork?.visible ?? true);
   const [views, setViews] = useState(artwork?.views ?? 0);
   const [isHovered, setIsHovered] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [hasTrackedView, setHasTrackedView] = useState(false);
+  const [hasTrackedImpression, setHasTrackedImpression] = useState(false);
+  const impressionTimerRef = useRef(null);
+  const cardRef = useRef(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [archived, setArchived] = useState(artwork?.archived ?? false);
+  const [featured, setFeatured] = useState(artwork?.featured ?? 0);
 
   const artworkData = artwork;
   if (!artwork) return null;
@@ -83,24 +89,21 @@ export default function ArtworkCard({
     }
   }, [isModalOpen]);
 
-  const handleToggleVisibility = () => {
-    const newVisibility = !visible;
-    setVisible(newVisibility);
-    if (onToggleVisibility) {
-      onToggleVisibility(artworkData._id, newVisibility);
-    }
+  const confirmDelete = () => {
+    console.log("confirmDelete called"); // Add this
+    setShowDeleteConfirm(false);
+    handleDelete();
   };
-  const handleDelete = async () => {
-    if (!confirm(`Delete "${artworkData.title}"?`)) return;
 
+  const handleDelete = async () => {
+    console.log("handleDelete called"); // Add this
     setIsDeleting(true);
 
     try {
       // Call API to delete post
-      await axios.delete(
-        API.PORTFOLIO.DELETE.replace("{postId}", artworkData._id),
-        { withCredentials: true }
-      );
+      await axios.delete(API.PORTFOLIO.DELETE(artworkData._id), {
+        withCredentials: true,
+      });
 
       console.log("Post deleted on server");
 
@@ -111,12 +114,106 @@ export default function ArtworkCard({
       setIsDeleting(false); // rollback UI
     }
   };
-
   const handleEdit = () => {
     if (onEdit) {
       onEdit(artworkData._id);
     }
   };
+
+  // Track engaged view (when modal opens)
+  const trackView = async () => {
+    if (hasTrackedView || adminMode) return; // Don't track admin views
+
+    try {
+      const viewedArtworks = JSON.parse(
+        localStorage.getItem("viewedArtworks") || "[]",
+      );
+
+      if (!viewedArtworks.includes(artworkData._id)) {
+        await axios.post(
+          API.PORTFOLIO.TRACK(artworkData._id),
+          { type: "view" },
+          { withCredentials: true },
+        );
+
+        viewedArtworks.push(artworkData._id);
+        localStorage.setItem("viewedArtworks", JSON.stringify(viewedArtworks));
+        setHasTrackedView(true);
+
+        // Optimistically update UI
+        setViews((prev) => prev + 1);
+      }
+    } catch (err) {
+      console.error("Error tracking view:", err);
+    }
+  };
+
+  // Track impression (when card is visible)
+  const trackImpression = async () => {
+    if (hasTrackedImpression || adminMode) return; // Don't track admin impressions
+
+    try {
+      const impressedArtworks = JSON.parse(
+        localStorage.getItem("impressedArtworks") || "[]",
+      );
+
+      if (!impressedArtworks.includes(artworkData._id)) {
+        await axios.post(
+          API.PORTFOLIO.TRACK(artworkData._id),
+          { type: "impression" },
+          { withCredentials: true },
+        );
+
+        impressedArtworks.push(artworkData._id);
+        localStorage.setItem(
+          "impressedArtworks",
+          JSON.stringify(impressedArtworks),
+        );
+        setHasTrackedImpression(true);
+      }
+    } catch (err) {
+      console.error("Error tracking impression:", err);
+    }
+  };
+
+  // Add this useEffect after your existing useEffects
+
+  // Track impression when card is visible
+  useEffect(() => {
+    if (adminMode || hasTrackedImpression) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Start timer when card becomes visible
+            impressionTimerRef.current = setTimeout(() => {
+              trackImpression();
+            }, 3000); // 3 seconds visible = impression
+          } else {
+            // Clear timer if card leaves viewport
+            if (impressionTimerRef.current) {
+              clearTimeout(impressionTimerRef.current);
+            }
+          }
+        });
+      },
+      { threshold: 0.5 }, // 50% of card must be visible
+    );
+
+    if (cardRef.current) {
+      observer.observe(cardRef.current);
+    }
+
+    return () => {
+      if (impressionTimerRef.current) {
+        clearTimeout(impressionTimerRef.current);
+      }
+      if (cardRef.current) {
+        observer.unobserve(cardRef.current);
+      }
+    };
+  }, [adminMode, hasTrackedImpression]);
 
   const handleLike = async (e) => {
     e.stopPropagation();
@@ -159,6 +256,7 @@ export default function ArtworkCard({
   };
 
   const handleCardClick = () => {
+    trackView(); // Track engaged view
     setIsModalOpen(true);
   };
 
@@ -169,6 +267,48 @@ export default function ArtworkCard({
 
   const handleModalClose = () => {
     setIsModalOpen(false);
+  };
+
+  // Handle archive toggle
+  const handleArchive = async () => {
+    try {
+      const response = await axios.post(
+        API.PORTFOLIO.ARCHIVE(artworkData._id),
+        {},
+        { withCredentials: true },
+      );
+
+      if (response.data.success) {
+        // ✅ Refetch data from server like Instagram
+        if (onArchive) {
+          onArchive();
+        }
+      }
+    } catch (err) {
+      console.error("Error archiving post:", err);
+    }
+  };
+
+  // Handle feature toggle
+  const handleFeature = async () => {
+    if (archived) {
+      alert("Cannot feature an archived post. Unarchive it first.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        API.PORTFOLIO.FEATURE(artworkData._id),
+        {},
+        { withCredentials: true },
+      );
+
+      if (response.data.success) {
+        setFeatured(response.data.data.featured);
+      }
+    } catch (err) {
+      console.error("Error featuring post:", err);
+    }
   };
 
   // Check if description is longer than 50 characters
@@ -188,6 +328,7 @@ export default function ArtworkCard({
     return (
       <>
         <div
+          ref={cardRef}
           className={`group relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200/60 dark:border-gray-700/60 shadow-lg hover:shadow-2xl hover:shadow-blue-500/10 dark:hover:shadow-blue-500/5 rounded-2xl overflow-hidden transition-all duration-300 ease-out transform w-full cursor-pointer ${
             isDeleting
               ? "scale-95 opacity-0 translate-y-4"
@@ -219,21 +360,6 @@ export default function ArtworkCard({
               }`}
             ></div>
 
-            {/* Status indicator */}
-            {adminMode && (
-              <div className="absolute top-3 left-3">
-                <div
-                  className={`px-2 py-1 text-xs font-semibold rounded-full backdrop-blur-sm border ${
-                    visible
-                      ? "bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/30"
-                      : "bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/30"
-                  }`}
-                >
-                  {visible ? "Live" : "Hidden"}
-                </div>
-              </div>
-            )}
-
             {/* Admin Menu */}
             {adminMode && (
               <div className="absolute top-3 right-3">
@@ -250,27 +376,57 @@ export default function ArtworkCard({
                 {menuOpen && (
                   <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg shadow-xl border border-gray-200/50 dark:border-gray-700/50 transform transition-all duration-200 ease-out origin-top-right z-10">
                     {/* Stats Section */}
-                    <div className="p-3 border-b border-gray-200/50 dark:border-gray-700/50">
-                      <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-gray-600 dark:text-gray-400">
-                          Views
-                        </span>
-                        <div className="flex items-center space-x-1 text-blue-600 dark:text-blue-400">
-                          <TrendingUp size={14} />
-                          <span className="font-semibold">
-                            {views.toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
+                    <div className="p-3 border-b border-gray-200/50 dark:border-gray-700/50 space-y-2">
+                      {/* Engaged Views */}
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600 dark:text-gray-400">
-                          Upload Date
+                        <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
+                          <Eye size={14} />
+                          <span>Views</span>
+                        </div>
+                        <span className="font-semibold text-blue-600 dark:text-blue-400">
+                          {artwork.views?.toLocaleString() || 0}
                         </span>
-                        <div className="flex items-center space-x-1 text-purple-600 dark:text-purple-400">
+                      </div>
+
+                      {/* Impressions */}
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
+                          <Zap size={14} />
+                          <span>Reach</span>
+                        </div>
+                        <span className="font-semibold text-purple-600 dark:text-purple-400">
+                          {artwork.impressions?.toLocaleString() || 0}
+                        </span>
+                      </div>
+
+                      {/* Upload Date */}
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
                           <Calendar size={14} />
-                          <span className="text-xs font-medium">
+                          <span>Uploaded</span>
+                        </div>
+                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                          {new Date(artworkData.createdAt).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              year: "2-digit",
+                            },
+                          )}
+                        </span>
+                      </div>
+
+                      {/* Edit Date - Only show if edited */}
+                      {artworkData.lastEditedDate && (
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
+                            <Pencil size={14} />
+                            <span>Edited</span>
+                          </div>
+                          <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
                             {new Date(
-                              artworkData.uploadDate
+                              artworkData.lastEditedDate,
                             ).toLocaleDateString("en-US", {
                               month: "short",
                               day: "numeric",
@@ -278,41 +434,75 @@ export default function ArtworkCard({
                             })}
                           </span>
                         </div>
-                      </div>
+                      )}
                     </div>
 
                     {/* Action Buttons */}
                     <div className="p-1">
+                      {/* Feature Button */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleToggleVisibility();
+                          handleFeature();
+                        }}
+                        disabled={archived}
+                        className={`flex items-center space-x-3 w-full px-3 py-2 text-sm rounded-lg transition-colors duration-200 ${
+                          archived
+                            ? "opacity-50 cursor-not-allowed"
+                            : "hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                        }`}
+                      >
+                        <div
+                          className={`p-1 ${
+                            featured > 0 ? "bg-yellow-500/10" : "bg-gray-500/10"
+                          } rounded-lg`}
+                        >
+                          <Star
+                            size={14}
+                            className={
+                              featured > 0
+                                ? "text-yellow-600 dark:text-yellow-400 fill-current"
+                                : "text-gray-600 dark:text-gray-400"
+                            }
+                          />
+                        </div>
+                        <span>
+                          {featured > 0 ? "Unfeature" : "Add to Featured"}
+                        </span>
+                      </button>
+
+                      {/* ✅ Archive Button */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleArchive();
                         }}
                         className="flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-colors duration-200"
                       >
-                        {visible ? (
-                          <>
-                            <div className="p-1 bg-orange-500/10 rounded-lg">
-                              <EyeOff
-                                size={14}
-                                className="text-orange-600 dark:text-orange-400"
-                              />
-                            </div>
-                            <span>Hide Artwork</span>
-                          </>
-                        ) : (
+                        {archived ? (
                           <>
                             <div className="p-1 bg-green-500/10 rounded-lg">
-                              <Eye
+                              <ArchiveRestore
                                 size={14}
                                 className="text-green-600 dark:text-green-400"
                               />
                             </div>
-                            <span>Show Artwork</span>
+                            <span>Unarchive Artwork</span>
+                          </>
+                        ) : (
+                          <>
+                            <div className="p-1 bg-orange-500/10 rounded-lg">
+                              <Archive
+                                size={14}
+                                className="text-orange-600 dark:text-orange-400"
+                              />
+                            </div>
+                            <span>Archive Artwork</span>
                           </>
                         )}
                       </button>
 
+                      {/* Edit Button */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -329,10 +519,11 @@ export default function ArtworkCard({
                         <span>Edit Artwork</span>
                       </button>
 
+                      {/* Delete Button */}
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleDelete();
+                          setShowDeleteConfirm(true);
                         }}
                         className="flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors duration-200 text-red-600 dark:text-red-400"
                       >
@@ -389,11 +580,7 @@ export default function ArtworkCard({
               </div>
             )}
           </div>
-
-          {/* Accent border */}
-          <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-blue-500 via-purple-500 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </div>
-
         {/* Modal - Full details shown here */}
         {isModalOpen &&
           typeof document !== "undefined" &&
@@ -485,7 +672,7 @@ export default function ArtworkCard({
                               month: "short",
                               day: "numeric",
                               year: "numeric",
-                            }
+                            },
                           )}
                         </span>
                       </div>
@@ -494,7 +681,53 @@ export default function ArtworkCard({
                 </div>
               </div>
             </div>,
-            document.body
+            document.body,
+          )}
+        {/* Delete Confirmation Modal - Instagram Style */}
+        {showDeleteConfirm &&
+          typeof document !== "undefined" &&
+          createPortal(
+            <div
+              className="fixed inset-0 z-60 flex items-center justify-center p-4"
+              onClick={() => setShowDeleteConfirm(false)}
+            >
+              {/* Backdrop */}
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+              {/* Modal */}
+              <div
+                className="relative bg-white dark:bg-gray-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Content */}
+                <div className="p-8 text-center">
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                    Delete Post?
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm">
+                    Are you sure you want to delete "{artworkData.title}"? This
+                    action cannot be undone.
+                  </p>
+                </div>
+
+                {/* Buttons */}
+                <div className="border-t border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={confirmDelete}
+                    className="w-full py-4 text-red-600 dark:text-red-400 font-semibold hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-200 dark:border-gray-700"
+                  >
+                    Delete
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirm(false)}
+                    className="w-full py-4 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>,
+            document.body,
           )}
       </>
     );
@@ -504,6 +737,7 @@ export default function ArtworkCard({
   return (
     <>
       <div
+        ref={cardRef}
         className={`group relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm border border-gray-200/60 dark:border-gray-700/60 shadow-lg hover:shadow-2xl hover:shadow-blue-500/10 dark:hover:shadow-blue-500/5 rounded-2xl overflow-hidden transition-all duration-300 ease-out transform w-full cursor-pointer ${
           isDeleting
             ? "scale-95 opacity-0 translate-y-4"
@@ -539,21 +773,6 @@ export default function ArtworkCard({
                 isHovered ? "opacity-100" : "opacity-0"
               }`}
             ></div>
-
-            {/* Status indicator */}
-            {adminMode && (
-              <div className="absolute top-2 left-2">
-                <div
-                  className={`px-1.5 py-0.5 text-xs font-semibold rounded-full backdrop-blur-sm border ${
-                    visible
-                      ? "bg-green-500/20 text-green-700 dark:text-green-300 border-green-500/30"
-                      : "bg-red-500/20 text-red-700 dark:text-red-300 border-red-500/30"
-                  }`}
-                >
-                  {visible ? "Live" : "Hidden"}
-                </div>
-              </div>
-            )}
           </div>
 
           {/* Content Section - Flexible width */}
@@ -589,27 +808,58 @@ export default function ArtworkCard({
                   {menuOpen && (
                     <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg shadow-xl border border-gray-200/50 dark:border-gray-700/50 transform transition-all duration-200 ease-out origin-top-right z-20">
                       {/* Stats Section */}
-                      <div className="p-3 border-b border-gray-200/50 dark:border-gray-700/50">
-                        <div className="flex items-center justify-between text-sm mb-2">
-                          <span className="text-gray-600 dark:text-gray-400">
-                            Views
-                          </span>
-                          <div className="flex items-center space-x-1 text-blue-600 dark:text-blue-400">
-                            <TrendingUp size={14} />
-                            <span className="font-semibold">
-                              {views.toLocaleString()}
-                            </span>
-                          </div>
-                        </div>
+                      {/* Stats Section */}
+                      <div className="p-3 border-b border-gray-200/50 dark:border-gray-700/50 space-y-2">
+                        {/* Engaged Views */}
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600 dark:text-gray-400">
-                            Upload Date
+                          <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
+                            <Eye size={14} />
+                            <span>Views</span>
+                          </div>
+                          <span className="font-semibold text-blue-600 dark:text-blue-400">
+                            {artwork.views?.toLocaleString() || 0}
                           </span>
-                          <div className="flex items-center space-x-1 text-purple-600 dark:text-purple-400">
+                        </div>
+
+                        {/* Impressions */}
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
+                            <Zap size={14} />
+                            <span>Reach</span>
+                          </div>
+                          <span className="font-semibold text-purple-600 dark:text-purple-400">
+                            {artwork.impressions?.toLocaleString() || 0}
+                          </span>
+                        </div>
+
+                        {/* Upload Date */}
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
                             <Calendar size={14} />
-                            <span className="text-xs font-medium">
+                            <span>Uploaded</span>
+                          </div>
+                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                            {new Date(artworkData.createdAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "2-digit",
+                              },
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Edit Date - Only show if edited */}
+                        {artworkData.lastEditedDate && (
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
+                              <Pencil size={14} />
+                              <span>Edited</span>
+                            </div>
+                            <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
                               {new Date(
-                                artworkData.uploadDate
+                                artworkData.lastEditedDate,
                               ).toLocaleDateString("en-US", {
                                 month: "short",
                                 day: "numeric",
@@ -617,41 +867,11 @@ export default function ArtworkCard({
                               })}
                             </span>
                           </div>
-                        </div>
+                        )}
                       </div>
 
                       {/* Action Buttons */}
                       <div className="p-1">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleVisibility();
-                          }}
-                          className="flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-colors duration-200"
-                        >
-                          {visible ? (
-                            <>
-                              <div className="p-1 bg-orange-500/10 rounded-lg">
-                                <EyeOff
-                                  size={14}
-                                  className="text-orange-600 dark:text-orange-400"
-                                />
-                              </div>
-                              <span>Hide Artwork</span>
-                            </>
-                          ) : (
-                            <>
-                              <div className="p-1 bg-green-500/10 rounded-lg">
-                                <Eye
-                                  size={14}
-                                  className="text-green-600 dark:text-green-400"
-                                />
-                              </div>
-                              <span>Show Artwork</span>
-                            </>
-                          )}
-                        </button>
-
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -671,7 +891,7 @@ export default function ArtworkCard({
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete();
+                            setShowDeleteConfirm(true);
                           }}
                           className="flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors duration-200 text-red-600 dark:text-red-400"
                         >
@@ -747,7 +967,7 @@ export default function ArtworkCard({
                       {
                         month: "short",
                         day: "numeric",
-                      }
+                      },
                     )}
                   </span>
                 </div>
@@ -761,9 +981,6 @@ export default function ArtworkCard({
             </div>
           </div>
         </div>
-
-        {/* Accent border */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-blue-500 via-purple-500 to-red-500 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </div>
 
       {/* Modal for full description - Same modal for both views */}
@@ -864,7 +1081,7 @@ export default function ArtworkCard({
                             month: "short",
                             day: "numeric",
                             year: "numeric",
-                          }
+                          },
                         )}
                       </span>
                     </div>
@@ -877,7 +1094,53 @@ export default function ArtworkCard({
               </div>
             </div>
           </div>,
-          document.body
+          document.body,
+        )}
+      {/* Delete Confirmation Modal - Instagram Style */}
+      {showDeleteConfirm &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div
+            className="fixed inset-0 z-60 flex items-center justify-center p-4"
+            onClick={() => setShowDeleteConfirm(false)}
+          >
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+            {/* Modal */}
+            <div
+              className="relative bg-white dark:bg-gray-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Content */}
+              <div className="p-8 text-center">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                  Delete Post?
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">
+                  Are you sure you want to delete "{artworkData.title}"? This
+                  action cannot be undone.
+                </p>
+              </div>
+
+              {/* Buttons */}
+              <div className="border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={confirmDelete}
+                  className="w-full py-4 text-red-600 dark:text-red-400 font-semibold hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-200 dark:border-gray-700"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="w-full py-4 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body,
         )}
     </>
   );

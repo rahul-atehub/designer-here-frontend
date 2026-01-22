@@ -1,18 +1,19 @@
 // pages/profile/admin.js
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import { useUser } from "@/context/UserContext";
 import { API } from "@/config";
 import CreatePost from "@/components/ui/createPost";
+import ArtworkCard from "@/components/ui/ArtworkCard";
+import { Archive, Star, Plus, Grid3x3, Upload } from "lucide-react";
 
 import {
   Bookmark,
   Heart,
-  Upload,
   User,
   Image,
   CheckCircle,
@@ -26,12 +27,20 @@ export default function AdminProfile() {
   const [hasPosts, setHasPosts] = useState(false);
   const [error, setError] = useState(null);
   const [showCreatePost, setShowCreatePost] = useState(false);
+  const [showUploadButton, setShowUploadButton] = useState(false);
   const [uploadStatus, setUploadStatus] = useState({
     show: false,
     type: "",
     message: "",
   });
   const [uploading, setUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState("upload"); // upload, grid, featured, archived
+  const [portfolioData, setPortfolioData] = useState({
+    portfolio: [],
+    featured: [],
+    archived: [],
+    loading: true,
+  });
   const fileInputRef = useRef(null);
   const router = useRouter();
 
@@ -47,7 +56,7 @@ export default function AdminProfile() {
 
     if (userError) {
       setError(
-        typeof userError === "string" ? userError : "Failed to load user"
+        typeof userError === "string" ? userError : "Failed to load user",
       );
       setLoading(false);
       return;
@@ -71,6 +80,45 @@ export default function AdminProfile() {
     setError(null);
     setLoading(false);
   }, [currentUser, userLoading, userError]);
+
+  // Fetch portfolio data
+  const fetchAllPortfolioData = async () => {
+    try {
+      setPortfolioData((prev) => ({ ...prev, loading: true }));
+
+      const [portfolioRes, featuredRes, archivedRes] = await Promise.all([
+        axios.get(API.PORTFOLIO.LIST, { withCredentials: true }),
+        axios.get(`${API.BASE_URL}/api/portfolio/list/feature`, {
+          withCredentials: true,
+        }),
+        axios.get(`${API.BASE_URL}/api/portfolio/list/archive`, {
+          withCredentials: true,
+        }),
+      ]);
+
+      setPortfolioData({
+        portfolio: portfolioRes.data.data || [],
+        featured: featuredRes.data.data || [],
+        archived: archivedRes.data.data || [],
+        loading: false,
+      });
+
+      setHasPosts(portfolioRes.data.data?.length > 0);
+    } catch (error) {
+      console.error("Error fetching portfolio data:", error);
+      setPortfolioData({
+        portfolio: [],
+        featured: [],
+        archived: [],
+        loading: false,
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (!currentUser || currentUser.role !== "admin") return;
+    fetchAllPortfolioData();
+  }, [currentUser]);
 
   const handleSettingsToggle = () => {
     setShowSettings(!showSettings);
@@ -99,11 +147,11 @@ export default function AdminProfile() {
       });
       setTimeout(
         () => setUploadStatus({ show: false, type: "", message: "" }),
-        3000
+        3000,
       );
       return;
     }
-    setShowCreatePost(true); // Open the modal instead of file input
+    setShowCreatePost(true);
   };
 
   const handleFileUpload = async (event) => {
@@ -120,7 +168,7 @@ export default function AdminProfile() {
       });
       setTimeout(
         () => setUploadStatus({ show: false, type: "", message: "" }),
-        3000
+        3000,
       );
       return;
     }
@@ -134,7 +182,7 @@ export default function AdminProfile() {
       });
       setTimeout(
         () => setUploadStatus({ show: false, type: "", message: "" }),
-        3000
+        3000,
       );
       return;
     }
@@ -150,7 +198,7 @@ export default function AdminProfile() {
       // Upload artwork - replace with your actual API endpoint
       const response = await axios.post(API.PORTFOLIO.UPLOAD, formData, {
         headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true, // use cookies for auth if your backend uses them
+        withCredentials: true,
       });
 
       setUploadStatus({
@@ -166,7 +214,7 @@ export default function AdminProfile() {
       // Auto-hide success message after 4 seconds
       setTimeout(
         () => setUploadStatus({ show: false, type: "", message: "" }),
-        4000
+        4000,
       );
     } catch (error) {
       console.error("Error uploading artwork:", error);
@@ -179,7 +227,7 @@ export default function AdminProfile() {
       });
       setTimeout(
         () => setUploadStatus({ show: false, type: "", message: "" }),
-        3000
+        3000,
       );
     } finally {
       setUploading(false);
@@ -338,87 +386,219 @@ export default function AdminProfile() {
             </div>
           </motion.div>
 
-          {/* Upload Posts Section (only shows up, if posts 've been already made) */}
-          {hasPosts && (
-            <div className=" flex flex-col items-center">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleUploadClick}
-                disabled={uploading || userLoading || !currentUser?._id}
-                aria-disabled={uploading || userLoading || !currentUser?._id}
-                title={
-                  uploading
-                    ? "Uploading..."
-                    : userLoading
-                    ? "Loading user..."
-                    : !user?.id
-                    ? "User not ready"
-                    : "Upload new post"
-                }
-                className="flex items-center justify-center w-20 h-20 rounded-full border border-gray-300 dark:border-neutral-700 text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
+          {/* Tabs Navigation */}
+          <div className="mt-8 flex justify-center items-center border-t border-gray-200 dark:border-neutral-800 pt-3">
+            <div className="flex space-x-8">
+              <button
+                onClick={() => setActiveTab("upload")}
+                className={`pb-3 border-b-2 transition-colors ${
+                  activeTab === "upload"
+                    ? "border-gray-900 dark:border-white"
+                    : "border-transparent text-gray-600 dark:text-gray-400"
+                }`}
               >
-                {uploading ? (
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 1,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                    className="w-5 h-5 border-2 border-current border-t-transparent rounded-full"
-                  />
-                ) : (
-                  "+"
-                )}
-              </motion.button>
+                <Upload className="w-5 h-5" />
+              </button>
 
-              <h2 className="mt-4 text-sm font-semibold text-gray-900 dark:text-white">
-                Upload posts
-              </h2>
+              <button
+                onClick={() => setActiveTab("grid")}
+                className={`pb-3 border-b-2 transition-colors ${
+                  activeTab === "grid"
+                    ? "border-gray-900 dark:border-white"
+                    : "border-transparent text-gray-600 dark:text-gray-400"
+                }`}
+              >
+                <Grid3x3 className="w-5 h-5" />
+              </button>
+
+              <button
+                onClick={() => setActiveTab("featured")}
+                className={`pb-3 border-b-2 transition-colors ${
+                  activeTab === "featured"
+                    ? "border-gray-900 dark:border-white"
+                    : "border-transparent text-gray-600 dark:text-gray-400"
+                }`}
+              >
+                <Star className="w-5 h-5" />
+              </button>
+
+              <button
+                onClick={() => setActiveTab("archived")}
+                className={`pb-3 border-b-2 transition-colors ${
+                  activeTab === "archived"
+                    ? "border-gray-900 dark:border-white"
+                    : "border-transparent text-gray-600 dark:text-gray-400"
+                }`}
+              >
+                <Archive className="w-5 h-5" />
+              </button>
             </div>
-          )}
-
-          {/* posts on home page */}
-          <div className="mt-8 flex justify-center border-t border-gray-200 dark:border-neutral-800 pt-3">
-            <Image className="w-5 h-5 text-gray-900 dark:text-white" />
           </div>
 
-          {/* Empty State (no posts yet — UI only) */}
-          {!hasPosts && (
-            <div className="mt-12 flex flex-col items-center text-center">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleUploadClick}
-                disabled={uploading || userLoading || !currentUser?._id}
-                aria-disabled={uploading || userLoading || !currentUser?._id}
-                className="w-20 h-20 rounded-full border border-gray-300 dark:border-neutral-700 flex items-center justify-center mb-4 hover:bg-gray-100 dark:hover:bg-neutral-800 transition"
-              >
-                {uploading ? (
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 1,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                    className="w-6 h-6 border-2 border-current border-t-transparent rounded-full"
-                  />
+          {/* Tab Content */}
+          <div className="mt-8">
+            {activeTab === "upload" && (
+              <div className="text-center py-20">
+                <Upload className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                <p className="text-sm text-gray-500 dark:text-gray-500 mb-6">
+                  Upload new artwork
+                </p>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleUploadClick}
+                  className="inline-flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  <Upload className="w-5 h-5" />
+                  Upload
+                </motion.button>
+              </div>
+            )}
+
+            {activeTab === "grid" && (
+              <>
+                {portfolioData.loading ? (
+                  <div className="flex justify-center items-center py-20">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                      className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full"
+                    />
+                  </div>
                 ) : (
-                  <Upload className="w-8 h-8 text-gray-900 dark:text-white" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {portfolioData.portfolio.filter((art) => !art.archived)
+                      .length > 0 ? (
+                      portfolioData.portfolio
+                        .filter((art) => !art.archived)
+                        .map((artwork) => (
+                          <ArtworkCard
+                            key={artwork._id}
+                            artwork={artwork}
+                            viewMode="grid"
+                            onArchive={fetchAllPortfolioData}
+                            onDelete={(id) => {
+                              setPortfolioData((prev) => ({
+                                ...prev,
+                                portfolio: prev.portfolio.filter(
+                                  (art) => art._id !== id,
+                                ),
+                              }));
+                            }}
+                          />
+                        ))
+                    ) : (
+                      <div className="col-span-full text-center py-20">
+                        <Grid3x3 className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                        <p className="text-sm text-gray-500 dark:text-gray-500">
+                          No portfolio items yet
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 )}
-              </motion.button>
+              </>
+            )}
 
-              <h3 className="text-xl font-semibold text-blue-600">
-                Upload posts
-              </h3>
+            {activeTab === "featured" && (
+              <>
+                {portfolioData.loading ? (
+                  <div className="flex justify-center items-center py-20">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                      className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full"
+                    />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {portfolioData.featured.filter((art) => !art.archived)
+                      .length > 0 ? (
+                      portfolioData.featured
+                        .filter((art) => !art.archived)
+                        .map((artwork) => (
+                          <ArtworkCard
+                            key={artwork._id}
+                            artwork={artwork}
+                            viewMode="grid"
+                            onArchive={fetchAllPortfolioData}
+                            onDelete={(id) => {
+                              setPortfolioData((prev) => ({
+                                ...prev,
+                                featured: prev.featured.filter(
+                                  (art) => art._id !== id,
+                                ),
+                              }));
+                            }}
+                          />
+                        ))
+                    ) : (
+                      <div className="col-span-full text-center py-20">
+                        <Star className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                        <p className="text-sm text-gray-500 dark:text-gray-500">
+                          No featured artworks
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
 
-              <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400 max-w-xs">
-                Upload your first post to get started.
-              </p>
-            </div>
-          )}
+            {activeTab === "archived" && (
+              <>
+                {portfolioData.loading ? (
+                  <div className="flex justify-center items-center py-20">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                      className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full"
+                    />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {portfolioData.archived.length > 0 ? (
+                      portfolioData.archived.map((artwork) => (
+                        <ArtworkCard
+                          key={artwork._id}
+                          artwork={artwork}
+                          viewMode="grid"
+                          onArchive={fetchAllPortfolioData}
+                          onDelete={(id) => {
+                            setPortfolioData((prev) => ({
+                              ...prev,
+                              archived: prev.archived.filter(
+                                (art) => art._id !== id,
+                              ),
+                            }));
+                          }}
+                        />
+                      ))
+                    ) : (
+                      <div className="col-span-full text-center py-20">
+                        <Archive className="w-16 h-16 mx-auto text-gray-400 mb-4" />
+                        <p className="text-sm text-gray-500 dark:text-gray-500">
+                          No archived artworks
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
       {showCreatePost && (

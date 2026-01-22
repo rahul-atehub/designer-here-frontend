@@ -72,8 +72,12 @@ export const API = {
       `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT}/${id}`,
     UPDATE: (id) =>
       `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT}/${id}/update`,
-    TOGGLE_VISIBILITY: (id) =>
-      `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT}/${id}/visibility`,
+    TRACK: (id) => `${BASE_URL}/api/portfolio/${id}/track`, // track views and impressions
+
+    ARCHIVE: (id) => `${BASE_URL}/api/portfolio/${id}/archive`, // GET archived + POST toggle
+    FEATURE: (id) => `${BASE_URL}/api/portfolio/${id}/feature`, // GET featured + POST  toggle
+    FEATURED: `${BASE_URL}/api/portfolio/_/feature`,
+    ARCHIVED: `${BASE_URL}/api/portfolio/_/archive`,
     // delete and toggle visiblity are handled by the same file, but they're still written separately for clarity like this.
   },
 

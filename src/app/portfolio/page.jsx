@@ -65,20 +65,21 @@ const GraphicDesignPortfolio = () => {
   const parallaxY = useTransform(scrollY, [0, 500], [0, -100]);
 
   // Fetch artworks from backend
-  useEffect(() => {
-    const fetchPortfolio = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get(API.PORTFOLIO.LIST);
-        setArtworks(response.data.data || []);
-      } catch (error) {
-        console.error("Error fetching portfolio:", error);
-        setArtworks([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchPortfolio = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get(API.PORTFOLIO.LIST);
+      setArtworks(response.data.data || []);
+    } catch (error) {
+      console.error("Error fetching portfolio:", error);
+      setArtworks([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Fetch artworks from backend
+  useEffect(() => {
     fetchPortfolio();
   }, []);
 
@@ -407,20 +408,6 @@ const GraphicDesignPortfolio = () => {
 
               {/* Filter Controls */}
               <div className="flex flex-wrap gap-4">
-                {/* Admin Mode Indicator */}
-                {isAdminMode && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-center gap-2 px-4 py-3 bg-linear-to-r from-red-500/10 to-red-600/10 border border-red-500/20 rounded-2xl backdrop-blur-sm"
-                  >
-                    <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                    <span className="text-sm font-semibold text-red-500 dark:text-red-400">
-                      Admin Mode
-                    </span>
-                  </motion.div>
-                )}
-
                 {/* Category Filter
                 <div className="relative">
                   <motion.button
@@ -632,15 +619,16 @@ const GraphicDesignPortfolio = () => {
                       artwork={artwork}
                       viewMode={viewMode}
                       isAdmin={isAdminMode}
+                      onArchive={fetchPortfolio}
                       onDelete={(_id) => {
                         setArtworks((prev) =>
-                          prev.filter((art) => art._id !== _id)
+                          prev.filter((art) => art._id !== _id),
                         );
 
                         api.delete(API.PORTFOLIO.DELETE(_id)).catch((error) => {
                           console.error(
                             "Failed to delete portfolio item:",
-                            error
+                            error,
                           );
                         });
                       }}
@@ -650,8 +638,8 @@ const GraphicDesignPortfolio = () => {
                       onToggleVisibility={(_id, visible) => {
                         setArtworks((prev) =>
                           prev.map((art) =>
-                            art._id === _id ? { ...art, visible } : art
-                          )
+                            art._id === _id ? { ...art, visible } : art,
+                          ),
                         );
 
                         api
@@ -661,14 +649,14 @@ const GraphicDesignPortfolio = () => {
                           .catch((error) => {
                             console.error(
                               "Failed to update portfolio visibility:",
-                              error
+                              error,
                             );
                             setArtworks((prev) =>
                               prev.map((art) =>
                                 art._id === _id
                                   ? { ...art, visible: !visible }
-                                  : art
-                              )
+                                  : art,
+                              ),
                             );
                           });
                       }}
