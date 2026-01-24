@@ -58,7 +58,12 @@ export default function ArtworkCard({
   const [archived, setArchived] = useState(artwork?.archived ?? false);
   const [featured, setFeatured] = useState(artwork?.featured ?? 0);
 
-  const artworkData = artwork;
+  const artworkData = artwork
+    ? {
+        ...artwork,
+        uploadDate: artwork.createdAt || artwork.uploadDate,
+      }
+    : null;
   if (!artwork) return null;
 
   const { savedPosts, toggleSave } = useSavedPosts();
@@ -623,18 +628,19 @@ export default function ArtworkCard({
               </button>
             </div>
 
-            {/* Title only */}
-            <h1 className="text-sm font-bold text-gray-900 dark:text-white truncate">
-              {artworkData.title}
-            </h1>
+            {/* Title and Views - side by side */}
+            <div className="flex items-center justify-between">
+              <h1 className="text-sm font-bold text-gray-900 dark:text-white truncate">
+                {artworkData.title}
+              </h1>
 
-            {/* Views count */}
-            {!adminMode && (
-              <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
-                <TrendingUp size={12} />
-                <span>{views.toLocaleString()} views</span>
-              </div>
-            )}
+              {!adminMode && (
+                <div className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400">
+                  <TrendingUp size={12} />
+                  <span>{views.toLocaleString()}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
         {/* Modal - Full details shown here */}
