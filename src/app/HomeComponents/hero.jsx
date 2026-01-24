@@ -21,14 +21,14 @@ export default function Hero() {
       score: "4.6",
       reviews: "12k",
       source: "Google",
-      color: "text-yellow-400",
+      color: "text-green-400",
     },
     {
       rating: "★★★★☆",
       score: "4.8",
       reviews: "5k",
       source: "Forbes",
-      color: "text-yellow-400",
+      color: "text-green-400",
     },
     {
       rating: "★★★★★",
@@ -81,12 +81,6 @@ export default function Hero() {
             isVisible ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
           }`}
         >
-          {/* Badge */}
-          <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 mb-6 animate-bounce">
-            <span className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-ping"></span>
-            New: AI-Powered Design Tools
-          </div>
-
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-black dark:text-white leading-tight">
             Start your journey <br /> with{" "}
             <span className="text-[#EF4444] relative">
@@ -304,7 +298,7 @@ export default function Hero() {
               >
                 {company}
               </div>
-            )
+            ),
           )}
         </div>
       </div>

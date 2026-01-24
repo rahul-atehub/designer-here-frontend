@@ -7,6 +7,7 @@ import socket from "@/lib/socket-client";
 import axios from "axios";
 import { API } from "@/config";
 import { useLikedPosts } from "@/context/LikedPostsContext";
+import EditArtworkModal from "@/components/ui/Editartworkmodal";
 import { useSavedPosts } from "@/context/SavedPostsContext";
 import { useUser } from "@/context/UserContext";
 
@@ -51,6 +52,8 @@ export default function ArtworkCard({
   const [hasTrackedImpression, setHasTrackedImpression] = useState(false);
   const impressionTimerRef = useRef(null);
   const cardRef = useRef(null);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
+  const menuButtonRef = useRef(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [archived, setArchived] = useState(artwork?.archived ?? false);
   const [featured, setFeatured] = useState(artwork?.featured ?? 0);
@@ -65,7 +68,7 @@ export default function ArtworkCard({
   const { likedPosts, toggleLike } = useLikedPosts();
   const isLiked = likedPosts.some((p) => p.id === artworkData._id);
 
-  // 🔌 Connect to WebSocket server and listen for like updates
+  //  Connect to WebSocket server and listen for like updates
   useEffect(() => {
     // Subscribe only to this artwork's like updates
     socket.on(`likes-update-${artworkData._id}`, (newCount) => {
@@ -80,6 +83,7 @@ export default function ArtworkCard({
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [, forceUpdate] = useState({});
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     if (isModalOpen) {
@@ -115,6 +119,22 @@ export default function ArtworkCard({
     }
   };
   const handleEdit = () => {
+    setShowEditModal(true);
+    setMenuOpen(false); // Close the admin menu
+  };
+
+  const handleEditSuccess = (updatedArtwork) => {
+    // Update local artwork data with the new values
+    if (updatedArtwork) {
+      artworkData.title = updatedArtwork.title;
+      artworkData.description = updatedArtwork.description;
+      artworkData.lastEditedDate = updatedArtwork.lastEditedDate;
+
+      // Force component re-render to show updated data
+      forceUpdate({});
+    }
+
+    // Optionally notify parent component
     if (onEdit) {
       onEdit(artworkData._id);
     }
@@ -214,6 +234,22 @@ export default function ArtworkCard({
       }
     };
   }, [adminMode, hasTrackedImpression]);
+
+  useEffect(() => {
+    if (menuOpen) {
+      const handleClickOutside = (e) => {
+        if (
+          menuButtonRef.current &&
+          !menuButtonRef.current.contains(e.target)
+        ) {
+          setMenuOpen(false);
+        }
+      };
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [menuOpen]);
 
   const handleLike = async (e) => {
     e.stopPropagation();
@@ -364,8 +400,17 @@ export default function ArtworkCard({
             {adminMode && (
               <div className="absolute top-3 right-3">
                 <button
+                  ref={menuButtonRef}
                   onClick={(e) => {
                     e.stopPropagation();
+                    if (!menuOpen) {
+                      const rect =
+                        menuButtonRef.current.getBoundingClientRect();
+                      setMenuPosition({
+                        top: rect.bottom + 8,
+                        right: window.innerWidth - rect.right,
+                      });
+                    }
                     setMenuOpen(!menuOpen);
                   }}
                   className="p-2 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-sm transition-all duration-200 hover:scale-110"
@@ -373,168 +418,179 @@ export default function ArtworkCard({
                   <MoreVertical size={16} />
                 </button>
 
-                {menuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg shadow-xl border border-gray-200/50 dark:border-gray-700/50 transform transition-all duration-200 ease-out origin-top-right z-10">
-                    {/* Stats Section */}
-                    <div className="p-3 border-b border-gray-200/50 dark:border-gray-700/50 space-y-2">
-                      {/* Engaged Views */}
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
-                          <Eye size={14} />
-                          <span>Views</span>
-                        </div>
-                        <span className="font-semibold text-blue-600 dark:text-blue-400">
-                          {artwork.views?.toLocaleString() || 0}
-                        </span>
-                      </div>
-
-                      {/* Impressions */}
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
-                          <Zap size={14} />
-                          <span>Reach</span>
-                        </div>
-                        <span className="font-semibold text-purple-600 dark:text-purple-400">
-                          {artwork.impressions?.toLocaleString() || 0}
-                        </span>
-                      </div>
-
-                      {/* Upload Date */}
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
-                          <Calendar size={14} />
-                          <span>Uploaded</span>
-                        </div>
-                        <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                          {new Date(artworkData.createdAt).toLocaleDateString(
-                            "en-US",
-                            {
-                              month: "short",
-                              day: "numeric",
-                              year: "2-digit",
-                            },
-                          )}
-                        </span>
-                      </div>
-
-                      {/* Edit Date - Only show if edited */}
-                      {artworkData.lastEditedDate && (
+                {menuOpen &&
+                  typeof window !== "undefined" &&
+                  createPortal(
+                    <div
+                      className="fixed w-48 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg shadow-xl border border-gray-200/50 dark:border-gray-700/50 z-60"
+                      style={{
+                        top: `${menuPosition.top}px`,
+                        right: `${menuPosition.right}px`,
+                      }}
+                    >
+                      {" "}
+                      {/* Stats Section */}
+                      <div className="p-3 border-b border-gray-200/50 dark:border-gray-700/50 space-y-2">
+                        {/* Engaged Views */}
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
-                            <Pencil size={14} />
-                            <span>Edited</span>
+                            <Eye size={14} />
+                            <span>Views</span>
                           </div>
-                          <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
-                            {new Date(
-                              artworkData.lastEditedDate,
-                            ).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              year: "2-digit",
-                            })}
+                          <span className="font-semibold text-blue-600 dark:text-blue-400">
+                            {artwork.views?.toLocaleString() || 0}
                           </span>
                         </div>
-                      )}
-                    </div>
 
-                    {/* Action Buttons */}
-                    <div className="p-1">
-                      {/* Feature Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleFeature();
-                        }}
-                        disabled={archived}
-                        className={`flex items-center space-x-3 w-full px-3 py-2 text-sm rounded-lg transition-colors duration-200 ${
-                          archived
-                            ? "opacity-50 cursor-not-allowed"
-                            : "hover:bg-gray-100 dark:hover:bg-gray-700/50"
-                        }`}
-                      >
-                        <div
-                          className={`p-1 ${
-                            featured > 0 ? "bg-yellow-500/10" : "bg-gray-500/10"
-                          } rounded-lg`}
-                        >
-                          <Star
-                            size={14}
-                            className={
-                              featured > 0
-                                ? "text-yellow-600 dark:text-yellow-400 fill-current"
-                                : "text-gray-600 dark:text-gray-400"
-                            }
-                          />
+                        {/* Impressions */}
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
+                            <Zap size={14} />
+                            <span>Reach</span>
+                          </div>
+                          <span className="font-semibold text-purple-600 dark:text-purple-400">
+                            {artwork.impressions?.toLocaleString() || 0}
+                          </span>
                         </div>
-                        <span>
-                          {featured > 0 ? "Unfeature" : "Add to Featured"}
-                        </span>
-                      </button>
 
-                      {/* ✅ Archive Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleArchive();
-                        }}
-                        className="flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-colors duration-200"
-                      >
-                        {archived ? (
-                          <>
-                            <div className="p-1 bg-green-500/10 rounded-lg">
-                              <ArchiveRestore
-                                size={14}
-                                className="text-green-600 dark:text-green-400"
-                              />
+                        {/* Upload Date */}
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
+                            <Calendar size={14} />
+                            <span>Uploaded</span>
+                          </div>
+                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                            {new Date(artworkData.createdAt).toLocaleDateString(
+                              "en-US",
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "2-digit",
+                              },
+                            )}
+                          </span>
+                        </div>
+
+                        {/* Edit Date - Only show if edited */}
+                        {artworkData.lastEditedDate && (
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
+                              <Pencil size={14} />
+                              <span>Edited</span>
                             </div>
-                            <span>Unarchive Artwork</span>
-                          </>
-                        ) : (
-                          <>
-                            <div className="p-1 bg-orange-500/10 rounded-lg">
-                              <Archive
-                                size={14}
-                                className="text-orange-600 dark:text-orange-400"
-                              />
-                            </div>
-                            <span>Archive Artwork</span>
-                          </>
+                            <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
+                              {new Date(
+                                artworkData.lastEditedDate,
+                              ).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "2-digit",
+                              })}
+                            </span>
+                          </div>
                         )}
-                      </button>
+                      </div>
+                      {/* Action Buttons */}
+                      <div className="p-1">
+                        {/* Feature Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFeature();
+                          }}
+                          disabled={archived}
+                          className={`flex items-center space-x-3 w-full px-3 py-2 text-sm rounded-lg transition-colors duration-200 ${
+                            archived
+                              ? "opacity-50 cursor-not-allowed"
+                              : "hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                          }`}
+                        >
+                          <div
+                            className={`p-1 ${
+                              featured > 0
+                                ? "bg-yellow-500/10"
+                                : "bg-gray-500/10"
+                            } rounded-lg`}
+                          >
+                            <Star
+                              size={14}
+                              className={
+                                featured > 0
+                                  ? "text-yellow-600 dark:text-yellow-400 fill-current"
+                                  : "text-gray-600 dark:text-gray-400"
+                              }
+                            />
+                          </div>
+                          <span>
+                            {featured > 0 ? "Unfeature" : "Add to Featured"}
+                          </span>
+                        </button>
 
-                      {/* Edit Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEdit();
-                        }}
-                        className="flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-colors duration-200"
-                      >
-                        <div className="p-1 bg-blue-500/10 rounded-lg">
-                          <Pencil
-                            size={14}
-                            className="text-blue-600 dark:text-blue-400"
-                          />
-                        </div>
-                        <span>Edit Artwork</span>
-                      </button>
+                        {/* ✅ Archive Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleArchive();
+                          }}
+                          className="flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-colors duration-200"
+                        >
+                          {archived ? (
+                            <>
+                              <div className="p-1 bg-green-500/10 rounded-lg">
+                                <ArchiveRestore
+                                  size={14}
+                                  className="text-green-600 dark:text-green-400"
+                                />
+                              </div>
+                              <span>Unarchive Artwork</span>
+                            </>
+                          ) : (
+                            <>
+                              <div className="p-1 bg-orange-500/10 rounded-lg">
+                                <Archive
+                                  size={14}
+                                  className="text-orange-600 dark:text-orange-400"
+                                />
+                              </div>
+                              <span>Archive Artwork</span>
+                            </>
+                          )}
+                        </button>
 
-                      {/* Delete Button */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowDeleteConfirm(true);
-                        }}
-                        className="flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors duration-200 text-red-600 dark:text-red-400"
-                      >
-                        <div className="p-1 bg-red-500/10 rounded-lg">
-                          <Trash2 size={14} />
-                        </div>
-                        <span>Delete Artwork</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
+                        {/* Edit Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit();
+                          }}
+                          className="flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-colors duration-200"
+                        >
+                          <div className="p-1 bg-blue-500/10 rounded-lg">
+                            <Pencil
+                              size={14}
+                              className="text-blue-600 dark:text-blue-400"
+                            />
+                          </div>
+                          <span>Edit Artwork</span>
+                        </button>
+
+                        {/* Delete Button */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowDeleteConfirm(true);
+                          }}
+                          className="flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors duration-200 text-red-600 dark:text-red-400"
+                        >
+                          <div className="p-1 bg-red-500/10 rounded-lg">
+                            <Trash2 size={14} />
+                          </div>
+                          <span>Delete Artwork</span>
+                        </button>
+                      </div>
+                    </div>,
+                    document.body,
+                  )}
               </div>
             )}
           </div>
@@ -729,6 +785,13 @@ export default function ArtworkCard({
             </div>,
             document.body,
           )}
+        {/* Edit Modal */}
+        <EditArtworkModal
+          artwork={artworkData}
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={handleEditSuccess}
+        />
       </>
     );
   }
@@ -796,8 +859,17 @@ export default function ArtworkCard({
               {adminMode && (
                 <div className="relative ml-3">
                   <button
+                    ref={menuButtonRef}
                     onClick={(e) => {
                       e.stopPropagation();
+                      if (!menuOpen) {
+                        const rect =
+                          menuButtonRef.current.getBoundingClientRect();
+                        setMenuPosition({
+                          top: rect.bottom + 8,
+                          right: window.innerWidth - rect.right,
+                        });
+                      }
                       setMenuOpen(!menuOpen);
                     }}
                     className="p-1.5 rounded-full bg-gray-100/80 dark:bg-gray-800/80 hover:bg-gray-200/80 dark:hover:bg-gray-700/80 text-gray-600 dark:text-gray-400 backdrop-blur-sm transition-all duration-200 hover:scale-110"
@@ -805,61 +877,51 @@ export default function ArtworkCard({
                     <MoreVertical size={14} />
                   </button>
 
-                  {menuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg shadow-xl border border-gray-200/50 dark:border-gray-700/50 transform transition-all duration-200 ease-out origin-top-right z-20">
-                      {/* Stats Section */}
-                      {/* Stats Section */}
-                      <div className="p-3 border-b border-gray-200/50 dark:border-gray-700/50 space-y-2">
-                        {/* Engaged Views */}
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
-                            <Eye size={14} />
-                            <span>Views</span>
-                          </div>
-                          <span className="font-semibold text-blue-600 dark:text-blue-400">
-                            {artwork.views?.toLocaleString() || 0}
-                          </span>
-                        </div>
-
-                        {/* Impressions */}
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
-                            <Zap size={14} />
-                            <span>Reach</span>
-                          </div>
-                          <span className="font-semibold text-purple-600 dark:text-purple-400">
-                            {artwork.impressions?.toLocaleString() || 0}
-                          </span>
-                        </div>
-
-                        {/* Upload Date */}
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
-                            <Calendar size={14} />
-                            <span>Uploaded</span>
-                          </div>
-                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                            {new Date(artworkData.createdAt).toLocaleDateString(
-                              "en-US",
-                              {
-                                month: "short",
-                                day: "numeric",
-                                year: "2-digit",
-                              },
-                            )}
-                          </span>
-                        </div>
-
-                        {/* Edit Date - Only show if edited */}
-                        {artworkData.lastEditedDate && (
+                  {menuOpen &&
+                    typeof window !== "undefined" &&
+                    createPortal(
+                      <div
+                        className="fixed w-48 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg shadow-xl border border-gray-200/50 dark:border-gray-700/50 z-60"
+                        style={{
+                          top: `${menuPosition.top}px`,
+                          right: `${menuPosition.right}px`,
+                        }}
+                      >
+                        {" "}
+                        {/* Stats Section */}
+                        {/* Stats Section */}
+                        <div className="p-3 border-b border-gray-200/50 dark:border-gray-700/50 space-y-2">
+                          {/* Engaged Views */}
                           <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
-                              <Pencil size={14} />
-                              <span>Edited</span>
+                              <Eye size={14} />
+                              <span>Views</span>
                             </div>
-                            <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
+                            <span className="font-semibold text-blue-600 dark:text-blue-400">
+                              {artwork.views?.toLocaleString() || 0}
+                            </span>
+                          </div>
+
+                          {/* Impressions */}
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
+                              <Zap size={14} />
+                              <span>Reach</span>
+                            </div>
+                            <span className="font-semibold text-purple-600 dark:text-purple-400">
+                              {artwork.impressions?.toLocaleString() || 0}
+                            </span>
+                          </div>
+
+                          {/* Upload Date */}
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
+                              <Calendar size={14} />
+                              <span>Uploaded</span>
+                            </div>
+                            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                               {new Date(
-                                artworkData.lastEditedDate,
+                                artworkData.createdAt,
                               ).toLocaleDateString("en-US", {
                                 month: "short",
                                 day: "numeric",
@@ -867,42 +929,60 @@ export default function ArtworkCard({
                               })}
                             </span>
                           </div>
-                        )}
-                      </div>
 
-                      {/* Action Buttons */}
-                      <div className="p-1">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEdit();
-                          }}
-                          className="flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-colors duration-200"
-                        >
-                          <div className="p-1 bg-blue-500/10 rounded-lg">
-                            <Pencil
-                              size={14}
-                              className="text-blue-600 dark:text-blue-400"
-                            />
-                          </div>
-                          <span>Edit Artwork</span>
-                        </button>
+                          {/* Edit Date - Only show if edited */}
+                          {artworkData.lastEditedDate && (
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center space-x-1.5 text-gray-600 dark:text-gray-400">
+                                <Pencil size={14} />
+                                <span>Edited</span>
+                              </div>
+                              <span className="text-xs font-medium text-orange-600 dark:text-orange-400">
+                                {new Date(
+                                  artworkData.lastEditedDate,
+                                ).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "2-digit",
+                                })}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                        {/* Action Buttons */}
+                        <div className="p-1">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit();
+                            }}
+                            className="flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-colors duration-200"
+                          >
+                            <div className="p-1 bg-blue-500/10 rounded-lg">
+                              <Pencil
+                                size={14}
+                                className="text-blue-600 dark:text-blue-400"
+                              />
+                            </div>
+                            <span>Edit Artwork</span>
+                          </button>
 
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowDeleteConfirm(true);
-                          }}
-                          className="flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors duration-200 text-red-600 dark:text-red-400"
-                        >
-                          <div className="p-1 bg-red-500/10 rounded-lg">
-                            <Trash2 size={14} />
-                          </div>
-                          <span>Delete Artwork</span>
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowDeleteConfirm(true);
+                            }}
+                            className="flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors duration-200 text-red-600 dark:text-red-400"
+                          >
+                            <div className="p-1 bg-red-500/10 rounded-lg">
+                              <Trash2 size={14} />
+                            </div>
+                            <span>Delete Artwork</span>
+                          </button>
+                        </div>
+                      </div>,
+                      document.body,
+                    )}
                 </div>
               )}
             </div>
@@ -1142,6 +1222,13 @@ export default function ArtworkCard({
           </div>,
           document.body,
         )}
+      {/* Edit Modal */}
+      <EditArtworkModal
+        artwork={artworkData}
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={handleEditSuccess}
+      />
     </>
   );
 }

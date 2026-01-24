@@ -17,7 +17,7 @@ export default function FeaturedGallery() {
         setLoading(true);
         const response = await axios.get(
           `${API.BASE_URL}/api/portfolio/list/feature`,
-          { withCredentials: true }
+          { withCredentials: true },
         );
 
         setFeaturedArtworks(response.data.data || []);
@@ -49,22 +49,7 @@ export default function FeaturedGallery() {
           transition={{ duration: 0.6 }}
           className="text-center mb-12"
         >
-          <motion.div
-            className="inline-flex items-center gap-2 px-4 py-2 bg-linear-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 rounded-full text-sm font-medium text-yellow-800 dark:text-yellow-300 mb-4"
-            animate={{
-              boxShadow: [
-                "0 0 0 rgba(234, 179, 8, 0)",
-                "0 0 20px rgba(234, 179, 8, 0.3)",
-                "0 0 0 rgba(234, 179, 8, 0)",
-              ],
-            }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            <Sparkles size={16} />
-            Featured Works
-          </motion.div>
-
-          <h2 className="text-4xl md:text-5xl font-bold bg-linear-to-r from-gray-900 via-yellow-800 to-orange-800 dark:from-white dark:via-yellow-300 dark:to-orange-300 bg-clip-text text-transparent mb-4">
+          <h2 className="text-4xl md:text-5xl font-bold bg-linear-to-r from-[#EF4444] to-blue-500  bg-clip-text text-transparent mb-4">
             Spotlight Gallery
           </h2>
 
@@ -79,7 +64,7 @@ export default function FeaturedGallery() {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="w-12 h-12 border-4 border-yellow-500 border-t-transparent rounded-full"
+              className="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full"
             />
           </div>
         )}
@@ -113,18 +98,6 @@ export default function FeaturedGallery() {
                   whileHover={{ y: -10 }}
                   className="transform-gpu relative"
                 >
-                  {/* Featured Badge */}
-                  <div className="absolute -top-3 -right-3 z-10">
-                    <motion.div
-                      animate={{ rotate: [0, 10, -10, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="bg-linear-to-r from-yellow-400 to-orange-400 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg flex items-center gap-1"
-                    >
-                      <Star size={12} className="fill-current" />
-                      Featured
-                    </motion.div>
-                  </div>
-
                   <ArtworkCard artwork={artwork} viewMode="grid" />
                 </motion.div>
               ))}
@@ -144,7 +117,7 @@ export default function FeaturedGallery() {
               href="/portfolio"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white rounded-2xl font-bold transition-all shadow-xl shadow-yellow-500/25"
+              className="inline-flex items-center gap-2 px-8 py-4 bg-linear-to-r from-[#EF4444] to-red-600 hover:from-red-500 hover:to-red-600 text-white rounded-2xl font-bold transition-all shadow-xl shadow-red-500/25"
             >
               View Full Portfolio
               <motion.span

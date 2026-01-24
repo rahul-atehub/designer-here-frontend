@@ -666,35 +666,6 @@ const GraphicDesignPortfolio = () => {
               </AnimatePresence>
             </motion.div>
           )}
-
-          {/* Results Count */}
-          {!loading && filteredArtworks.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="mt-12 text-center"
-            >
-              <div className="inline-flex items-center gap-2 px-6 py-3 bg-white/60 dark:bg-neutral-800/60 backdrop-blur-sm rounded-full border border-gray-200/60 dark:border-neutral-700/60">
-                <span className="text-sm text-gray-600 dark:text-neutral-400">
-                  Showing{" "}
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {filteredArtworks.length}
-                  </span>{" "}
-                  of{" "}
-                  <span className="font-semibold text-gray-900 dark:text-white">
-                    {artworks.length}
-                  </span>{" "}
-                  artworks
-                  {isAdminMode && (
-                    <span className="ml-1 text-xs text-red-500">
-                      (including hidden)
-                    </span>
-                  )}
-                </span>
-              </div>
-            </motion.div>
-          )}
         </motion.section>
 
         {/* Background Pattern */}

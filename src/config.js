@@ -3,8 +3,8 @@ const isDev = process.env.NODE_ENV === "development";
 
 const resolvedBaseUrl = isDev
   ? process.env.NEXT_PUBLIC_API_BASE_URL
-  : process.env.NEXT_PUBLIC_API_BASE_URL_ALT ??
-    process.env.NEXT_PUBLIC_API_BASE_URL;
+  : (process.env.NEXT_PUBLIC_API_BASE_URL_ALT ??
+    process.env.NEXT_PUBLIC_API_BASE_URL);
 
 if (!resolvedBaseUrl) {
   throw new Error("BASE_URL could not be resolved from environment variables");
