@@ -13,7 +13,6 @@ import {
   Settings,
   ChevronDown,
   ChevronUp,
-  Upload,
   Mail,
   MessageSquare,
   FileText,
@@ -30,6 +29,7 @@ export default function AdminSettings() {
   const [isSaving, setIsSaving] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
+  const [showGenderDropdown, setShowGenderDropdown] = useState(false);
   const fileInputRef = useRef(null);
 
   // Profile state
@@ -497,7 +497,7 @@ export default function AdminSettings() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-neutral-950 flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-zinc-300 dark:border-zinc-700 border-t-black dark:border-t-white rounded-full animate-spin" />
       </div>
     );
@@ -550,7 +550,7 @@ export default function AdminSettings() {
         }
       `}</style>
 
-        <div className="min-h-screen bg-white dark:bg-black">
+        <div className="min-h-screen bg-white dark:bg-neutral-950">
           <div className="flex">
             {/* Left Sidebar Navigation */}
             <div className="hidden xl:flex flex-col w-72 bg-zinc-50 dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 px-6 py-8 sticky top-0 h-screen overflow-y-auto">
@@ -635,16 +635,6 @@ export default function AdminSettings() {
 
             {/* Main Content */}
             <div className="flex-1 px-8 py-12 max-w-5xl mx-auto w-full overflow-y-auto">
-              {/* Header */}
-              <div className="mb-12">
-                <h1 className="text-5xl font-light tracking-tight text-black dark:text-white mb-2">
-                  Settings
-                </h1>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Manage your account, security, and preferences
-                </p>
-              </div>
-
               {/* Content Sections */}
               <div className="space-y-8">
                 {/* EDIT PROFILE TAB */}
@@ -655,11 +645,11 @@ export default function AdminSettings() {
                         Edit Profile
                       </h2>
 
-                      {/* Profile Picture Card */}
+                      {/* Profile Picture Card with Username and Name Display */}
                       <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 mb-8">
                         <div className="flex items-start gap-8">
                           <div className="relative">
-                            <div className="w-32 h-32 border-2 border-zinc-200 dark:border-zinc-800 rounded-lg flex items-center justify-center overflow-hidden shrink-0 bg-white dark:bg-zinc-900">
+                            <div className="w-32 h-32 border-2 border-zinc-200 dark:border-zinc-800 rounded-full flex items-center justify-center overflow-hidden shrink-0 bg-white dark:bg-zinc-900">
                               {profile.profilePicturePreview ? (
                                 <img
                                   src={profile.profilePicturePreview}
@@ -674,22 +664,28 @@ export default function AdminSettings() {
                               onClick={() => fileInputRef.current?.click()}
                               className="absolute -bottom-2 -right-2 w-10 h-10 rounded-lg border-2 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black flex items-center justify-center hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all text-black dark:text-white"
                             >
-                              <Upload className="w-5 h-5" />
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                              </svg>
                             </button>
                           </div>
                           <div className="flex-1 pt-2">
-                            <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide font-medium">
-                              Profile Picture
+                            <p className="text-sm text-black dark:text-white font-medium">
+                              {profile.username || "username"}
                             </p>
-                            <p className="text-sm text-black dark:text-white font-medium mb-4">
-                              JPG or PNG up to 5MB
+                            <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                              {profile.name || "Name"}
                             </p>
-                            <button
-                              onClick={() => fileInputRef.current?.click()}
-                              className="px-5 py-2.5 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all"
-                            >
-                              Choose Photo
-                            </button>
                           </div>
                         </div>
                         <input
@@ -702,52 +698,173 @@ export default function AdminSettings() {
                       </div>
 
                       {/* Profile Fields */}
-                      <div className="grid grid-cols-2 gap-8 mb-8">
-                        <div>
-                          <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
-                            Full Name
-                          </label>
-                          <input
-                            type="text"
-                            value={profile.name}
-                            onChange={(e) =>
-                              handleProfileChange("name", e.target.value)
-                            }
-                            placeholder="Enter your full name"
-                            className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                          />
+                      <div className="space-y-6 mb-8">
+                        {/* Username and Name in one row */}
+                        <div className="grid grid-cols-2 gap-8">
+                          <div>
+                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
+                              Username
+                            </label>
+                            <input
+                              type="text"
+                              value={profile.username || ""}
+                              onChange={(e) =>
+                                handleProfileChange("username", e.target.value)
+                              }
+                              placeholder="Enter your username"
+                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
+                              Name
+                            </label>
+                            <input
+                              type="text"
+                              value={profile.name}
+                              onChange={(e) =>
+                                handleProfileChange("name", e.target.value)
+                              }
+                              placeholder="Enter your name"
+                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
+                            />
+                          </div>
                         </div>
 
+                        {/* Email Address and Gender in one row */}
+                        <div className="grid grid-cols-2 gap-8">
+                          <div>
+                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
+                              Email Address
+                            </label>
+                            <input
+                              type="email"
+                              value={profile.email}
+                              onChange={(e) =>
+                                handleProfileChange("email", e.target.value)
+                              }
+                              placeholder="Enter your email"
+                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
+                            />
+                          </div>
+
+                          <div className="relative">
+                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
+                              Gender
+                            </label>
+                            <button
+                              onClick={() =>
+                                setShowGenderDropdown(!showGenderDropdown)
+                              }
+                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all text-left flex items-center justify-between"
+                            >
+                              <span>
+                                {profile.gender === "custom" &&
+                                profile.customGender
+                                  ? profile.customGender
+                                  : profile.gender
+                                    ? profile.gender.charAt(0).toUpperCase() +
+                                      profile.gender.slice(1).replace(/_/g, " ")
+                                    : "Select Gender"}
+                              </span>
+                              {showGenderDropdown ? (
+                                <ChevronUp className="w-4 h-4" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4" />
+                              )}
+                            </button>
+
+                            {/* Gender Dropdown */}
+                            {showGenderDropdown && (
+                              <div className="absolute top-full mt-1 w-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-lg shadow-lg z-10">
+                                <div className="p-4 space-y-4">
+                                  {[
+                                    { value: "female", label: "Female" },
+                                    { value: "male", label: "Male" },
+                                    { value: "custom", label: "Custom" },
+                                    {
+                                      value: "prefer_not_to_say",
+                                      label: "Prefer not to say",
+                                    },
+                                  ].map((option) => (
+                                    <div key={option.value}>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleProfileChange(
+                                            "gender",
+                                            option.value,
+                                          );
+                                          if (option.value !== "custom") {
+                                            setShowGenderDropdown(false);
+                                          }
+                                        }}
+                                        className="w-full flex items-center justify-between px-3 py-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all text-left"
+                                      >
+                                        <label className="text-sm text-black dark:text-white cursor-pointer">
+                                          {option.label}
+                                        </label>
+                                        <div
+                                          className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center shrink-0 ${
+                                            profile.gender === option.value
+                                              ? "border-black dark:border-white"
+                                              : "border-zinc-300 dark:border-zinc-700"
+                                          }`}
+                                        >
+                                          {profile.gender === option.value && (
+                                            <div className="w-3 h-3 rounded-full bg-black dark:bg-white" />
+                                          )}
+                                        </div>
+                                      </button>
+
+                                      {/* Custom Gender Input - appears right after custom button */}
+                                      {option.value === "custom" &&
+                                        profile.gender === "custom" && (
+                                          <input
+                                            type="text"
+                                            value={profile.customGender || ""}
+                                            onChange={(e) =>
+                                              handleProfileChange(
+                                                "customGender",
+                                                e.target.value,
+                                              )
+                                            }
+                                            onKeyDown={(e) => {
+                                              if (e.key === "Enter") {
+                                                setShowGenderDropdown(false);
+                                              }
+                                            }}
+                                            onBlur={() => {
+                                              setShowGenderDropdown(false);
+                                            }}
+                                            autoFocus
+                                            className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 mt-2 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
+                                          />
+                                        )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Bio */}
                         <div>
                           <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
-                            Email Address
+                            Bio
                           </label>
-                          <input
-                            type="email"
-                            value={profile.email}
+                          <textarea
+                            value={profile.bio}
                             onChange={(e) =>
-                              handleProfileChange("email", e.target.value)
+                              handleProfileChange("bio", e.target.value)
                             }
-                            placeholder="Enter your email"
-                            className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
+                            placeholder="Tell us about yourself..."
+                            rows="4"
+                            className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all resize-none"
                           />
                         </div>
-                      </div>
-
-                      {/* Bio */}
-                      <div className="mb-8">
-                        <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
-                          Bio
-                        </label>
-                        <textarea
-                          value={profile.bio}
-                          onChange={(e) =>
-                            handleProfileChange("bio", e.target.value)
-                          }
-                          placeholder="Tell us about yourself..."
-                          rows="4"
-                          className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all resize-none"
-                        />
                       </div>
 
                       <button
@@ -760,7 +877,6 @@ export default function AdminSettings() {
                     </div>
                   </div>
                 )}
-
                 {/* PASSWORD & SECURITY TAB */}
                 {activeTab === "password" && (
                   <div className="space-y-8 animate-in fade-in duration-300">
@@ -852,7 +968,6 @@ export default function AdminSettings() {
                     </div>
                   </div>
                 )}
-
                 {/* TEAM MANAGEMENT TAB */}
                 {activeTab === "admin" && (
                   <div className="space-y-8 animate-in fade-in duration-300">
@@ -995,7 +1110,6 @@ export default function AdminSettings() {
                     </div>
                   </div>
                 )}
-
                 {/* NOTIFICATIONS TAB */}
                 {activeTab === "notifications" && (
                   <div className="space-y-8 animate-in fade-in duration-300">
@@ -1081,7 +1195,6 @@ export default function AdminSettings() {
                     </div>
                   </div>
                 )}
-
                 {/* BLOCKED ACCOUNTS TAB */}
                 {activeTab === "blocked" && (
                   <div className="space-y-8 animate-in fade-in duration-300">
@@ -1144,7 +1257,6 @@ export default function AdminSettings() {
                     </div>
                   </div>
                 )}
-
                 {/* PRIVACY & HELP TAB */}
                 {activeTab === "privacy" && (
                   <div className="space-y-8 animate-in fade-in duration-300">
@@ -1270,7 +1382,6 @@ export default function AdminSettings() {
                     </div>
                   </div>
                 )}
-
                 {/* ACCOUNT CONTROL TAB */}
                 {activeTab === "account" && (
                   <div className="space-y-8 animate-in fade-in duration-300">
