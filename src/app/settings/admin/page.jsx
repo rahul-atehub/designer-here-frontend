@@ -873,7 +873,11 @@ export default function AdminSettings() {
                 {(activeTab === "password" ||
                   activeTab === "email" ||
                   activeTab === "recovery") && (
-                  <PasswordAndSecurity defaultTab={activeTab} />
+                  <PasswordAndSecurity
+                    defaultTab={
+                      activeTab === "recovery" ? "forgot-password" : activeTab
+                    }
+                  />
                 )}
 
                 {/* TEAM MANAGEMENT TAB */}

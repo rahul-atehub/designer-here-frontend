@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { API } from "@/config";
 import { Mail, Lock, HelpCircle } from "lucide-react";
+import ForgotPassword from "@/app/settings/ForgotPassword";
 
 export default function PasswordAndSecurity({ defaultTab = "password" }) {
   const [isSaving, setIsSaving] = useState(false);
@@ -449,29 +450,8 @@ export default function PasswordAndSecurity({ defaultTab = "password" }) {
 
       {/* FORGOT PASSWORD SECTION */}
       {activeSection === "forgot-password" && (
-        <div className="space-y-8 animate-in fade-in duration-300">
-          <div>
-            <h2 className="text-2xl font-light text-black dark:text-white mb-8">
-              Forgot Password?
-            </h2>
-
-            {/* Forgot Password Card */}
-            <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
-              <h3 className="text-lg font-light text-black dark:text-white mb-3">
-                Reset Your Password
-              </h3>
-              <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed">
-                If you can't remember your password, we can help you reset it.
-                We'll send a password reset link to your email address.
-              </p>
-              <button className="px-5 py-3 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all">
-                Request Password Reset
-              </button>
-            </div>
-          </div>
-        </div>
+        <ForgotPassword defaultTab={activeSection} />
       )}
-
       {/* EMAIL CHANGE SECTION */}
       {activeSection === "email" && (
         <div className="space-y-8 animate-in fade-in duration-300">

@@ -173,7 +173,7 @@ export default function LoginPage() {
           login,
           password,
         },
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       setMessage({ type: "success", text: "Login successful!" });
