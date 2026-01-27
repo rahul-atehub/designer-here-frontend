@@ -21,6 +21,7 @@ import {
   LogOut,
 } from "lucide-react";
 import LayoutWrapper from "@/Components/LayoutWrapper";
+import PasswordAndSecurity from "@/app/settings/PasswordAndSecurity";
 
 export default function AdminSettings() {
   const [activeTab, setActiveTab] = useState("profile");
@@ -110,7 +111,12 @@ export default function AdminSettings() {
         {
           id: "password-recovery",
           label: "Password Recovery",
-          contentId: "password",
+          contentId: "recovery",
+        },
+        {
+          id: "change-email",
+          label: "Change Email",
+          contentId: "email",
         },
       ],
     },
@@ -732,23 +738,8 @@ export default function AdminSettings() {
                           </div>
                         </div>
 
-                        {/* Email Address and Gender in one row */}
+                        {/* Gender Section */}
                         <div className="grid grid-cols-2 gap-8">
-                          <div>
-                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
-                              Email Address
-                            </label>
-                            <input
-                              type="email"
-                              value={profile.email}
-                              onChange={(e) =>
-                                handleProfileChange("email", e.target.value)
-                              }
-                              placeholder="Enter your email"
-                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                            />
-                          </div>
-
                           <div className="relative">
                             <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
                               Gender
@@ -877,97 +868,14 @@ export default function AdminSettings() {
                     </div>
                   </div>
                 )}
+
                 {/* PASSWORD & SECURITY TAB */}
-                {activeTab === "password" && (
-                  <div className="space-y-8 animate-in fade-in duration-300">
-                    <div>
-                      <h2 className="text-2xl font-light text-black dark:text-white mb-8">
-                        Password & Security
-                      </h2>
-
-                      {/* Change Password Card */}
-                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 mb-8">
-                        <h3 className="text-lg font-light text-black dark:text-white mb-6">
-                          Change Password
-                        </h3>
-                        <div className="space-y-5">
-                          <div>
-                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide font-medium">
-                              Current Password
-                            </label>
-                            <input
-                              type="password"
-                              value={passwordData.oldPassword}
-                              onChange={(e) =>
-                                setPasswordData((prev) => ({
-                                  ...prev,
-                                  oldPassword: e.target.value,
-                                }))
-                              }
-                              placeholder="••••••••"
-                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide font-medium">
-                              New Password
-                            </label>
-                            <input
-                              type="password"
-                              value={passwordData.newPassword}
-                              onChange={(e) =>
-                                setPasswordData((prev) => ({
-                                  ...prev,
-                                  newPassword: e.target.value,
-                                }))
-                              }
-                              placeholder="••••••••"
-                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide font-medium">
-                              Confirm New Password
-                            </label>
-                            <input
-                              type="password"
-                              value={passwordData.confirmPassword}
-                              onChange={(e) =>
-                                setPasswordData((prev) => ({
-                                  ...prev,
-                                  confirmPassword: e.target.value,
-                                }))
-                              }
-                              placeholder="••••••••"
-                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                            />
-                          </div>
-                        </div>
-                        <button
-                          onClick={changePassword}
-                          disabled={isSaving}
-                          className="w-full mt-7 px-6 py-3 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 disabled:opacity-50 transition-all"
-                        >
-                          {isSaving ? "Changing..." : "Change Password"}
-                        </button>
-                      </div>
-
-                      {/* Forgot Password Link */}
-                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
-                        <h3 className="text-lg font-light text-black dark:text-white mb-3">
-                          Forgot Password?
-                        </h3>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed">
-                          If you can't remember your password, reset it using
-                          your email address.
-                        </p>
-                        <button className="px-5 py-2.5 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all">
-                          Request Password Reset
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                {(activeTab === "password" ||
+                  activeTab === "email" ||
+                  activeTab === "recovery") && (
+                  <PasswordAndSecurity defaultTab={activeTab} />
                 )}
+
                 {/* TEAM MANAGEMENT TAB */}
                 {activeTab === "admin" && (
                   <div className="space-y-8 animate-in fade-in duration-300">
