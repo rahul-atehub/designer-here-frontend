@@ -292,7 +292,17 @@ export default function AdminProfile() {
 
   return (
     <LayoutWrapper>
-      <div className="min-h-screen bg-white dark:bg-neutral-950 py-8 px-4">
+      <style>{`
+        .admin-profile-scroll {
+          height: calc(100vh - 65px);
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        .admin-profile-scroll::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+      <div className="admin-profile-scroll bg-white dark:bg-neutral-950 py-8 px-4 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
           {/* Upload Status Notification */}
           {uploadStatus.show && (

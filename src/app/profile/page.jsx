@@ -20,7 +20,17 @@ export default function ProfileRouter() {
   if (loading) {
     return (
       <LayoutWrapper>
-        <div className="min-h-[calc(100vh-124px)] sm:min-h-[calc(100vh-100px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-80px)] bg-white dark:bg-neutral-950 flex items-center justify-center">
+        <style>{`
+          .profile-router-scroll {
+            height: calc(100vh - 65px);
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          }
+          .profile-router-scroll::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        <div className="profile-router-scroll bg-white dark:bg-neutral-950 flex items-center justify-center overflow-y-auto">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -59,7 +69,17 @@ export default function ProfileRouter() {
     // Fallback for unknown roles
     return (
       <LayoutWrapper>
-        <div className="min-h-[calc(100vh-124px)] sm:min-h-[calc(100vh-100px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-80px)] bg-white dark:bg-neutral-950 flex items-center justify-center">
+        <style>{`
+          .profile-router-scroll {
+            height: calc(100vh - 65px);
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+          }
+          .profile-router-scroll::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+        <div className="profile-router-scroll bg-white dark:bg-neutral-950 flex items-center justify-center overflow-y-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

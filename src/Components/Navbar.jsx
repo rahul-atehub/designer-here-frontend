@@ -125,7 +125,7 @@ export default function Navbar() {
                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 relative group flex items-center space-x-2 ${
                       isActive
                         ? "text-[#EF4444] bg-red-50/50 dark:bg-red-950/20"
-                        : "text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] hover:bg-gray-100 dark:hover:bg-gray-800"
+                        : "text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] "
                     }`}
                   >
                     <Icon size={16} />
@@ -152,7 +152,7 @@ export default function Navbar() {
                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 relative group flex items-center space-x-2 ${
                       isActive
                         ? "text-[#EF4444] bg-red-50/50 dark:bg-red-950/20"
-                        : "text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] hover:bg-gray-100 dark:hover:bg-gray-800"
+                        : "text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] "
                     }`}
                   >
                     <Icon size={16} />
@@ -170,12 +170,12 @@ export default function Navbar() {
             {/* Right Section: Icons and Profile */}
             <div className="flex items-center space-x-3 lg:space-x-4">
               {/* Search Icon - Hidden on Mobile */}
-              <button className="hidden sm:flex p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200">
+              <button className="hidden sm:flex p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] rounded-xl  transition-all duration-200">
                 <Search size={20} />
               </button>
 
               {/* Notifications - Hidden on Mobile */}
-              <button className="hidden sm:flex p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 relative">
+              <button className="hidden sm:flex p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] rounded-xl  transition-all duration-200 relative">
                 <Bell size={20} />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-[#EF4444] rounded-full"></span>
               </button>
@@ -189,7 +189,7 @@ export default function Navbar() {
               <div className="relative">
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center space-x-2 p-2 text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+                  className="flex items-center space-x-2 p-2 text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] rounded-xl  transition-all duration-200"
                 >
                   <div className="w-8 h-8 bg-linear-to-br from-[#EF4444] to-[#F97316] rounded-full flex items-center justify-center overflow-hidden">
                     {isLoggedIn && user?.profileImage && !imgError ? (

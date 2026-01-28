@@ -100,7 +100,7 @@ export default function UserProfile() {
           </motion.div>
 
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-            Couldn’t load your profile
+            Couldn't load your profile
           </h2>
 
           <p className="text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
@@ -122,7 +122,17 @@ export default function UserProfile() {
 
   return (
     <LayoutWrapper>
-      <div className="min-h-screen bg-white dark:bg-neutral-950 py-8 px-4">
+      <style>{`
+        .user-profile-scroll {
+          height: calc(100vh - 65px);
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        .user-profile-scroll::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+      <div className="user-profile-scroll bg-white dark:bg-neutral-950 py-8 px-4 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
           {/* Profile Header */}
           {/* Profile Header */}

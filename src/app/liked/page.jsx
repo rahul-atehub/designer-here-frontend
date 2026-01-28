@@ -8,17 +8,7 @@ import AuthRequired from "@/components/ui/AuthRequired";
 import axios from "axios";
 import { API } from "@/config";
 
-import {
-  Heart,
-  Search,
-  Filter,
-  Grid,
-  List,
-  Download,
-  Share2,
-  Eye,
-  Calendar,
-} from "lucide-react";
+import { Heart, Search, Filter, Grid, List } from "lucide-react";
 
 const LikedPostsPage = () => {
   const { user, loading, error } = useUser();
@@ -47,8 +37,8 @@ const LikedPostsPage = () => {
   if (loading) {
     return (
       <LayoutWrapper>
-        <div className="min-h-[calc(100vh-124px)] sm:min-h-[calc(100vh-100px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-80px)] bg-white dark:bg-neutral-950 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-500" />
+        <div className="min-h-screen bg-white dark:bg-neutral-950 flex items-center justify-center">
+          <div className="w-8 h-8 border-2 border-zinc-300 dark:border-zinc-700 border-t-black dark:border-t-white rounded-full animate-spin" />
         </div>
       </LayoutWrapper>
     );
@@ -69,7 +59,7 @@ const LikedPostsPage = () => {
     const matchesSearch =
       post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       post.tags.some((tag) =>
-        tag.toLowerCase().includes(searchTerm.toLowerCase())
+        tag.toLowerCase().includes(searchTerm.toLowerCase()),
       );
     const matchesCategory =
       filterCategory === "all" || post.category === filterCategory;
@@ -113,39 +103,48 @@ const LikedPostsPage = () => {
 
   return (
     <LayoutWrapper>
-      <div className="min-h-[calc(100vh-124px)] sm:min-h-[calc(100vh-100px)] md:min-h-[calc(100vh-80px)] lg:min-h-[calc(100vh-80px)] bg-linear-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 transition-colors duration-300">
+      <style>{`
+        .liked-posts-scroll {
+          height: calc(100vh - 65px);
+          display: flex;
+          flex-direction: column;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        
+        .liked-posts-scroll::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+      <div className="liked-posts-scroll bg-white dark:bg-neutral-950 overflow-y-auto">
         {/* Header Section */}
         <motion.div
-          className="relative overflow-hidden bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700"
+          className="relative overflow-hidden bg-white dark:bg-gray-800 border-b border-zinc-200 dark:border-zinc-800"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="absolute inset-0 bg-linear-to-r from-purple-500/10 via-pink-500/10 to-orange-500/10 dark:from-purple-400/5 dark:via-pink-400/5 dark:to-orange-400/5"></div>
-          <div className="relative max-w-7xl mx-auto px-6 py-12">
-            <div className="flex items-center gap-4 mb-6">
-              <div className="p-3 bg-linear-to-r from-purple-500 to-pink-500 rounded-2xl">
-                <Heart className="w-8 h-8 text-white" fill="white" />
-              </div>
+          <div className="relative max-w-7xl mx-auto px-6 py-8 md:px-8">
+            <div className="flex items-center gap-4">
+              <Heart
+                className="w-6 h-6 text-black dark:text-white"
+                fill="currentColor"
+              />
               <div>
-                <h1 className="text-4xl font-bold bg-linear-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+                <h1 className="text-2xl font-light text-black dark:text-white">
                   Liked Posts
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400 mt-2">
-                  Your curated collection of inspiring designs
+                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                  {sortedPosts.length} posts liked
                 </p>
               </div>
-            </div>
-
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              {sortedPosts.length} posts saved
             </div>
           </div>
         </motion.div>
 
         {/* Controls Section */}
         <motion.div
-          className="max-w-7xl mx-auto px-6 py-8"
+          className="max-w-7xl mx-auto px-6 py-8 md:px-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
@@ -153,13 +152,13 @@ const LikedPostsPage = () => {
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between mb-8">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 w-4 h-4" />
               <input
                 type="text"
-                placeholder="Search designs..."
+                placeholder="Search liked designs..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-white"
+                className="w-full pl-10 pr-4 py-3 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600"
               />
             </div>
 
@@ -167,11 +166,11 @@ const LikedPostsPage = () => {
             <div className="flex items-center gap-3 flex-wrap">
               {/* Category Filter */}
               <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 w-4 h-4" />
                 <select
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
-                  className="pl-10 pr-8 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-white appearance-none cursor-pointer"
+                  className="pl-10 pr-8 py-3 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all text-black dark:text-white appearance-none cursor-pointer"
                 >
                   {categories.map((category) => (
                     <option key={category} value={category}>
@@ -185,7 +184,7 @@ const LikedPostsPage = () => {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-white appearance-none cursor-pointer"
+                className="px-4 py-3 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all text-black dark:text-white appearance-none cursor-pointer"
               >
                 <option value="recent">Most Recent</option>
                 <option value="likes">Most Liked</option>
@@ -193,23 +192,23 @@ const LikedPostsPage = () => {
               </select>
 
               {/* View Mode Toggle */}
-              <div className="flex bg-gray-100 dark:bg-gray-700 rounded-xl p-1">
+              <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded-lg p-1">
                 <button
                   onClick={() => setViewMode("grid")}
-                  className={`p-2 rounded-lg transition-all duration-200 ${
+                  className={`p-2 rounded transition-all duration-200 ${
                     viewMode === "grid"
-                      ? "bg-white dark:bg-gray-600 text-purple-500 shadow-sm"
-                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                      ? "bg-white dark:bg-zinc-700 text-black dark:text-white shadow-sm"
+                      : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
                   }`}
                 >
                   <Grid className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => setViewMode("list")}
-                  className={`p-2 rounded-lg transition-all duration-200 ${
+                  className={`p-2 rounded transition-all duration-200 ${
                     viewMode === "list"
-                      ? "bg-white dark:bg-gray-600 text-purple-500 shadow-sm"
-                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                      ? "bg-white dark:bg-zinc-700 text-black dark:text-white shadow-sm"
+                      : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
                   }`}
                 >
                   <List className="w-4 h-4" />
@@ -250,13 +249,16 @@ const LikedPostsPage = () => {
               transition={{ duration: 0.5 }}
               className="text-center py-16"
             >
-              <div className="w-32 h-32 mx-auto mb-6 bg-linear-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-full flex items-center justify-center">
-                <Heart className="w-16 h-16 text-purple-400 dark:text-purple-300" />
+              <div className="w-20 h-20 mx-auto mb-6 bg-zinc-100 dark:bg-zinc-900 rounded-full flex items-center justify-center">
+                <Heart
+                  className="w-10 h-10 text-zinc-400 dark:text-zinc-600"
+                  fill="currentColor"
+                />
               </div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-lg font-light text-black dark:text-white mb-2">
                 No posts found
               </h3>
-              <p className="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+              <p className="text-xs text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">
                 {searchTerm || filterCategory !== "all"
                   ? "Try adjusting your search or filters to find more designs."
                   : "Start exploring and like some amazing designs to build your collection!"}
