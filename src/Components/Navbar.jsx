@@ -63,7 +63,7 @@ export default function Navbar() {
   // Main navigation links
   const mainLinks = [
     { label: "Home", href: "/", icon: Home },
-    { label: "Portfolio", href: "/portfolio", icon: Images },
+    { label: "Posts", href: "/portfolio", icon: Images },
     { label: "About Us", href: "/about", icon: FileText },
     { label: "Contact Us", href: "/contact", icon: Mail },
   ];
