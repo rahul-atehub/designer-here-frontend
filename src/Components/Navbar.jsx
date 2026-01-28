@@ -6,7 +6,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SearchBar from "@/Components/SearchBar";
 import { ThemeToggle } from "@/components/ui/theme.toggle";
-import UserCard from "./UserCard";
+import { FiSun, FiMoon } from "react-icons/fi";
+import { useTheme } from "next-themes";
 import { useUser } from "@/context/UserContext";
 
 import {
@@ -17,12 +18,14 @@ import {
   Home,
   Settings,
   FileText,
-  Save,
+  Bookmark,
   MessageSquare,
   Mail,
   Images,
   ChevronDown,
   LogOut,
+  Bell,
+  Search,
 } from "lucide-react";
 
 export default function Navbar() {
@@ -31,12 +34,12 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
   const pathname = usePathname();
   const isLoggedIn = !!user;
   const [imgError, setImgError] = useState(false);
+  const { theme, setTheme } = useTheme();
 
-  // Enhanced scroll effect
+  // Scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -45,42 +48,39 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Prevent body scroll when mobile menu is open
   useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.classList.add("no-scroll");
     } else {
       document.body.classList.remove("no-scroll");
     }
-
-    // Cleanup in case component unmounts
     return () => {
       document.body.classList.remove("no-scroll");
     };
   }, [isMobileMenuOpen]);
 
-  // Sidebar-style items for mobile menu (grouped)
-  const dashboardLinks = [
-    { icon: Home, label: "Home", href: "/", badge: null },
-    { icon: Images, label: "Portfolio", href: "/portfolio", badge: null },
-    { icon: FileText, label: "About Us", href: "/about", badge: null },
-    { icon: Mail, label: "Contact Us", href: "/contact", badge: null },
+  // Main navigation links
+  const mainLinks = [
+    { label: "Home", href: "/", icon: Home },
+    { label: "Portfolio", href: "/portfolio", icon: Images },
+    { label: "About Us", href: "/about", icon: FileText },
+    { label: "Contact Us", href: "/contact", icon: Mail },
   ];
 
-  const moreLinks = [
-    { icon: Heart, label: "Liked", href: "/liked", badge: null },
-    { icon: Save, label: "Saved", href: "/saved", badge: null },
-    { icon: MessageSquare, label: "Messages", href: "/messages", badge: null },
-    { icon: User, label: "Profile", href: "/profile", badge: null },
-    { icon: Settings, label: "Settings", href: "/settings", badge: null },
+  // Additional menu links (shown in dropdown and mobile)
+  const additionalLinks = [
+    { label: "Messages", href: "/messages", icon: MessageSquare },
+    { label: "Liked", href: "/liked", icon: Heart },
+    { label: "Saved", href: "/saved", icon: Bookmark },
+    { label: "Profile", href: "/profile", icon: User },
+    { label: "Settings", href: "/settings", icon: Settings },
   ];
 
-  // Desktop navbar links (enhanced with active states)
-  const links = [
-    { label: "Home", href: "/" },
-    { label: "Portfolio", href: "/portfolio" },
-    { label: "About Us", href: "/about" },
-    { label: "Contact Us", href: "/contact" },
-  ];
+  const closeMenus = () => {
+    setIsProfileOpen(false);
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <>
@@ -91,11 +91,12 @@ export default function Navbar() {
             : "bg-[#f9f9f9] dark:bg-[#101010] shadow-lg border-b border-gray-200 dark:border-gray-800"
         }`}
       >
-        <div className="max-w-full px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-3 items-center gap-4 py-2">
-            {/* Left Section: Logo + Mobile Toggle */}
-            <div className="flex items-center justify-between lg:justify-start space-x-4">
-              <div className="flex items-center space-x-4 group">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Left Section: Logo */}
+            <div className="flex items-center space-x-3 shrink-0">
+              {/* Logo */}
+              <div className="flex items-center space-x-3 group">
                 <div className="relative">
                   <Image
                     src="https://res.cloudinary.com/dhsv1d1vn/image/upload/v1754996669/logo_1_jo4krf.png"
@@ -110,181 +111,187 @@ export default function Navbar() {
                   DESIGNER HERE
                 </span>
               </div>
-
-              <div className="lg:hidden">
-                <button
-                  onClick={toggleMobileMenu}
-                  className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl group"
-                >
-                  <div className="relative w-6 h-6">
-                    <Menu
-                      size={24}
-                      className={`absolute inset-0 transition-all duration-300 ${
-                        isMobileMenuOpen
-                          ? "rotate-180 opacity-0"
-                          : "rotate-0 opacity-100"
-                      }`}
-                    />
-                    <X
-                      size={24}
-                      className={`absolute inset-0 transition-all duration-300 ${
-                        isMobileMenuOpen
-                          ? "rotate-0 opacity-100"
-                          : "rotate-180 opacity-0"
-                      }`}
-                    />
-                  </div>
-                </button>
-              </div>
             </div>
 
-            {/* Center Section: Search */}
-            <div className="w-full max-w-md mx-auto px-2">
-              <div className="relative group">
-                <SearchBar />
-              </div>
-            </div>
-
-            {/* Right Section: Nav Links + Icons */}
-            <div className="hidden lg:flex items-center justify-end space-x-6">
-              <div className="flex space-x-6">
-                {links.map(({ label, href }) => {
-                  const isActive = pathname === href;
-                  return (
-                    <Link
-                      key={label}
-                      href={href}
-                      className={`relative lg:text-sm md:text-xs transition-all duration-200 group ${
-                        isActive
-                          ? "text-[#EF4444] font-semibold"
-                          : "text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444]"
-                      }`}
-                    >
-                      {label}
-                      <span
-                        className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-linear-to-r from-[#EF4444] to-[#F97316] transition-all duration-300 group-hover:w-full ${
-                          isActive ? "w-full" : ""
-                        }`}
-                      ></span>
-                    </Link>
-                  );
-                })}
-              </div>
-
-              {/* Enhanced Icons */}
-              <div className="flex items-center space-x-3">
-                {/* Enhanced Profile Dropdown */}
-                <div className="relative">
-                  <button
-                    onClick={() => setIsProfileOpen(!isProfileOpen)}
-                    className="flex items-center space-x-2 p-2 text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+            {/* Center Section: Navigation Links - Desktop Only */}
+            <div className="hidden lg:flex items-center space-x-1">
+              {/* Main Navigation */}
+              {mainLinks.map(({ label, href, icon: Icon }) => {
+                const isActive = pathname === href;
+                return (
+                  <Link
+                    key={label}
+                    href={href}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 relative group flex items-center space-x-2 ${
+                      isActive
+                        ? "text-[#EF4444] bg-red-50/50 dark:bg-red-950/20"
+                        : "text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] hover:bg-gray-100 dark:hover:bg-gray-800"
+                    }`}
                   >
-                    <div className="w-8 h-8 bg-linear-to-br from-[#EF4444] to-[#F97316] rounded-full flex items-center justify-center overflow-hidden">
-                      {isLoggedIn && user?.profileImage && !imgError ? (
-                        <Image
-                          src={user.profileImage}
-                          alt={user?.name || user?.username || "User"}
-                          width={32}
-                          height={32}
-                          className="object-cover w-full h-full"
-                          onError={() => setImgError(true)}
-                        />
-                      ) : (
-                        <User size={16} className="text-white" />
-                      )}
-                    </div>
-
-                    <ChevronDown
-                      size={16}
-                      className={`transition-transform duration-200 ${
-                        isProfileOpen ? "rotate-180" : ""
+                    <Icon size={16} />
+                    <span>{label}</span>
+                    <span
+                      className={`absolute -bottom-1 left-4 right-4 h-0.5 bg-linear-to-r from-[#EF4444] to-[#F97316] transition-all duration-300 ${
+                        isActive ? "opacity-100" : "opacity-0"
                       }`}
-                    />
-                  </button>
+                    ></span>
+                  </Link>
+                );
+              })}
 
-                  {/* Profile Dropdown */}
-                  {isProfileOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
-                      {!hasServerUser && loading && !gracePassed ? (
-                        <div className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
-                          Checking session...
-                        </div>
-                      ) : isLoggedIn ? (
-                        <>
-                          {/* Logged-in Menu */}
-                          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                              {user?.username || "User"}
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              {user?.email || ""}
-                            </p>
-                          </div>
-                          <Link
-                            href="/profile"
-                            className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          >
-                            <User size={16} />
-                            <span>Profile</span>
-                          </Link>
-                          <Link
-                            href="/settings"
-                            className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-                          >
-                            <Settings size={16} />
-                            <span>Settings</span>
-                          </Link>
-                          <hr className="my-2 border-gray-200 dark:border-gray-700" />
-                          <button
-                            onClick={async () => {
-                              await logout();
-                              setIsProfileOpen(false);
-                            }}
-                            className="flex items-center space-x-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left"
-                          >
-                            <LogOut size={16} />
-                            <span>Log Out</span>
-                          </button>
-                        </>
-                      ) : (
-                        <>
-                          {/* Logged-out Menu */}
-                          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                            <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                              Welcome Guest
-                            </p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                              Please log in to continue
-                            </p>
-                          </div>
-                          <Link
-                            href="/auth/login"
-                            className="flex items-center space-x-3 px-4 py-2 text-sm text-[#EF4444] dark:text-[#EF4444] hover:bg-gray-100 dark:hover:bg-gray-700"
-                          >
-                            <User size={16} />
-                            <span>Login</span>
-                          </Link>
-                          <Link
-                            href="/auth/signup"
-                            className="flex items-center space-x-3 px-4 py-2 text-sm text-[#F97316] dark:text-[#F97316] hover:bg-gray-100 dark:hover:bg-gray-700"
-                          >
-                            <User size={16} />
-                            <span>Sign Up</span>
-                          </Link>
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
+              {/* Separator */}
+              <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-2"></div>
+
+              {/* Additional Links */}
+              {additionalLinks.map(({ label, href, icon: Icon }) => {
+                const isActive = pathname === href;
+                return (
+                  <Link
+                    key={label}
+                    href={href}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 relative group flex items-center space-x-2 ${
+                      isActive
+                        ? "text-[#EF4444] bg-red-50/50 dark:bg-red-950/20"
+                        : "text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] hover:bg-gray-100 dark:hover:bg-gray-800"
+                    }`}
+                  >
+                    <Icon size={16} />
+                    <span>{label}</span>
+                    <span
+                      className={`absolute -bottom-1 left-4 right-4 h-0.5 bg-linear-to-r from-[#EF4444] to-[#F97316] transition-all duration-300 ${
+                        isActive ? "opacity-100" : "opacity-0"
+                      }`}
+                    ></span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Right Section: Icons and Profile */}
+            <div className="flex items-center space-x-3 lg:space-x-4">
+              {/* Search Icon - Hidden on Mobile */}
+              <button className="hidden sm:flex p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200">
+                <Search size={20} />
+              </button>
+
+              {/* Notifications - Hidden on Mobile */}
+              <button className="hidden sm:flex p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 relative">
+                <Bell size={20} />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-[#EF4444] rounded-full"></span>
+              </button>
+
+              {/* Theme Toggle - Hidden on Mobile */}
+              <div className="hidden sm:block">
+                <ThemeToggle />
               </div>
+
+              {/* Profile Dropdown - Always Visible */}
+              <div className="relative">
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center space-x-2 p-2 text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+                >
+                  <div className="w-8 h-8 bg-linear-to-br from-[#EF4444] to-[#F97316] rounded-full flex items-center justify-center overflow-hidden">
+                    {isLoggedIn && user?.profileImage && !imgError ? (
+                      <Image
+                        src={user.profileImage}
+                        alt={user?.name || user?.username || "User"}
+                        width={32}
+                        height={32}
+                        className="object-cover w-full h-full"
+                        onError={() => setImgError(true)}
+                      />
+                    ) : (
+                      <User size={16} className="text-white" />
+                    )}
+                  </div>
+                  <ChevronDown
+                    size={16}
+                    className={`hidden sm:block transition-transform duration-200 ${
+                      isProfileOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* Profile Dropdown Menu */}
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-2 z-50 animate-in slide-in-from-top-2 duration-200">
+                    {!hasServerUser && loading && !gracePassed ? (
+                      <div className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">
+                        Checking session...
+                      </div>
+                    ) : isLoggedIn ? (
+                      <>
+                        {/* User Info */}
+                        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                            {user?.username || "User"}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {user?.email || ""}
+                          </p>
+                        </div>
+
+                        {/* Logout */}
+                        <button
+                          onClick={async () => {
+                            await logout();
+                            closeMenus();
+                          }}
+                          className="flex items-center space-x-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left transition-colors duration-200"
+                        >
+                          <LogOut size={16} />
+                          <span>Log Out</span>
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {/* Not Logged In Menu */}
+                        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+                          <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                            Welcome Guest
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Please log in to continue
+                          </p>
+                        </div>
+                        <Link
+                          href="/auth/login"
+                          onClick={() => closeMenus()}
+                          className="flex items-center space-x-3 px-4 py-2 text-sm text-[#EF4444] dark:text-[#EF4444] hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                        >
+                          <User size={16} />
+                          <span>Login</span>
+                        </Link>
+                        <Link
+                          href="/auth/signup"
+                          onClick={() => closeMenus()}
+                          className="flex items-center space-x-3 px-4 py-2 text-sm text-[#F97316] dark:text-[#F97316] hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                        >
+                          <User size={16} />
+                          <span>Sign Up</span>
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Hamburger Menu - Mobile Only */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl"
+              >
+                {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Enhanced Mobile Menu */}
+      {/* Mobile Menu */}
       <div
-        className={`mobile-menu-container fixed inset-0 z-50 lg:hidden transition-all duration-300 ${
+        className={`fixed inset-0 z-50 lg:hidden transition-all duration-300 ${
           isMobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
       >
@@ -293,7 +300,7 @@ export default function Navbar() {
           className={`absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${
             isMobileMenuOpen ? "opacity-100" : "opacity-0"
           }`}
-          onClick={toggleMobileMenu}
+          onClick={() => setIsMobileMenuOpen(false)}
         ></div>
 
         {/* Menu Panel */}
@@ -302,88 +309,40 @@ export default function Navbar() {
             isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          {/* Enhanced Header */}
-          <div className="flex justify-between items-center p-6 bg-linear-to-r from-[#EF4444]/10 to-[#F97316]/10 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                <Image
-                  src="https://res.cloudinary.com/dhsv1d1vn/image/upload/v1754996669/logo_1_jo4krf.png"
-                  alt="My Logo"
-                  width={40}
-                  height={40}
-                  className="rounded-lg"
-                />
+          {/* Menu Header with Search */}
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex-1">
+                <SearchBar />
               </div>
-              <span className="font-bold text-lg bg-linear-to-r from-[#EF4444] to-[#F97316] bg-clip-text text-transparent">
-                DESIGNER HERE
-              </span>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 shrink-0"
+              >
+                <X size={24} />
+              </button>
             </div>
-            <button
-              onClick={toggleMobileMenu}
-              className="p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
-            >
-              <X size={24} />
-            </button>
           </div>
 
+          {/* Menu Content */}
           <div className="flex-1 px-6 py-4 overflow-y-auto">
-            <div className="space-y-8">
-              {/* Dashboard Section */}
+            <div className="space-y-6">
+              {/* Main Navigation */}
               <div>
-                <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-                  Dashboard
+                <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                  Main
                 </p>
                 <div className="space-y-2">
-                  {dashboardLinks.map(({ icon: Icon, label, href, badge }) => {
+                  {mainLinks.map(({ label, href, icon: Icon }) => {
                     const isActive = pathname === href;
                     return (
                       <Link
                         key={label}
                         href={href}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className={`relative w-full flex items-center justify-between px-4 py-3 rounded-xl text-left transition-all duration-200 group ${
+                        className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
                           isActive
-                            ? "text-white bg-linear-to-r from-[#EF4444] to-[#F97316] shadow-lg"
-                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-                        }`}
-                      >
-                        <div className="flex items-center space-x-3">
-                          <Icon className="w-5 h-5" />
-                          <span className="font-medium">{label}</span>
-                        </div>
-                        {badge && (
-                          <span
-                            className={`text-xs px-2 py-1 rounded-full ${
-                              isActive
-                                ? "bg-white/20 text-white"
-                                : "bg-[#EF4444] text-white"
-                            }`}
-                          >
-                            {badge}
-                          </span>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* More Section */}
-              <div>
-                <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">
-                  More
-                </p>
-                <div className="space-y-2">
-                  {moreLinks.map(({ icon: Icon, label, href }) => {
-                    const isActive = pathname === href;
-                    return (
-                      <Link
-                        key={label}
-                        href={href}
-                        onClick={() => setIsMobileMenuOpen(false)}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
-                          isActive
-                            ? "text-white bg-linear-to-r from-[#EF4444] to-[#F97316] shadow-lg"
+                            ? "text-[#EF4444] dark:text-[#EF4444]"
                             : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                         }`}
                       >
@@ -395,16 +354,72 @@ export default function Navbar() {
                 </div>
               </div>
 
-              {/* Theme Toggle Section */}
-              <div className="pt-4">
-                <ThemeToggle />
+              {/* Additional Options */}
+              <div>
+                <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                  More
+                </p>
+                <div className="space-y-2">
+                  {additionalLinks.map(({ label, href, icon: Icon }) => {
+                    const isActive = pathname === href;
+                    return (
+                      <Link
+                        key={label}
+                        href={href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-left transition-all duration-200 ${
+                          isActive
+                            ? "text-[#EF4444] dark:text-[#EF4444]"
+                            : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        }`}
+                      >
+                        <Icon className="w-5 h-5" />
+                        <span className="font-medium">{label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Theme Toggle */}
+              <div className="sm:hidden">
+                <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+                  Settings
+                </p>
+                <div className="flex items-center justify-between px-4 py-3">
+                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                    Theme
+                  </span>
+                  <button
+                    onClick={() =>
+                      setTheme(theme === "dark" ? "light" : "dark")
+                    }
+                    className="relative inline-flex h-6 w-10 items-center rounded-full bg-gray-300 dark:bg-gray-700 transition-colors"
+                  >
+                    <span
+                      className={`absolute h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform flex items-center justify-center ${
+                        theme === "dark" ? "translate-x-5" : "translate-x-0.5"
+                      }`}
+                    >
+                      {theme === "dark" ? (
+                        <FiMoon className="w-4 h-4 text-neutral-950" />
+                      ) : (
+                        <FiSun className="w-4 h-4 text-orange-500" />
+                      )}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Notifications - Mobile Only */}
+                <button className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200">
+                  <span className="font-medium">Notifications</span>
+                  <div className="flex items-center space-x-2">
+                    <Bell className="w-5 h-5" />
+                    <span className="w-2 h-2 bg-[#EF4444] rounded-full"></span>
+                  </div>
+                </button>
               </div>
             </div>
-          </div>
-
-          {/* Enhanced Bottom Section */}
-          <div className="p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-            <UserCard />
           </div>
         </div>
       </div>

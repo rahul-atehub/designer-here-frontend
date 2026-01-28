@@ -56,11 +56,11 @@ export default function SearchBar() {
         if (ignore) return;
 
         setRecentSearches(
-          recentRes?.data?.data?.searches?.map((s) => s.term) || []
+          recentRes?.data?.data?.searches?.map((s) => s.term) || [],
         );
 
         setTrendingSearches(
-          trendingRes?.data?.data?.trending?.map((s) => s.term) || []
+          trendingRes?.data?.data?.trending?.map((s) => s.term) || [],
         );
       } catch (err) {
         if (ignore) return;
@@ -195,7 +195,7 @@ export default function SearchBar() {
           ref={inputRef}
           type="text"
           className="flex-1 bg-transparent focus:outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 text-gray-900 dark:text-white"
-          placeholder="Search something..."
+          placeholder="Search "
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={handleFocus}
