@@ -5,8 +5,6 @@ import { Menu } from "lucide-react";
 import Sidebar from "./Sidebar";
 import Navbar from "./Navbar";
 
-// import { default as Navbar } from "./Navbar";
-
 const LayoutWrapper = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
