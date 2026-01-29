@@ -40,8 +40,62 @@ export default function FeaturedGallery() {
   }
 
   return (
-    <section className="py-20 bg-linear-to-b from-white to-gray-50 dark:from-neutral-950 dark:to-neutral-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="relative py-20 bg-white dark:bg-neutral-950 overflow-hidden">
+      {/* Animated Background - matching hero and ContactCTA style */}
+      <div className="absolute inset-0 -z-10 overflow-hidden">
+        <motion.div
+          className="absolute top-[20%] left-[10%] w-500px h-500px bg-red-500/8 dark:bg-red-500/12 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.08, 0.12, 0.08],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut",
+          }}
+        />
+        <motion.div
+          className="absolute bottom-[10%] right-[10%] w-600px h-600px bg-blue-500/8 dark:bg-blue-500/12 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.15, 1],
+            opacity: [0.08, 0.12, 0.08],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1,
+          }}
+        />
+        <motion.div
+          className="absolute top-[50%] left-[50%] w-400px h-400px bg-purple-500/6 dark:bg-purple-500/10 rounded-full blur-3xl"
+          animate={{
+            scale: [1, 1.1, 1],
+            opacity: [0.06, 0.1, 0.06],
+          }}
+          transition={{
+            duration: 9,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 0.5,
+          }}
+        />
+
+        {/* Grid overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]"
+          style={{
+            backgroundImage: `
+              linear-gradient(rgba(239, 68, 68, 0.3) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(239, 68, 68, 0.3) 1px, transparent 1px)
+            `,
+            backgroundSize: "60px 60px",
+          }}
+        />
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}

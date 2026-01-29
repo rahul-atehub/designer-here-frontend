@@ -2,12 +2,11 @@
 
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
-
 import { useState } from "react";
 import Modal from "@/components/ui/modal";
 import PrivacyPolicyContent from "@/components/ui/PrivacyPolicyContent";
 import TermsOfServiceContent from "@/components/ui/TermsOfServiceContent";
+import CookiePolicyContent from "@/components/ui/Cookiepolicycontent";
 import {
   Mail,
   Phone,
@@ -23,184 +22,188 @@ import {
 const Footer = () => {
   const [showPrivacy, setShowPrivacy] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [showCookies, setShowCookies] = useState(false);
+
+  const socialLinks = [
+    {
+      icon: Twitter,
+      href: "#",
+      label: "Twitter",
+      color: "hover:text-blue-400",
+    },
+    {
+      icon: Facebook,
+      href: "#",
+      label: "Facebook",
+      color: "hover:text-blue-500",
+    },
+    {
+      icon: Instagram,
+      href: "#",
+      label: "Instagram",
+      color: "hover:text-pink-500",
+    },
+    {
+      icon: Linkedin,
+      href: "#",
+      label: "LinkedIn",
+      color: "hover:text-blue-600",
+    },
+  ];
+
+  const footerLinks = [
+    {
+      title: "Pages",
+      links: [
+        { name: "Home", href: "/" },
+        { name: "Portfolio", href: "/portfolio" },
+        { name: "About Us", href: "/about" },
+        { name: "Contact", href: "/contact" },
+      ],
+    },
+    {
+      title: "Community",
+      links: [
+        { name: "Posts", href: "/posts" },
+        { name: "Messages", href: "/messages" },
+        { name: "Liked", href: "/liked" },
+        { name: "Saved", href: "/saved" },
+        { name: "Help Center", href: "/help" },
+      ],
+    },
+    {
+      title: "Legal",
+      links: [
+        { name: "Privacy Policy", onClick: () => setShowPrivacy(true) },
+        { name: "Terms of Service", onClick: () => setShowTerms(true) },
+        { name: "Cookie Policy", onClick: () => setShowCookies(true) },
+      ],
+    },
+  ];
 
   return (
-    <footer className="relative bg-linear-to-br from-white via-gray-50 to-blue-50/30 dark:from-neutral-950 dark:via-gray-900 dark:to-blue-950/20 border-t border-gray-200/60 dark:border-gray-800/60 transition-colors duration-300">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05]">
+    <footer className="relative bg-gray-950 dark:bg-black text-gray-300 overflow-hidden">
+      {/* Subtle top border accent */}
+      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-red-500/50 to-transparent" />
+
+      {/* Minimal background pattern */}
+      <div className="absolute inset-0 opacity-[0.02]">
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage: `radial-gradient(circle at 25% 25%, #3b82f6 0%, transparent 50%), radial-gradient(circle at 75% 75%, #ef4444 0%, transparent 50%)`,
-            backgroundSize: "100px 100px",
+            backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 1px)`,
+            backgroundSize: "40px 40px",
           }}
-        ></div>
+        />
       </div>
 
-      <div className="relative w-full mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="relative max-w-7xl mx-auto px-6">
+        {/* Main Footer Content */}
         <div className="py-16 lg:py-20">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20">
-            {/* Left Section - Main Content */}
-            <div className="space-y-8">
-              <div className="space-y-6">
-                <h2 className="text-4xl lg:text-5xl font-bold bg-linear-to-br from-gray-900 via-gray-800 to-blue-900 dark:from-white dark:via-gray-100 dark:to-blue-100 bg-clip-text text-transparent leading-tight">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+            {/* Brand Section - Takes more space */}
+            <div className="lg:col-span-5 space-y-6">
+              <div>
+                <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
                   Designer Here
                 </h2>
-
-                <p className="text-gray-600 dark:text-gray-300 text-lg leading-relaxed max-w-lg">
-                  Every project starts with a chat. Our team leads client
-                  conversations and will be happy to discuss your project. We'll
-                  also pull in the right people from the team when needed.
+                <p className="text-gray-400 text-base leading-relaxed max-w-md">
+                  Transforming ideas into exceptional digital experiences. Let's
+                  build something amazing together.
                 </p>
               </div>
 
-              <div className="pt-4">
+              {/* CTA Button */}
+              <div className="pt-2">
                 <Link
                   href="/contact"
-                  className="group inline-flex items-center space-x-3 px-8 py-4 bg-linear-to-r from-#EF4444 to-red-500 hover:from-red-500 hover:to-#EF4444 text-white font-semibold rounded-xl transition-all duration-300 hover:shadow-xl hover:shadow-red-500/25 hover:scale-[1.02] active:scale-[0.98] transform-gpu"
+                  className="group inline-flex items-center space-x-3 px-6 py-3 bg-white hover:bg-gray-100 text-gray-900 font-medium rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-white/10"
                 >
-                  <Send className="w-5 h-5 group-hover:rotate-12 transition-transform duration-300" />
-                  <span>Tell us about your project</span>
+                  <Send className="w-4 h-4 group-hover:rotate-12 transition-transform duration-300" />
+                  <span>Start a Project</span>
                   <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300" />
+                </Link>
+              </div>
+
+              {/* Contact Info - Compact */}
+              <div className="pt-4 space-y-3 text-sm">
+                <Link
+                  href="mailto:john@example.com"
+                  className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span>john@example.com</span>
+                </Link>
+                <Link
+                  href="tel:+6589735984"
+                  className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  <Phone className="w-4 h-4" />
+                  <span>(+65) 89735984</span>
                 </Link>
               </div>
             </div>
 
-            {/* Right Section - Contact Info */}
-            <div className="space-y-10">
-              <div className="space-y-8">
-                {/* Email */}
-                <div className="group flex items-start space-x-5 p-4 rounded-xl hover:bg-white/50 dark:hover:bg-gray-800/30 transition-all duration-300">
-                  <div className="shrink-0 w-12 h-12 bg-linear-to-br from-blue-500/10 to-blue-600/20 dark:from-blue-400/10 dark:to-blue-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Mail className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                      Email
-                    </p>
-                    <Link
-                      href="mailto:john@example.com"
-                      className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors duration-200 text-lg font-medium group-hover:underline"
-                    >
-                      john@example.com
-                    </Link>
-                  </div>
+            {/* Links Section - Grid Layout */}
+            <div className="lg:col-span-7 grid grid-cols-2 md:grid-cols-3 gap-8 lg:gap-12">
+              {footerLinks.map((section, idx) => (
+                <div key={idx}>
+                  <h3 className="text-white font-semibold text-sm uppercase tracking-wider mb-4">
+                    {section.title}
+                  </h3>
+                  <ul className="space-y-3">
+                    {section.links.map((link, linkIdx) => (
+                      <li key={linkIdx}>
+                        {link.onClick ? (
+                          <button
+                            onClick={link.onClick}
+                            className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
+                          >
+                            {link.name}
+                          </button>
+                        ) : (
+                          <Link
+                            href={link.href}
+                            className="text-gray-400 hover:text-white transition-colors duration-200 text-sm"
+                          >
+                            {link.name}
+                          </Link>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-
-                {/* Phone */}
-                <div className="group flex items-start space-x-5 p-4 rounded-xl hover:bg-white/50 dark:hover:bg-gray-800/30 transition-all duration-300">
-                  <div className="shrink-0 w-12 h-12 bg-linear-to-br from-green-500/10 to-green-600/20 dark:from-green-400/10 dark:to-green-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Phone className="w-6 h-6 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                      Phone
-                    </p>
-                    <Link
-                      href="tel:+6589735984"
-                      className="text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 transition-colors duration-200 text-lg font-medium group-hover:underline"
-                    >
-                      (+65) 89735984
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Address */}
-                <div className="group flex items-start space-x-5 p-4 rounded-xl hover:bg-white/50 dark:hover:bg-gray-800/30 transition-all duration-300">
-                  <div className="shrink-0 w-12 h-12 bg-linear-to-br from-#EF4444/10 to-red-600/20 dark:from-red-400/10 dark:to-red-500/20 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <MapPin className="w-6 h-6 text-#EF4444 dark:text-red-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                      Address
-                    </p>
-                    <address className="text-gray-700 dark:text-gray-300 not-italic text-lg leading-relaxed">
-                      1 Paya Lebar Link
-                      <br />
-                      #04-01, Paya Lebar Quarter
-                      <br />
-                      Singapore, 408533
-                    </address>
-                  </div>
-                </div>
-              </div>
-
-              {/* Social Media Links */}
-              <div className="pt-2">
-                <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-6">
-                  Follow Us
-                </p>
-                <div className="flex space-x-4">
-                  <Link
-                    href="#"
-                    className="group w-12 h-12 bg-white dark:bg-gray-800 hover:bg-linear-to-br hover:from-blue-500 hover:to-blue-600 border border-gray-200 dark:border-gray-700 hover:border-transparent rounded-xl flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25 hover:scale-110"
-                    aria-label="Twitter"
-                  >
-                    <Twitter className="w-5 h-5 text-gray-600 dark:text-gray-300 group-hover:text-white transition-colors duration-300" />
-                  </Link>
-                  <Link
-                    href="#"
-                    className="group w-12 h-12 bg-white dark:bg-gray-800 hover:bg-linear-to-br hover:from-blue-600 hover:to-blue-700 border border-gray-200 dark:border-gray-700 hover:border-transparent rounded-xl flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-blue-600/25 hover:scale-110"
-                    aria-label="Facebook"
-                  >
-                    <Facebook className="w-5 h-5 text-gray-600 dark:text-gray-300 group-hover:text-white transition-colors duration-300" />
-                  </Link>
-                  <Link
-                    href="#"
-                    className="group w-12 h-12 bg-white dark:bg-gray-800 hover:bg-linear-to-br hover:from-pink-500 hover:to-#EF4444 border border-gray-200 dark:border-gray-700 hover:border-transparent rounded-xl flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/25 hover:scale-110"
-                    aria-label="Instagram"
-                  >
-                    <Instagram className="w-5 h-5 text-gray-600 dark:text-gray-300 group-hover:text-white transition-colors duration-300" />
-                  </Link>
-                  <Link
-                    href="#"
-                    className="group w-12 h-12 bg-white dark:bg-gray-800 hover:bg-linear-to-br hover:from-blue-700 hover:to-blue-800 border border-gray-200 dark:border-gray-700 hover:border-transparent rounded-xl flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:shadow-blue-700/25 hover:scale-110"
-                    aria-label="LinkedIn"
-                  >
-                    <Linkedin className="w-5 h-5 text-gray-600 dark:text-gray-300 group-hover:text-white transition-colors duration-300" />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Section with enhanced styling */}
-      <div className="relative border-t border-gray-200/60 dark:border-gray-800/60 bg-white/30 dark:bg-gray-900/30 backdrop-blur-sm">
-        <div className="w-full px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col sm:flex-row justify-between items-center space-y-6 sm:space-y-0">
-            <div className="flex items-center space-x-4">
-              <p className="text-gray-600 dark:text-gray-400 text-sm">
-                © 2024 Designer Here. All rights reserved.
-              </p>
-              <div className="hidden sm:block w-1 h-4 bg-linear-to-b from-blue-500 to-#EF4444 rounded-full"></div>
-              <p className="hidden sm:block text-gray-500 dark:text-gray-500 text-xs">
-                Crafted with ❣️
-              </p>
-            </div>
-
-            <div className="flex items-center space-x-8 text-sm">
-              <button
-                onClick={() => setShowPrivacy(true)}
-                className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 relative group"
-              >
-                Privacy Policy
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-linear-to-r from-blue-500 to-#EF4444 group-hover:w-full transition-all duration-300"></span>
-              </button>
-              <button
-                onClick={() => setShowTerms(true)}
-                className="text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200 relative group"
-              >
-                Terms of Service
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-linear-to-r from-blue-500 to-#EF4444 group-hover:w-full transition-all duration-300"></span>
-              </button>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Decorative bottom gradient line */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-linear-to-r from-blue-500 via-purple-500 to-#EF4444 opacity-60"></div>
+        {/* Bottom Bar - Clean and Minimal */}
+        <div className="border-t border-gray-800/50 py-8">
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
+            {/* Copyright */}
+            <p className="text-gray-500 text-sm">
+              © 2024 Designer Here. All rights reserved.
+            </p>
+
+            {/* Social Links - Minimal Style */}
+            <div className="flex items-center gap-6">
+              {socialLinks.map((social, idx) => {
+                const Icon = social.icon;
+                return (
+                  <Link
+                    key={idx}
+                    href={social.href}
+                    className={`text-gray-500 ${social.color} transition-colors duration-200`}
+                    aria-label={social.label}
+                  >
+                    <Icon className="w-5 h-5" />
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Privacy Policy Modal */}
@@ -219,6 +222,15 @@ const Footer = () => {
         title="Terms of Service"
       >
         <TermsOfServiceContent />
+      </Modal>
+
+      {/* Cookie Policy Modal */}
+      <Modal
+        isOpen={showCookies}
+        onClose={() => setShowCookies(false)}
+        title="Cookie Policy"
+      >
+        <CookiePolicyContent />
       </Modal>
     </footer>
   );
