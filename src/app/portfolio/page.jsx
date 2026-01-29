@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import Footer from "@/Components/Footer";
 import ArtworkCard from "@/components/ui/ArtworkCard";
@@ -19,10 +20,12 @@ import {
 import { Grid, List, Search, X, Pen, Loader2, Sparkles } from "lucide-react";
 
 const GraphicDesignPortfolio = () => {
+  const searchParams = useSearchParams();
   const [viewMode, setViewMode] = useState("grid");
   const [searchQuery, setSearchQuery] = useState("");
   const [artworks, setArtworks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const searchInputRef = useRef(null);
 
   // Admin mode detection
   const [isAdminMode, setIsAdminMode] = useState(false);
@@ -63,6 +66,13 @@ const GraphicDesignPortfolio = () => {
   useEffect(() => {
     fetchPortfolio();
   }, []);
+
+  // Focus search input if coming from footer "Search Designs" link
+  useEffect(() => {
+    if (searchParams.get("focus") === "search" && searchInputRef.current) {
+      setTimeout(() => searchInputRef.current?.focus(), 500);
+    }
+  }, [searchParams]);
 
   // Simple filteredArtworks that only respects the search query (no categories, no sorting)
   const filteredArtworks = useMemo(() => {
@@ -248,6 +258,7 @@ const GraphicDesignPortfolio = () => {
                       size={20}
                     />
                     <input
+                      ref={searchInputRef}
                       type="text"
                       placeholder="Search designs, clients, artists..."
                       value={searchQuery}

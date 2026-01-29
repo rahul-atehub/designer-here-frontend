@@ -1,6 +1,7 @@
 "use client";
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import LayoutWrapper from "@/Components/LayoutWrapper";
@@ -10,6 +11,7 @@ import axios from "axios";
 import { API } from "@/config";
 
 export default function Home() {
+  const searchParams = useSearchParams();
   // Existing contact form state
   const [formData, setFormData] = useState({ message: "" });
   const [errors, setErrors] = useState({});
@@ -34,6 +36,7 @@ export default function Home() {
   const [emailSuccess, setEmailSuccess] = useState(false);
   const [isEmailSubmitting, setIsEmailSubmitting] = useState(false);
   const [emailFocusedField, setEmailFocusedField] = useState(null);
+  const emailInputRef = useRef(null);
 
   // Mouse tracking for interactive background
   useEffect(() => {
@@ -44,6 +47,20 @@ export default function Home() {
     window.addEventListener("mousemove", updateMousePosition);
     return () => window.removeEventListener("mousemove", updateMousePosition);
   }, []);
+
+  // Focus email input if coming from footer "Email Support" link
+  useEffect(() => {
+    if (searchParams.get("focus") === "mail" && emailInputRef.current) {
+      setTimeout(() => emailInputRef.current?.focus(), 500);
+    }
+  }, [searchParams]);
+
+  // Focus email input if coming from footer "Email Support" link
+  useEffect(() => {
+    if (searchParams.get("focus") === "mail" && emailInputRef.current) {
+      setTimeout(() => emailInputRef.current?.focus(), 500);
+    }
+  }, [searchParams]);
 
   // Existing contact form handlers
   const handleInputChange = (e) => {
@@ -251,7 +268,7 @@ export default function Home() {
           headers: {
             "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       console.log("Email service response:", response.data);
@@ -564,8 +581,8 @@ export default function Home() {
                           focusedField === "message"
                             ? "border-red-500 shadow-lg shadow-red-500/20 bg-white dark:bg-neutral-800"
                             : errors.message
-                            ? "border-red-400"
-                            : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600"
+                              ? "border-red-400"
+                              : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600"
                         }`}
                       />
                       <AnimatePresence>
@@ -1106,8 +1123,8 @@ export default function Home() {
                         emailFocusedField === "name"
                           ? "border-red-500 shadow-lg shadow-red-500/20 bg-white dark:bg-neutral-800"
                           : emailErrors.name
-                          ? "border-red-400"
-                          : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600"
+                            ? "border-red-400"
+                            : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600"
                       }`}
                     />
                     <AnimatePresence>
@@ -1142,6 +1159,7 @@ export default function Home() {
                     transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   >
                     <motion.input
+                      ref={emailInputRef}
                       type="email"
                       name="email"
                       value={emailFormData.email}
@@ -1153,8 +1171,8 @@ export default function Home() {
                         emailFocusedField === "email"
                           ? "border-red-500 shadow-lg shadow-red-500/20 bg-white dark:bg-neutral-800"
                           : emailErrors.email
-                          ? "border-red-400"
-                          : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600"
+                            ? "border-red-400"
+                            : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600"
                       }`}
                     />
                     <AnimatePresence>
@@ -1200,8 +1218,8 @@ export default function Home() {
                         emailFocusedField === "message"
                           ? "border-red-500 shadow-lg shadow-red-500/20 bg-white dark:bg-neutral-800"
                           : emailErrors.message
-                          ? "border-red-400"
-                          : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600"
+                            ? "border-red-400"
+                            : "border-gray-200 dark:border-neutral-700 hover:border-gray-300 dark:hover:border-neutral-600"
                       }`}
                     />
                     <AnimatePresence>

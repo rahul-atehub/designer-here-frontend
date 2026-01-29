@@ -66,9 +66,33 @@ const Footer = () => {
       links: [
         { name: "Posts", href: "/posts" },
         { name: "Messages", href: "/messages" },
-        { name: "Liked", href: "/liked" },
-        { name: "Saved", href: "/saved" },
+        { name: "Email Support", href: "/contact?focus=mail" },
         { name: "Help Center", href: "/help" },
+      ],
+    },
+    {
+      title: "Explore",
+      links: [
+        { name: "Search Designs", href: "/portfolio?focus=search" },
+        { name: "Trending Designs", href: "/portfolio" },
+        { name: "Recent Searches", href: "/portfolio" },
+      ],
+    },
+    {
+      title: "Features",
+      links: [
+        { name: "View Portfolios", href: "/portfolio" },
+        { name: "Browse Profiles", href: "/profile" },
+        { name: "Message Artists", href: "/messages" },
+        { name: "Discover Works", href: "/portfolio" },
+      ],
+    },
+    {
+      title: "Account",
+      links: [
+        { name: "My Profile", href: "/profile" },
+        { name: "Settings", href: "/settings" },
+        { name: "My Saved Items", href: "/saved" },
       ],
     },
     {
@@ -82,7 +106,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="relative bg-gray-950 dark:bg-black text-gray-300 overflow-hidden">
+    <footer className="relative bg-neutral-950 dark:bg-black text-gray-300 overflow-hidden">
       {/* Subtle top border accent */}
       <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-red-500/50 to-transparent" />
 
