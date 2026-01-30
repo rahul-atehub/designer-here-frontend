@@ -23,6 +23,8 @@ export default function NotificationPanel({ onClose }) {
   const [activeTab, setActiveTab] = useState("messages");
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [underlineStyle, setUnderlineStyle] = useState({ left: 0, width: 0 });
+  const tabRefs = useRef({});
   const { user } = useUser();
   const isAdmin = user?.role === "admin";
   const router = useRouter();
@@ -42,6 +44,18 @@ export default function NotificationPanel({ onClose }) {
     }, 300);
   }, [activeTab]);
 
+  useEffect(() => {
+    // Update underline position when active tab changes
+    const activeTabElement = tabRefs.current[activeTab];
+    if (activeTabElement) {
+      const { offsetLeft, offsetWidth } = activeTabElement;
+      setUnderlineStyle({
+        left: offsetLeft,
+        width: offsetWidth,
+      });
+    }
+  }, [activeTab]);
+
   const tabs = isAdmin
     ? [
         { id: "messages", label: "Messages", icon: MessageSquare },
@@ -58,10 +72,6 @@ export default function NotificationPanel({ onClose }) {
     switch (type) {
       case "like":
         return <Heart className="w-4 h-4 text-red-500" fill="currentColor" />;
-      case "comment":
-        return <MessageSquare className="w-4 h-4 text-blue-500" />;
-      case "follow":
-        return <User className="w-4 h-4 text-green-500" />;
       case "message":
         return <MessageSquare className="w-4 h-4 text-purple-500" />;
       case "post":
@@ -99,13 +109,6 @@ export default function NotificationPanel({ onClose }) {
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
-
-  // Calculate underline position based on active tab
-  const getUnderlinePosition = () => {
-    const tabIndex = tabs.findIndex((tab) => tab.id === activeTab);
-    const tabWidth = 100 / tabs.length;
-    return `${tabIndex * tabWidth}%`;
-  };
 
   return (
     <div className="flex flex-col h-full w-full bg-white dark:bg-neutral-800 overflow-hidden">
@@ -146,14 +149,16 @@ export default function NotificationPanel({ onClose }) {
       </div>
 
       {/* Tabs */}
-      <div className="px-4 py-3 border-b border-gray-200 dark:border-neutral-800 overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-neutral-700 scrollbar-track-transparent">
-        <div className="flex items-center gap-1 relative">
-          {tabs.map(({ id, label, icon: Icon }) => (
+      <div className="px-4 border-b border-gray-200 dark:border-neutral-800">
+        <div className="flex items-center justify-around relative w-full">
+          {tabs.map(({ id, label, icon: Icon }, index) => (
             <button
               key={id}
+              ref={(el) => (tabRefs.current[id] = el)}
               onClick={() => setActiveTab(id)}
+              title={label}
               className={`
-                flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition-all duration-200 whitespace-nowrap relative z-10
+                flex items-center justify-center py-3 text-sm font-medium transition-colors duration-200 relative flex-1
                 ${
                   activeTab === id
                     ? "text-gray-900 dark:text-white"
@@ -162,16 +167,15 @@ export default function NotificationPanel({ onClose }) {
               `}
             >
               <Icon className="w-4 h-4" />
-              <span>{label}</span>
             </button>
           ))}
 
           {/* Animated underline */}
           <div
-            className="absolute bottom-0 h-2px bg-red-500 transition-all duration-300 ease-in-out"
+            className="absolute bottom-0 h-0.5 bg-red-500 transition-all duration-300 ease-out"
             style={{
-              left: getUnderlinePosition(),
-              width: `${100 / tabs.length}%`,
+              left: `${underlineStyle.left}px`,
+              width: `${underlineStyle.width}px`,
             }}
           />
         </div>

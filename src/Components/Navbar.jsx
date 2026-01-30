@@ -131,7 +131,7 @@ export default function Navbar() {
               })}
 
               {/* Separator */}
-              <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-2"></div>
+              <div className="w-px h-6 bg-gray-400 dark:bg-gray-600 mx-2"></div>
 
               {/* Additional Links */}
               {additionalLinks.map(({ label, href, icon: Icon }) => {
