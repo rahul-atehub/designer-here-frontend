@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import SearchBar from "@/Components/SearchBar";
+import NotificationPanel from "@/Components/NotificationPanel";
 import { ThemeToggle } from "@/components/ui/theme.toggle";
 import { FiSun, FiMoon } from "react-icons/fi";
 import { useTheme } from "next-themes";
@@ -38,6 +39,9 @@ export default function Navbar() {
   const isLoggedIn = !!user;
   const [imgError, setImgError] = useState(false);
   const { theme, setTheme } = useTheme();
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const isAdmin = user?.role === "admin";
 
   // Scroll effect
   useEffect(() => {
@@ -47,18 +51,6 @@ export default function Navbar() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
-
-  // Prevent body scroll when mobile menu is open
-  useEffect(() => {
-    if (isMobileMenuOpen) {
-      document.body.classList.add("no-scroll");
-    } else {
-      document.body.classList.remove("no-scroll");
-    }
-    return () => {
-      document.body.classList.remove("no-scroll");
-    };
-  }, [isMobileMenuOpen]);
 
   // Main navigation links
   const mainLinks = [
@@ -95,7 +87,6 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-16">
             {/* Left Section: Logo */}
             <div className="flex items-center space-x-3 shrink-0">
-              {/* Logo */}
               <div className="flex items-center space-x-3 group">
                 <div className="relative">
                   <Image
@@ -169,13 +160,19 @@ export default function Navbar() {
 
             {/* Right Section: Icons and Profile */}
             <div className="flex items-center space-x-3 lg:space-x-4">
-              {/* Search Icon - Hidden on Mobile */}
-              <button className="hidden sm:flex p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] rounded-xl  transition-all duration-200">
-                <Search size={20} />
+              {/* Search Icon */}
+              <button
+                onClick={() => setIsSearchOpen(true)}
+                className="p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] rounded-xl transition-all duration-200"
+              >
+                <Search className="w-5 h-5" />
               </button>
 
               {/* Notifications - Hidden on Mobile */}
-              <button className="hidden sm:flex p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] rounded-xl  transition-all duration-200 relative">
+              <button
+                onClick={() => setIsNotificationOpen(true)}
+                className="hidden sm:flex p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] rounded-xl transition-all duration-200 relative"
+              >
                 <Bell size={20} />
                 <span className="absolute top-1 right-1 w-2 h-2 bg-[#EF4444] rounded-full"></span>
               </button>
@@ -222,7 +219,6 @@ export default function Navbar() {
                       </div>
                     ) : isLoggedIn ? (
                       <>
-                        {/* User Info */}
                         <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                           <p className="text-sm font-semibold text-gray-900 dark:text-white">
                             {user?.username || "User"}
@@ -231,8 +227,6 @@ export default function Navbar() {
                             {user?.email || ""}
                           </p>
                         </div>
-
-                        {/* Logout */}
                         <button
                           onClick={async () => {
                             await logout();
@@ -246,7 +240,6 @@ export default function Navbar() {
                       </>
                     ) : (
                       <>
-                        {/* Not Logged In Menu */}
                         <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                           <p className="text-sm font-semibold text-gray-900 dark:text-white">
                             Welcome Guest
@@ -289,13 +282,54 @@ export default function Navbar() {
         </div>
       </nav>
 
+      {/* Search Overlay - OUTSIDE THE NAV */}
+      {isSearchOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 z-40 animate-in fade-in duration-300"
+            onClick={() => setIsSearchOpen(false)}
+          />
+
+          {/* Desktop: Slide-out Panel */}
+          <div className="hidden md:block fixed top-0 right-0 bottom-0 w-96 bg-white dark:bg-black shadow-2xl z-50 border-l border-gray-200 dark:border-gray-800 animate-in slide-in-from-right duration-300">
+            <SearchBar onClose={() => setIsSearchOpen(false)} />
+          </div>
+
+          {/* Mobile: Fullscreen */}
+          <div className="md:hidden fixed inset-0 bg-white dark:bg-black z-50 animate-in fade-in duration-200">
+            <SearchBar onClose={() => setIsSearchOpen(false)} />
+          </div>
+        </>
+      )}
+
+      {/* Notification Overlay */}
+      {isNotificationOpen && (
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 z-40 animate-in fade-in duration-300"
+            onClick={() => setIsNotificationOpen(false)}
+          />
+
+          {/* Desktop: Slide-out Panel */}
+          <div className="hidden md:block fixed top-0 right-0 bottom-0 w-96 bg-white dark:bg-neutral-900 shadow-2xl z-50 border-l border-gray-200 dark:border-neutral-800 animate-in slide-in-from-right duration-300">
+            <NotificationPanel onClose={() => setIsNotificationOpen(false)} />
+          </div>
+
+          {/* Mobile: Fullscreen */}
+          <div className="md:hidden fixed inset-0 bg-white dark:bg-neutral-900 z-50 animate-in fade-in duration-200">
+            <NotificationPanel onClose={() => setIsNotificationOpen(false)} />
+          </div>
+        </>
+      )}
+
       {/* Mobile Menu */}
       <div
         className={`fixed inset-0 z-50 lg:hidden transition-all duration-300 ${
           isMobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
         }`}
       >
-        {/* Backdrop */}
         <div
           className={`absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300 ${
             isMobileMenuOpen ? "opacity-100" : "opacity-0"
@@ -303,13 +337,11 @@ export default function Navbar() {
           onClick={() => setIsMobileMenuOpen(false)}
         ></div>
 
-        {/* Menu Panel */}
         <div
           className={`relative bg-white dark:bg-neutral-900 w-full h-full flex flex-col shadow-2xl transform transition-transform duration-300 ${
             isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
-          {/* Menu Header with Search */}
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between gap-2">
               <div className="flex-1">
@@ -324,10 +356,8 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* Menu Content */}
           <div className="flex-1 px-6 py-4 overflow-y-auto">
             <div className="space-y-6">
-              {/* Main Navigation */}
               <div>
                 <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
                   Main
@@ -354,7 +384,6 @@ export default function Navbar() {
                 </div>
               </div>
 
-              {/* Additional Options */}
               <div>
                 <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
                   More
@@ -381,7 +410,6 @@ export default function Navbar() {
                 </div>
               </div>
 
-              {/* Theme Toggle */}
               <div className="sm:hidden">
                 <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
                   Settings
@@ -411,7 +439,13 @@ export default function Navbar() {
                 </div>
 
                 {/* Notifications - Mobile Only */}
-                <button className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200">
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setIsNotificationOpen(true);
+                  }}
+                  className="w-full flex items-center justify-between px-4 py-3 rounded-xl text-left text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+                >
                   <span className="font-medium">Notifications</span>
                   <div className="flex items-center space-x-2">
                     <Bell className="w-5 h-5" />

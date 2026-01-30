@@ -152,11 +152,11 @@ const Footer = () => {
               {/* Contact Info - Compact */}
               <div className="pt-4 space-y-3 text-sm">
                 <Link
-                  href="mailto:john@example.com"
+                  href="mailto:designerheredev@gmail.com"
                   className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
                 >
                   <Mail className="w-4 h-4" />
-                  <span>john@example.com</span>
+                  <span>designerheredev@gmail.com</span>
                 </Link>
                 <Link
                   href="tel:+6589735984"

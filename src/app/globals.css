@@ -123,20 +123,28 @@
 
 /* HIDE scrollbar but keep scrolling */
 @layer utilities {
-  .scrollbar-none {
-    -ms-overflow-style: none; /* old Edge/IE */
-    scrollbar-width: none; /* Firefox */
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
   }
-  .scrollbar-none::-webkit-scrollbar {
-    width: 0;
-    height: 0; /* Chrome/Safari/Edge */
+
+  .scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+    background-color: rgb(209 213 219);
+    border-radius: 3px;
+  }
+
+  .dark .scrollbar-thumb-gray-700::-webkit-scrollbar-thumb {
+    background-color: rgb(55 65 81);
+  }
+
+  .scrollbar-track-transparent::-webkit-scrollbar-track {
+    background-color: transparent;
   }
 }
 
 /* Prevent body scrolling when menu is open */
 body.no-scroll {
-  overflow: hidden;
-  height: 100%;
+  overflow: hidden !important;
+  padding-right: 0 !important;
 }
 
 /* THIN, subtle scrollbar (shows faintly on hover) */

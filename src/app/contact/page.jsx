@@ -344,52 +344,9 @@ export default function Home() {
           <link rel="icon" href="/favicon.ico" />
         </Head>
 
-        <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-red-50 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-800 relative overflow-hidden">
+        <div className="min-h-screen bg-linear-to-br slate-50  dark:neutral-950  relative overflow-hidden">
           {/* Enhanced Background Effects */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {/* Animated gradient orbs */}
-            <motion.div
-              className="absolute -top-40 -right-40 w-80 h-80 bg-linear-to-br from-red-400/20 to-pink-500/20 rounded-full blur-3xl"
-              animate={{
-                x: [0, 100, 0],
-                y: [0, -50, 0],
-                scale: [1, 1.2, 1],
-              }}
-              transition={{
-                duration: 20,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-
-            <motion.div
-              className="absolute -bottom-40 -left-40 w-80 h-80 bg-linear-to-br from-blue-400/20 to-purple-500/20 rounded-full blur-3xl"
-              animate={{
-                x: [0, -100, 0],
-                y: [0, 50, 0],
-                scale: [1.2, 1, 1.2],
-              }}
-              transition={{
-                duration: 25,
-                repeat: Infinity,
-                ease: "easeInOut",
-              }}
-            />
-
-            {/* Interactive mouse follower */}
-            <motion.div
-              className="absolute w-96 h-96 bg-gradient-radial from-red-500/10 to-transparent rounded-full blur-xl pointer-events-none"
-              animate={{
-                x: mousePosition.x - 192,
-                y: mousePosition.y - 192,
-              }}
-              transition={{
-                type: "spring",
-                damping: 30,
-                stiffness: 200,
-              }}
-            />
-
             {/* Floating particles */}
             {[...Array(15)].map((_, i) => (
               <motion.div

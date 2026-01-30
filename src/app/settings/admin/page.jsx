@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { API } from "@/config";
 import Head from "next/head";
+import { useSearchParams } from "next/navigation";
 import {
   User,
   Lock,
@@ -32,6 +33,19 @@ export default function AdminSettings() {
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showGenderDropdown, setShowGenderDropdown] = useState(false);
   const fileInputRef = useRef(null);
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab) {
+      setActiveTab(tab);
+      // Also expand the corresponding section
+      setExpandedSections((prev) => ({
+        ...prev,
+        [tab]: true,
+      }));
+    }
+  }, [searchParams]);
 
   // Profile state
   const [profile, setProfile] = useState({

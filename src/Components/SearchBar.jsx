@@ -6,17 +6,15 @@ import { API } from "@/config";
 import { Clock, TrendingUp } from "lucide-react";
 import { useUser } from "@/context/UserContext";
 
-export default function SearchBar() {
+export default function SearchBar({ onClose }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
-  const [showResults, setShowResults] = useState(false);
+  const [activeTab, setActiveTab] = useState("posts");
   const inputRef = useRef(null);
-  const searchContainerRef = useRef(null);
   const { user, loading } = useUser();
+  const isAdmin = user?.role === "admin";
 
-  // Custom debounce function
   function debounce(func, delay) {
     let timeoutId;
     return (...args) => {
@@ -25,13 +23,11 @@ export default function SearchBar() {
     };
   }
 
-  // Recent searches (start empty, fill from API/local later)
   const [recentSearches, setRecentSearches] = useState([]);
   const [trendingSearches, setTrendingSearches] = useState([]);
 
   useEffect(() => {
     if (loading) return;
-
     let ignore = false;
 
     (async () => {
@@ -73,7 +69,6 @@ export default function SearchBar() {
     };
   }, [loading, user]);
 
-  // Debounced API call with Axios
   const fetchResults = debounce(async (searchTerm) => {
     if (!searchTerm.trim()) {
       setResults([]);
@@ -83,41 +78,24 @@ export default function SearchBar() {
     setIsSearching(true);
     try {
       const res = await axios.get(API.SEARCH.SEARCH, {
-        params: { q: searchTerm }, // sends ?q=searchTerm
+        params: { q: searchTerm, type: activeTab },
       });
 
-      setResults(res.data); // ✅ directly use backend response
+      setResults(res.data);
     } catch (error) {
       console.error("Search failed:", error);
-      setResults([]); // clear results on error
+      setResults([]);
     }
     setIsSearching(false);
   }, 400);
 
   useEffect(() => {
     fetchResults(query);
-  }, [query]);
+  }, [query, activeTab]);
 
-  // Handle clicks outside to close results
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        searchContainerRef.current &&
-        !searchContainerRef.current.contains(event.target)
-      ) {
-        setShowResults(false);
-        setIsFocused(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    inputRef.current?.focus();
   }, []);
-
-  const handleFocus = () => {
-    setIsFocused(true);
-    setShowResults(true);
-  };
 
   const clearSearch = () => {
     setQuery("");
@@ -127,8 +105,8 @@ export default function SearchBar() {
 
   const handleResultClick = (result) => {
     console.log("Selected:", result);
-    setShowResults(false);
-    setQuery(result.title);
+    if (onClose) onClose();
+    setQuery(result.title || result.username);
   };
 
   const handleQuickSearch = (searchTerm) => {
@@ -136,114 +114,107 @@ export default function SearchBar() {
     inputRef.current?.focus();
   };
 
-  const getTypeIcon = (type) => {
-    const iconClass = "w-4 h-4";
-    switch (type) {
-      case "video":
-        return <div className={`${iconClass} bg-red-500 rounded-sm`}></div>;
-      case "code":
-        return <div className={`${iconClass} bg-green-500 rounded-sm`}></div>;
-      case "article":
-        return <div className={`${iconClass} bg-blue-500 rounded-sm`}></div>;
-      default:
-        return <div className={`${iconClass} bg-gray-400 rounded-sm`}></div>;
-    }
-  };
-
-  const getCategoryColor = (category) => {
-    const colors = {
-      Tutorial:
-        "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/20",
-      Guide:
-        "text-violet-600 bg-violet-50 dark:text-violet-400 dark:bg-violet-900/20",
-      Examples:
-        "text-emerald-600 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-900/20",
-      Reference:
-        "text-orange-600 bg-orange-50 dark:text-orange-400 dark:bg-orange-900/20",
-      Tools: "text-pink-600 bg-pink-50 dark:text-pink-400 dark:bg-pink-900/20",
-    };
-    return (
-      colors[category] ||
-      "text-gray-600 bg-gray-50 dark:text-gray-400 dark:bg-gray-900/20"
-    );
-  };
-
   return (
-    <div className="w-full max-w-3xl mx-auto relative" ref={searchContainerRef}>
-      {/* Main Search Input */}
-      <div
-        className={`
-        relative flex items-center border-2 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md
-        rounded-full px-4 py-3 shadow-lg transition-all duration-300 ease-out
-        ${
-          isFocused
-            ? "border-red-500 shadow-2xl shadow-red-500/20 scale-[1.02] bg-white dark:bg-neutral-900"
-            : "border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 hover:shadow-xl"
-        }
-      `}
-      >
-        <Search
-          className={`
-          w-5 h-5 mr-2 transition-all duration-200
-          ${isFocused ? "text-red-500" : "text-gray-500 dark:text-gray-400"}
-        `}
-        />
-
-        <span className="text-gray-400 select-none mr-2">|</span>
-
-        <input
-          ref={inputRef}
-          type="text"
-          className="flex-1 bg-transparent focus:outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 text-gray-900 dark:text-white"
-          placeholder="Search "
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={handleFocus}
-        />
-
-        <div className="flex items-center gap-2">
-          {isSearching && (
-            <div className="relative">
-              <div className="w-4 h-4 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
-              <div className="absolute inset-0 w-4 h-4 border-2 border-violet-500/30 rounded-full animate-ping"></div>
-            </div>
-          )}
-
-          {query && !isSearching && (
+    <div className="flex flex-col h-full w-full bg-white dark:bg-neutral-800 overflow-hidden">
+      {/* Header with Tabs */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+        {isAdmin ? (
+          <div className="flex items-center gap-1 relative">
             <button
-              onClick={clearSearch}
-              className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all duration-200 hover:scale-110"
+              onClick={() => setActiveTab("posts")}
+              className={`
+                px-4 py-2 text-sm font-medium transition-all duration-200 relative z-10
+                ${
+                  activeTab === "posts"
+                    ? "text-gray-900 dark:text-white"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                }
+              `}
             >
-              <X className="w-4 h-4 text-gray-400 hover:text-red-500" />
+              Posts
             </button>
-          )}
+            <button
+              onClick={() => setActiveTab("users")}
+              className={`
+                px-4 py-2 text-sm font-medium transition-all duration-200 relative z-10
+                ${
+                  activeTab === "users"
+                    ? "text-gray-900 dark:text-white"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                }
+              `}
+            >
+              Users
+            </button>
+
+            {/* Animated underline */}
+            <div
+              className="absolute bottom-0 h-0.5 bg-red-500 transition-all duration-300 ease-in-out"
+              style={{
+                left: activeTab === "posts" ? "0.25rem" : "calc(50% + 0.25rem)",
+                width: "calc(50% - 0.5rem)",
+              }}
+            />
+          </div>
+        ) : (
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Search
+          </h2>
+        )}
+
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors duration-200"
+          >
+            <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+          </button>
+        )}
+      </div>
+
+      {/* Search Input */}
+      <div className="p-4">
+        <div className="relative flex items-center bg-gray-50 dark:bg-neutral-900 rounded-lg px-4 py-3 border border-gray-200 dark:border-gray-800 focus-within:border-gray-400 dark:focus-within:border-gray-600 transition-colors">
+          <Search className="w-5 h-5 mr-3 text-gray-400 dark:text-gray-500" />
+
+          <input
+            ref={inputRef}
+            type="text"
+            className="flex-1 bg-transparent focus:outline-none placeholder:text-gray-400 dark:placeholder:text-gray-500 text-gray-900 dark:text-white text-sm"
+            placeholder={
+              activeTab === "users" ? "Search users..." : "Search posts..."
+            }
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+
+          <div className="flex items-center gap-2">
+            {isSearching && (
+              <div className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            )}
+
+            {query && !isSearching && (
+              <button
+                onClick={clearSearch}
+                className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-neutral-800 transition-colors"
+              >
+                <X className="w-4 h-4 text-gray-400" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Search Results Dropdown */}
-      {showResults && (
-        <div
-          className={`
-          absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-neutral-900/95 backdrop-blur-md
-          rounded-md shadow-2xl border border-gray-200 dark:border-gray-700 max-h-96 overflow-hidden z-50
-          transform transition-all duration-300 ease-out
-          ${
-            showResults
-              ? "opacity-100 translate-y-0 scale-100"
-              : "opacity-0 -translate-y-2 scale-95"
-          }
-        `}
-        >
-          {/* Search Results */}
-
+      {/* Results Area with smooth transitions */}
+      <div className="flex-1 overflow-y-auto px-4 pb-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent">
+        <div className="animate-in fade-in duration-300">
           {!query && (
-            <div className="p-6 space-y-6">
-              {/* Recent Searches */}
+            <div className="space-y-6">
               {recentSearches.length > 0 && (
-                <div>
+                <div className="animate-in slide-in-from-top-2 duration-300">
                   <div className="flex items-center gap-2 mb-3">
                     <Clock className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       Recent
                     </span>
                   </div>
@@ -252,7 +223,7 @@ export default function SearchBar() {
                       <button
                         key={index}
                         onClick={() => handleQuickSearch(search)}
-                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all duration-200 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-900 transition-all duration-200 text-sm text-gray-700 dark:text-gray-300"
                       >
                         {search}
                       </button>
@@ -261,12 +232,11 @@ export default function SearchBar() {
                 </div>
               )}
 
-              {/* Trending Searches */}
               {trendingSearches.length > 0 && (
-                <div>
+                <div className="animate-in slide-in-from-top-2 duration-300 delay-75">
                   <div className="flex items-center gap-2 mb-3">
                     <TrendingUp className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide">
+                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                       Trending
                     </span>
                   </div>
@@ -275,7 +245,7 @@ export default function SearchBar() {
                       <button
                         key={index}
                         onClick={() => handleQuickSearch(search)}
-                        className="w-full text-left px-3 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-neutral-800 transition-all duration-200 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+                        className="w-full text-left px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-900 transition-all duration-200 text-sm text-gray-700 dark:text-gray-300"
                       >
                         {search}
                       </button>
@@ -285,8 +255,49 @@ export default function SearchBar() {
               )}
             </div>
           )}
+
+          {query && results.length > 0 && (
+            <div className="space-y-2">
+              {results.map((result, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleResultClick(result)}
+                  className="w-full text-left p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-900 transition-all duration-200 border border-gray-200 dark:border-gray-800 animate-in fade-in slide-in-from-bottom-2"
+                  style={{ animationDelay: `${index * 30}ms` }}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        {result.title || result.username || "Untitled"}
+                      </h3>
+                      {result.description && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
+                          {result.description}
+                        </p>
+                      )}
+                      {result.email && activeTab === "users" && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          {result.email}
+                        </p>
+                      )}
+                    </div>
+                    <ArrowUpRight className="w-4 h-4 text-gray-400 shrink-0" />
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {query && !isSearching && results.length === 0 && (
+            <div className="text-center py-12 animate-in fade-in zoom-in-95 duration-300">
+              <Search className="w-12 h-12 text-gray-300 dark:text-gray-700 mx-auto mb-3" />
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                No results found for "{query}"
+              </p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
