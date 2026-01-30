@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import LayoutWrapper from "@/Components/LayoutWrapper";
+import SearchParamsWrapper from "@/components/SearchParamsWrapper";
 import Footer from "@/Components/Footer";
 import { useUser } from "@/context/UserContext";
 import axios from "axios";
@@ -764,9 +765,9 @@ function ContactContent() {
                     {showAuthModal && (
                       <motion.div
                         className="mt-4 p-3 rounded-lg text-sm
-               bg-yellow-50 text-yellow-800
-               dark:bg-yellow-900/20 dark:text-yellow-300
-               border border-yellow-200 dark:border-yellow-800"
+                    bg-yellow-50 text-yellow-800
+                    dark:bg-yellow-900/20 dark:text-yellow-300
+                    border border-yellow-200 dark:border-yellow-800"
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
@@ -1261,9 +1262,9 @@ export default function Home() {
   return (
     <LayoutWrapper>
       <>
-        <Suspense fallback={<div>Loading...</div>}>
+        <SearchParamsWrapper>
           <ContactContent />
-        </Suspense>
+        </SearchParamsWrapper>
       </>
       <Footer />
     </LayoutWrapper>

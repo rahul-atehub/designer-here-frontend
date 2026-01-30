@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import Footer from "@/Components/Footer";
 import ArtworkCard from "@/components/ui/ArtworkCard";
+import SearchParamsWrapper from "@/components/SearchParamsWrapper";
 import { API } from "@/config";
 import axios from "axios";
 const api = axios.create({
@@ -452,15 +453,9 @@ const PortfolioContent = () => {
 const GraphicDesignPortfolio = () => {
   return (
     <LayoutWrapper>
-      <Suspense
-        fallback={
-          <div className="min-h-screen bg-white dark:bg-neutral-950 flex items-center justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-red-500" />
-          </div>
-        }
-      >
+      <SearchParamsWrapper>
         <PortfolioContent />
-      </Suspense>
+      </SearchParamsWrapper>
       <Footer />
     </LayoutWrapper>
   );

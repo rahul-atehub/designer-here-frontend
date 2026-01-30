@@ -4,6 +4,7 @@ import axios from "axios";
 import { API } from "@/config";
 import Head from "next/head";
 import { useSearchParams } from "next/navigation";
+import SearchParamsWrapper from "@/components/SearchParamsWrapper";
 import {
   User,
   Lock,
@@ -24,8 +25,9 @@ import {
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import PasswordAndSecurity from "@/app/settings/PasswordAndSecurity";
 
-export default function AdminSettings() {
+function AdminSettingsContent() {
   const [activeTab, setActiveTab] = useState("profile");
+  const searchParams = useSearchParams();
   const [expandedSections, setExpandedSections] = useState({ profile: true });
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -33,7 +35,6 @@ export default function AdminSettings() {
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showGenderDropdown, setShowGenderDropdown] = useState(false);
   const fileInputRef = useRef(null);
-  const searchParams = useSearchParams();
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -1523,5 +1524,13 @@ export default function AdminSettings() {
         </div>
       </LayoutWrapper>
     </>
+  );
+}
+
+export default function AdminSettings() {
+  return (
+    <SearchParamsWrapper>
+      <AdminSettingsContent />
+    </SearchParamsWrapper>
   );
 }
