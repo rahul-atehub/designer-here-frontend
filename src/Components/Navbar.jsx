@@ -42,6 +42,7 @@ export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const isAdmin = user?.role === "admin";
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Scroll effect
   useEffect(() => {
@@ -174,7 +175,9 @@ export default function Navbar() {
                 className="hidden sm:flex p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] rounded-xl transition-all duration-200 relative"
               >
                 <Bell size={20} />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-[#EF4444] rounded-full"></span>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-[#EF4444] rounded-full"></span>
+                )}
               </button>
 
               {/* Theme Toggle - Hidden on Mobile */}
@@ -314,12 +317,18 @@ export default function Navbar() {
 
           {/* Desktop: Slide-out Panel */}
           <div className="hidden md:block fixed top-0 right-0 bottom-0 w-96 bg-white dark:bg-neutral-900 shadow-2xl z-50 border-l border-gray-200 dark:border-neutral-800 animate-in slide-in-from-right duration-300">
-            <NotificationPanel onClose={() => setIsNotificationOpen(false)} />
+            <NotificationPanel
+              onClose={() => setIsNotificationOpen(false)}
+              onMarkAsRead={() => setUnreadCount(0)}
+            />
           </div>
 
           {/* Mobile: Fullscreen */}
           <div className="md:hidden fixed inset-0 bg-white dark:bg-neutral-900 z-50 animate-in fade-in duration-200">
-            <NotificationPanel onClose={() => setIsNotificationOpen(false)} />
+            <NotificationPanel
+              onClose={() => setIsNotificationOpen(false)}
+              onMarkAsRead={() => setUnreadCount(0)}
+            />
           </div>
         </>
       )}
@@ -449,7 +458,9 @@ export default function Navbar() {
                   <span className="font-medium">Notifications</span>
                   <div className="flex items-center space-x-2">
                     <Bell className="w-5 h-5" />
-                    <span className="w-2 h-2 bg-[#EF4444] rounded-full"></span>
+                    {unreadCount > 0 && (
+                      <span className="w-2 h-2 bg-[#EF4444] rounded-full"></span>
+                    )}
                   </div>
                 </button>
               </div>

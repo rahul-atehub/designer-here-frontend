@@ -19,7 +19,7 @@ import axios from "axios";
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "next/navigation";
 
-export default function NotificationPanel({ onClose }) {
+export default function NotificationPanel({ onClose, onMarkAsRead }) {
   const [activeTab, setActiveTab] = useState("messages");
   const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,20 +29,24 @@ export default function NotificationPanel({ onClose }) {
   const isAdmin = user?.role === "admin";
   const router = useRouter();
 
-  useEffect(() => {
-    // Fetch notifications based on activeTab
-    setIsLoading(true);
-    // TODO: Replace with actual API call
-    // Example: axios.get(`/api/notifications/${activeTab}`)
-    //   .then(response => setNotifications(response.data))
-    //   .catch(error => console.error(error))
-    //   .finally(() => setIsLoading(false));
+  // useEffect(() => {
+  //   const fetchNotifications = async () => {
+  //     if (!user) return;
 
-    setTimeout(() => {
-      setNotifications([]);
-      setIsLoading(false);
-    }, 300);
-  }, [activeTab]);
+  //     setIsLoading(true);
+  //     try {
+  //       const response = await axios.get(`/api/notifications/${activeTab}`);
+  //       setNotifications(response.data);
+  //     } catch (error) {
+  //       console.error("Error fetching notifications:", error);
+  //       setNotifications([]);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+
+  //   fetchNotifications();
+  // }, [activeTab, user]);
 
   useEffect(() => {
     // Update underline position when active tab changes
@@ -81,24 +85,62 @@ export default function NotificationPanel({ onClose }) {
     }
   };
 
-  const markAsRead = (id) => {
-    // TODO: API call to mark notification as read
-    // axios.put(`/api/notifications/${id}/read`)
-    setNotifications((prev) =>
-      prev.map((notif) => (notif.id === id ? { ...notif, read: true } : notif)),
-    );
+  const markAsRead = async (id) => {
+    try {
+      // await axios.put(`/api/notifications/${id}/read`);
+
+      // Update the navbar's unread count
+      const updatedNotifications = notifications.map((notif) =>
+        notif.id === id ? { ...notif, read: true } : notif,
+      );
+      setNotifications(updatedNotifications);
+
+      const newUnreadCount = updatedNotifications.filter((n) => !n.read).length;
+      if (newUnreadCount === 0 && onMarkAsRead) {
+        onMarkAsRead();
+      }
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+    }
   };
 
-  const markAllAsRead = () => {
-    // TODO: API call to mark all notifications as read
-    // axios.put(`/api/notifications/read-all`)
-    setNotifications((prev) => prev.map((notif) => ({ ...notif, read: true })));
+  const markAllAsRead = async () => {
+    try {
+      // await axios.put(`/api/notifications/read-all`, { tab: activeTab });
+      setNotifications((prev) =>
+        prev.map((notif) => ({ ...notif, read: true })),
+      );
+
+      // Update the navbar's unread count
+      if (onMarkAsRead) {
+        onMarkAsRead();
+      }
+    } catch (error) {
+      console.error("Error marking all as read:", error);
+    }
   };
 
-  const deleteNotification = (id) => {
-    // TODO: API call to delete notification
-    // axios.delete(`/api/notifications/${id}`)
-    setNotifications((prev) => prev.filter((notif) => notif.id !== id));
+  const deleteNotification = async (id) => {
+    try {
+      // await axios.delete(`/api/notifications/${id}`);
+      const deletedNotif = notifications.find((n) => n.id === id);
+      const updatedNotifications = notifications.filter(
+        (notif) => notif.id !== id,
+      );
+      setNotifications(updatedNotifications);
+
+      // If deleted notification was unread, update navbar count
+      if (deletedNotif && !deletedNotif.read) {
+        const newUnreadCount = updatedNotifications.filter(
+          (n) => !n.read,
+        ).length;
+        if (newUnreadCount === 0 && onMarkAsRead) {
+          onMarkAsRead();
+        }
+      }
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+    }
   };
 
   const handleNotificationSettings = () => {
