@@ -46,8 +46,23 @@ function SettingsContent() {
   const fileInputRef = useRef(null);
   const router = useRouter();
   const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [showErrorToast, setShowErrorToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   const isAdmin = contextUser?.role === "admin";
+
+  // Toast helper functions
+  const showSuccess = (message) => {
+    setToastMessage(message);
+    setShowSuccessToast(true);
+    setTimeout(() => setShowSuccessToast(false), 3000);
+  };
+
+  const showError = (message) => {
+    setToastMessage(message);
+    setShowErrorToast(true);
+    setTimeout(() => setShowErrorToast(false), 3000);
+  };
 
   useEffect(() => {
     const tab = searchParams.get("tab");
@@ -133,36 +148,23 @@ function SettingsContent() {
       id: "password",
       label: "Password & Security",
       icon: Lock,
-      subsections: isAdmin
-        ? [
-            {
-              id: "change-password",
-              label: "Change Password",
-              contentId: "password",
-            },
-            {
-              id: "password-recovery",
-              label: "Password Recovery",
-              contentId: "recovery",
-            },
-            {
-              id: "change-email",
-              label: "Change Email",
-              contentId: "email",
-            },
-          ]
-        : [
-            {
-              id: "change-password",
-              label: "Change Password",
-              contentId: "password",
-            },
-            {
-              id: "password-recovery",
-              label: "Password Recovery",
-              contentId: "password",
-            },
-          ],
+      subsections: [
+        {
+          id: "change-password",
+          label: "Change Password",
+          contentId: "password",
+        },
+        {
+          id: "password-recovery",
+          label: "Password Recovery",
+          contentId: "recovery",
+        },
+        {
+          id: "change-email",
+          label: "Change Email",
+          contentId: "email",
+        },
+      ],
     },
     ...(isAdmin
       ? [
@@ -319,7 +321,7 @@ function SettingsContent() {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        alert("File size must be less than 5MB");
+        showError("File size must be less than 5MB");
         return;
       }
 
@@ -343,12 +345,10 @@ function SettingsContent() {
       formData.append("bio", profile.bio);
       formData.append("email", profile.email);
 
-      if (isAdmin) {
-        formData.append("username", profile.username);
-        formData.append("gender", profile.gender);
-        if (profile.gender === "custom") {
-          formData.append("customGender", profile.customGender);
-        }
+      formData.append("username", profile.username);
+      formData.append("gender", profile.gender);
+      if (profile.gender === "custom") {
+        formData.append("customGender", profile.customGender);
       }
 
       if (profile.profilePicture instanceof File) {
@@ -362,11 +362,10 @@ function SettingsContent() {
         },
       });
 
-      setShowSuccessToast(true);
-      setTimeout(() => setShowSuccessToast(false), 3000);
+      showSuccess("Profile updated");
     } catch (error) {
       console.error("Error updating profile:", error);
-      alert("Failed to update profile");
+      showError("Failed to update profile");
     } finally {
       setIsSaving(false);
     }
@@ -374,7 +373,7 @@ function SettingsContent() {
 
   const changePassword = async () => {
     if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("New passwords do not match");
+      showError("New passwords do not match");
       return;
     }
 
@@ -391,7 +390,7 @@ function SettingsContent() {
         },
       );
 
-      alert("Password changed successfully!");
+      showSuccess("Password changed successfully");
       setPasswordData({
         oldPassword: "",
         newPassword: "",
@@ -399,7 +398,7 @@ function SettingsContent() {
       });
     } catch (error) {
       console.error("Error changing password:", error);
-      alert("Failed to change password");
+      showError("Failed to change password");
     } finally {
       setIsSaving(false);
     }
@@ -407,7 +406,7 @@ function SettingsContent() {
 
   const promoteToAdmin = async () => {
     if (!searchAdminEmail) {
-      alert("Please enter a user email");
+      showError("Please enter a user email");
       return;
     }
 
@@ -451,10 +450,10 @@ function SettingsContent() {
         },
       );
       fetchUsers();
-      alert("User removed from team members successfully");
+      showSuccess("User removed from team members");
     } catch (error) {
       console.error("Error removing admin:", error);
-      alert("Failed to remove user from team");
+      showError("Failed to remove user from team");
     }
   };
 
@@ -469,10 +468,10 @@ function SettingsContent() {
       );
       fetchUsers();
       fetchBlockedAccounts();
-      alert("User blocked successfully");
+      showSuccess("User blocked successfully");
     } catch (error) {
       console.error("Error blocking user:", error);
-      alert("Failed to block user");
+      showError("Failed to block user");
     }
   };
 
@@ -487,16 +486,16 @@ function SettingsContent() {
       );
       fetchUsers();
       fetchBlockedAccounts();
-      alert("User unblocked successfully");
+      showSuccess("User unblocked successfully");
     } catch (error) {
       console.error("Error unblocking user:", error);
-      alert("Failed to unblock user");
+      showError("Failed to unblock user");
     }
   };
 
   const deleteAccount = async () => {
     if (deleteData.inputConfirmation !== "DELETE") {
-      alert('Please type "DELETE" to confirm');
+      showError('Please type "DELETE" to confirm');
       return;
     }
 
@@ -511,7 +510,7 @@ function SettingsContent() {
       window.location.href = "/";
     } catch (error) {
       console.error("Error deleting account:", error);
-      alert("Failed to delete account");
+      showError("Failed to delete account");
     } finally {
       setIsSaving(false);
     }
@@ -519,7 +518,7 @@ function SettingsContent() {
 
   const deactivateAccount = async () => {
     if (deactivateData.inputConfirmation !== "DEACTIVATE") {
-      alert('Please type "DEACTIVATE" to confirm');
+      showError('Please type "DEACTIVATE" to confirm');
       return;
     }
 
@@ -537,7 +536,7 @@ function SettingsContent() {
       window.location.href = "/";
     } catch (error) {
       console.error("Error deactivating account:", error);
-      alert("Failed to deactivate account");
+      showError("Failed to deactivate account");
     } finally {
       setIsSaving(false);
     }
@@ -747,51 +746,30 @@ function SettingsContent() {
                               onClick={() => fileInputRef.current?.click()}
                               className="absolute -bottom-2 -right-2 w-10 h-10 rounded-lg border-2 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black flex items-center justify-center hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all text-black dark:text-white"
                             >
-                              {isAdmin ? (
-                                <svg
-                                  className="w-5 h-5"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                  />
-                                </svg>
-                              ) : (
-                                <Upload className="w-5 h-5" />
-                              )}
+                              <svg
+                                className="w-5 h-5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                />
+                              </svg>
                             </button>
                           </div>
                           <div className="flex-1 pt-2">
-                            {isAdmin ? (
-                              <>
-                                <p className="text-sm text-black dark:text-white font-medium">
-                                  {profile.username || "username"}
-                                </p>
-                                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-                                  {profile.name || "name"}
-                                </p>
-                              </>
-                            ) : (
-                              <>
-                                <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide font-medium">
-                                  Profile Picture
-                                </p>
-                                <p className="text-sm text-black dark:text-white font-medium mb-4">
-                                  JPG or PNG up to 5MB
-                                </p>
-                                <button
-                                  onClick={() => fileInputRef.current?.click()}
-                                  className="px-5 py-2.5 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all"
-                                >
-                                  Choose Photo
-                                </button>
-                              </>
-                            )}
+                            <>
+                              <p className="text-sm text-black dark:text-white font-medium">
+                                {profile.username || "username"}
+                              </p>
+                              <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                {profile.name || "name"}
+                              </p>
+                            </>
                           </div>
                         </div>
                         <input
@@ -804,171 +782,27 @@ function SettingsContent() {
                       </div>
 
                       {/* Profile Fields */}
-                      {isAdmin ? (
-                        <div className="space-y-6 mb-8">
-                          {/* Username and Name in one row */}
-                          <div className="grid grid-cols-2 gap-8">
-                            <div>
-                              <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
-                                Username
-                              </label>
-                              <input
-                                type="text"
-                                value={profile.username || ""}
-                                onChange={(e) =>
-                                  handleProfileChange(
-                                    "username",
-                                    e.target.value,
-                                  )
-                                }
-                                placeholder="Enter your username"
-                                className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
-                                Name
-                              </label>
-                              <input
-                                type="text"
-                                value={profile.name}
-                                onChange={(e) =>
-                                  handleProfileChange("name", e.target.value)
-                                }
-                                placeholder="Enter your name"
-                                className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                              />
-                            </div>
-                          </div>
-
-                          {/* Gender Section */}
-                          <div className="grid grid-cols-2 gap-8">
-                            <div className="relative">
-                              <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
-                                Gender
-                              </label>
-                              <button
-                                onClick={() =>
-                                  setShowGenderDropdown(!showGenderDropdown)
-                                }
-                                className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all text-left flex items-center justify-between"
-                              >
-                                <span>
-                                  {profile.gender === "custom" &&
-                                  profile.customGender
-                                    ? profile.customGender
-                                    : profile.gender
-                                      ? profile.gender.charAt(0).toUpperCase() +
-                                        profile.gender
-                                          .slice(1)
-                                          .replace(/_/g, " ")
-                                      : "Select Gender"}
-                                </span>
-                                {showGenderDropdown ? (
-                                  <ChevronUp className="w-4 h-4" />
-                                ) : (
-                                  <ChevronDown className="w-4 h-4" />
-                                )}
-                              </button>
-
-                              {/* Gender Dropdown */}
-                              {showGenderDropdown && (
-                                <div className="absolute top-full mt-1 w-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-lg shadow-lg z-10">
-                                  <div className="p-4 space-y-4">
-                                    {[
-                                      { value: "female", label: "Female" },
-                                      { value: "male", label: "Male" },
-                                      { value: "custom", label: "Custom" },
-                                      {
-                                        value: "prefer_not_to_say",
-                                        label: "Prefer not to say",
-                                      },
-                                    ].map((option) => (
-                                      <div key={option.value}>
-                                        <button
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleProfileChange(
-                                              "gender",
-                                              option.value,
-                                            );
-                                            if (option.value !== "custom") {
-                                              setShowGenderDropdown(false);
-                                            }
-                                          }}
-                                          className="w-full flex items-center justify-between px-3 py-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all text-left"
-                                        >
-                                          <label className="text-sm text-black dark:text-white cursor-pointer">
-                                            {option.label}
-                                          </label>
-                                          <div
-                                            className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center shrink-0 ${
-                                              profile.gender === option.value
-                                                ? "border-black dark:border-white"
-                                                : "border-zinc-300 dark:border-zinc-700"
-                                            }`}
-                                          >
-                                            {profile.gender ===
-                                              option.value && (
-                                              <div className="w-3 h-3 rounded-full bg-black dark:bg-white" />
-                                            )}
-                                          </div>
-                                        </button>
-
-                                        {/* Custom Gender Input - appears right after custom button */}
-                                        {option.value === "custom" &&
-                                          profile.gender === "custom" && (
-                                            <input
-                                              type="text"
-                                              value={profile.customGender || ""}
-                                              onChange={(e) =>
-                                                handleProfileChange(
-                                                  "customGender",
-                                                  e.target.value,
-                                                )
-                                              }
-                                              onKeyDown={(e) => {
-                                                if (e.key === "Enter") {
-                                                  setShowGenderDropdown(false);
-                                                }
-                                              }}
-                                              onBlur={() => {
-                                                setShowGenderDropdown(false);
-                                              }}
-                                              autoFocus
-                                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 mt-2 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                                            />
-                                          )}
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Bio */}
+                      <div className="space-y-6 mb-8">
+                        {/* Username and Name in one row */}
+                        <div className="grid grid-cols-2 gap-8">
                           <div>
                             <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
-                              Bio
+                              Username
                             </label>
-                            <textarea
-                              value={profile.bio}
+                            <input
+                              type="text"
+                              value={profile.username || ""}
                               onChange={(e) =>
-                                handleProfileChange("bio", e.target.value)
+                                handleProfileChange("username", e.target.value)
                               }
-                              placeholder="Tell us about yourself..."
-                              rows="4"
-                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all resize-none"
+                              placeholder="Enter your username"
+                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
                             />
                           </div>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-2 gap-8 mb-8">
+
                           <div>
                             <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
-                              Full Name
+                              Name
                             </label>
                             <input
                               type="text"
@@ -976,31 +810,117 @@ function SettingsContent() {
                               onChange={(e) =>
                                 handleProfileChange("name", e.target.value)
                               }
-                              placeholder="Enter your full name"
-                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
-                              Email Address
-                            </label>
-                            <input
-                              type="email"
-                              value={profile.email}
-                              onChange={(e) =>
-                                handleProfileChange("email", e.target.value)
-                              }
-                              placeholder="Enter your email"
+                              placeholder="Enter your name"
                               className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
                             />
                           </div>
                         </div>
-                      )}
 
-                      {/* Bio for non-admin */}
-                      {!isAdmin && (
-                        <div className="mb-8">
+                        {/* Gender Section */}
+                        <div className="grid grid-cols-2 gap-8">
+                          <div className="relative">
+                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
+                              Gender
+                            </label>
+                            <button
+                              onClick={() =>
+                                setShowGenderDropdown(!showGenderDropdown)
+                              }
+                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all text-left flex items-center justify-between"
+                            >
+                              <span>
+                                {profile.gender === "custom" &&
+                                profile.customGender
+                                  ? profile.customGender
+                                  : profile.gender
+                                    ? profile.gender.charAt(0).toUpperCase() +
+                                      profile.gender.slice(1).replace(/_/g, " ")
+                                    : "Select Gender"}
+                              </span>
+                              {showGenderDropdown ? (
+                                <ChevronUp className="w-4 h-4" />
+                              ) : (
+                                <ChevronDown className="w-4 h-4" />
+                              )}
+                            </button>
+
+                            {/* Gender Dropdown */}
+                            {showGenderDropdown && (
+                              <div className="absolute top-full mt-1 w-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-lg shadow-lg z-10">
+                                <div className="p-4 space-y-4">
+                                  {[
+                                    { value: "female", label: "Female" },
+                                    { value: "male", label: "Male" },
+                                    { value: "custom", label: "Custom" },
+                                    {
+                                      value: "prefer_not_to_say",
+                                      label: "Prefer not to say",
+                                    },
+                                  ].map((option) => (
+                                    <div key={option.value}>
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleProfileChange(
+                                            "gender",
+                                            option.value,
+                                          );
+                                          if (option.value !== "custom") {
+                                            setShowGenderDropdown(false);
+                                          }
+                                        }}
+                                        className="w-full flex items-center justify-between px-3 py-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all text-left"
+                                      >
+                                        <label className="text-sm text-black dark:text-white cursor-pointer">
+                                          {option.label}
+                                        </label>
+                                        <div
+                                          className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center shrink-0 ${
+                                            profile.gender === option.value
+                                              ? "border-black dark:border-white"
+                                              : "border-zinc-300 dark:border-zinc-700"
+                                          }`}
+                                        >
+                                          {profile.gender === option.value && (
+                                            <div className="w-3 h-3 rounded-full bg-black dark:bg-white" />
+                                          )}
+                                        </div>
+                                      </button>
+
+                                      {/* Custom Gender Input - appears right after custom button */}
+                                      {option.value === "custom" &&
+                                        profile.gender === "custom" && (
+                                          <input
+                                            type="text"
+                                            value={profile.customGender || ""}
+                                            onChange={(e) =>
+                                              handleProfileChange(
+                                                "customGender",
+                                                e.target.value,
+                                              )
+                                            }
+                                            onKeyDown={(e) => {
+                                              if (e.key === "Enter") {
+                                                setShowGenderDropdown(false);
+                                              }
+                                            }}
+                                            onBlur={() => {
+                                              setShowGenderDropdown(false);
+                                            }}
+                                            autoFocus
+                                            className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 mt-2 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
+                                          />
+                                        )}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Bio */}
+                        <div>
                           <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
                             Bio
                           </label>
@@ -1014,7 +934,7 @@ function SettingsContent() {
                             className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all resize-none"
                           />
                         </div>
-                      )}
+                      </div>
 
                       <button
                         onClick={saveProfile}
@@ -1028,106 +948,14 @@ function SettingsContent() {
                 )}
 
                 {/* PASSWORD & SECURITY TAB */}
-                {isAdmin &&
-                  (activeTab === "password" ||
-                    activeTab === "email" ||
-                    activeTab === "recovery") && (
-                    <PasswordAndSecurity
-                      defaultTab={
-                        activeTab === "recovery" ? "forgot-password" : activeTab
-                      }
-                    />
-                  )}
-
-                {!isAdmin && activeTab === "password" && (
-                  <div className="space-y-8 animate-in fade-in duration-300">
-                    <div>
-                      <h2 className="text-2xl font-light text-black dark:text-white mb-8">
-                        Password & Security
-                      </h2>
-
-                      {/* Change Password Card */}
-                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 mb-8">
-                        <h3 className="text-lg font-light text-black dark:text-white mb-6">
-                          Change Password
-                        </h3>
-                        <div className="space-y-5">
-                          <div>
-                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide font-medium">
-                              Current Password
-                            </label>
-                            <input
-                              type="password"
-                              value={passwordData.oldPassword}
-                              onChange={(e) =>
-                                setPasswordData((prev) => ({
-                                  ...prev,
-                                  oldPassword: e.target.value,
-                                }))
-                              }
-                              placeholder="••••••••"
-                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide font-medium">
-                              New Password
-                            </label>
-                            <input
-                              type="password"
-                              value={passwordData.newPassword}
-                              onChange={(e) =>
-                                setPasswordData((prev) => ({
-                                  ...prev,
-                                  newPassword: e.target.value,
-                                }))
-                              }
-                              placeholder="••••••••"
-                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide font-medium">
-                              Confirm New Password
-                            </label>
-                            <input
-                              type="password"
-                              value={passwordData.confirmPassword}
-                              onChange={(e) =>
-                                setPasswordData((prev) => ({
-                                  ...prev,
-                                  confirmPassword: e.target.value,
-                                }))
-                              }
-                              placeholder="••••••••"
-                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                            />
-                          </div>
-                        </div>
-                        <button
-                          onClick={changePassword}
-                          disabled={isSaving}
-                          className="w-full mt-7 px-6 py-3 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 disabled:opacity-50 transition-all"
-                        >
-                          {isSaving ? "Changing..." : "Change Password"}
-                        </button>
-                      </div>
-
-                      {/* Forgot Password Link */}
-                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
-                        <h3 className="text-lg font-light text-black dark:text-white mb-3">
-                          Forgot Password?
-                        </h3>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed">
-                          If you can't remember your password, reset it using
-                          your email address.
-                        </p>
-                        <button className="px-5 py-2.5 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all">
-                          Request Password Reset
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                {(activeTab === "password" ||
+                  activeTab === "email" ||
+                  activeTab === "recovery") && (
+                  <PasswordAndSecurity
+                    defaultTab={
+                      activeTab === "recovery" ? "forgot-password" : activeTab
+                    }
+                  />
                 )}
 
                 {/* TEAM MANAGEMENT TAB - Admin Only */}
@@ -1774,7 +1602,7 @@ function SettingsContent() {
         {/* Success Toast - Instagram Style */}
         {showSuccessToast && (
           <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
-            <div className="bg-white dark:bg-neutral-950 text-black dark:text-white px-6 py-3 rounded-full shadow-lg flex items-center gap-2">
+            <div className="bg-white dark:bg-neutral-950 text-black dark:text-white px-6 py-3 rounded-full shadow-lg border border-zinc-200 dark:border-zinc-800 flex items-center gap-2">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   fillRule="evenodd"
@@ -1782,7 +1610,27 @@ function SettingsContent() {
                   clipRule="evenodd"
                 />
               </svg>
-              <span className="text-sm font-medium">Profile updated</span>
+              <span className="text-sm font-medium">{toastMessage}</span>
+            </div>
+          </div>
+        )}
+
+        {/* Error Toast - Instagram Style */}
+        {showErrorToast && (
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="bg-white dark:bg-neutral-950 text-black dark:text-white px-6 py-3 rounded-full shadow-lg border border-zinc-200 dark:border-zinc-800 flex items-center gap-2">
+              <svg
+                className="w-4 h-4 text-red-500"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <span className="text-sm font-medium">{toastMessage}</span>
             </div>
           </div>
         )}
