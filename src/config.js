@@ -64,6 +64,7 @@ export const API = {
 
   PROFILE: {
     ME: `${BASE_URL}${process.env.NEXT_PUBLIC_PROFILE_ME_ENDPOINT}`, // get current user and role
+    PICTURE: `${BASE_URL}${process.env.NEXT_PUBLIC_PROFILE_PICTURE_ENDPOINT}`, // upload/delete profile picture
   },
   PORTFOLIO: {
     LIST: `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_ENDPOINT}`, // fetch all portfolios

@@ -32,6 +32,7 @@ import {
 export default function Navbar() {
   const { user, loading, error, logout, hasServerUser, gracePassed } =
     useUser();
+
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -192,9 +193,9 @@ export default function Navbar() {
                   className="flex items-center space-x-2 p-2 text-gray-600 dark:text-gray-300 hover:text-[#EF4444] dark:hover:text-[#EF4444] rounded-xl  transition-all duration-200"
                 >
                   <div className="w-8 h-8 bg-linear-to-br from-[#EF4444] to-[#F97316] rounded-full flex items-center justify-center overflow-hidden">
-                    {isLoggedIn && user?.profileImage && !imgError ? (
+                    {isLoggedIn && user?.profilePicture && !imgError ? (
                       <Image
-                        src={user.profileImage}
+                        src={user.profilePicture}
                         alt={user?.name || user?.username || "User"}
                         width={32}
                         height={32}

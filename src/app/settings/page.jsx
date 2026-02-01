@@ -48,6 +48,8 @@ function SettingsContent() {
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [showErrorToast, setShowErrorToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
+  const [showProfilePictureModal, setShowProfilePictureModal] = useState(false);
+  const [isUploadingPicture, setIsUploadingPicture] = useState(false);
 
   const isAdmin = contextUser?.role === "admin";
 
@@ -317,23 +319,62 @@ function SettingsContent() {
     }));
   };
 
-  const handleImageUpload = (e) => {
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        showError("File size must be less than 5MB");
-        return;
-      }
+    if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setProfile((prev) => ({
-          ...prev,
-          profilePicture: file,
-          profilePicturePreview: e.target.result,
-        }));
-      };
-      reader.readAsDataURL(file);
+    if (file.size > 5 * 1024 * 1024) {
+      showError("File size must be less than 5MB");
+      return;
+    }
+
+    // Validate file type
+    const allowedTypes = [
+      "image/png",
+      "image/jpeg",
+      "image/jpg",
+      "image/gif",
+      "image/webp",
+    ];
+    if (!allowedTypes.includes(file.type)) {
+      showError("Invalid image format. Allowed: PNG, JPG, JPEG, GIF, WEBP");
+      return;
+    }
+
+    try {
+      setIsUploadingPicture(true);
+      setShowProfilePictureModal(false);
+
+      const formData = new FormData();
+      formData.append("profilePicture", file);
+
+      const response = await axios.put(API.PROFILE.PICTURE, formData, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      // Update local state with new picture
+      setProfile((prev) => ({
+        ...prev,
+        profilePicture: response.data.data.profilePicture,
+        profilePicturePreview: response.data.data.profilePicture,
+      }));
+
+      showSuccess("Profile picture uploaded");
+      fetchUserData(); // Refetch to sync
+    } catch (error) {
+      console.error("Error uploading profile picture:", error);
+      showError(
+        error.response?.data?.message || "Failed to upload profile picture",
+      );
+    } finally {
+      setIsUploadingPicture(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -344,16 +385,14 @@ function SettingsContent() {
       formData.append("name", profile.name);
       formData.append("bio", profile.bio);
       formData.append("email", profile.email);
-
       formData.append("username", profile.username);
       formData.append("gender", profile.gender);
       if (profile.gender === "custom") {
         formData.append("customGender", profile.customGender);
       }
 
-      if (profile.profilePicture instanceof File) {
-        formData.append("profilePicture", profile.profilePicture);
-      }
+      // Note: Profile picture is NOT included here anymore
+      // It's handled separately via uploadProfilePicture
 
       const response = await axios.put(API.PROFILE.ME, formData, {
         withCredentials: true,
@@ -363,11 +402,40 @@ function SettingsContent() {
       });
 
       showSuccess("Profile updated");
+      fetchUserData(); // Refetch to sync
     } catch (error) {
       console.error("Error updating profile:", error);
-      showError("Failed to update profile");
+      showError(error.response?.data?.message || "Failed to update profile");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const deleteProfilePicture = async () => {
+    try {
+      setIsUploadingPicture(true);
+      setShowProfilePictureModal(false);
+
+      await axios.delete(API.PROFILE.PICTURE, {
+        withCredentials: true,
+      });
+
+      // Update local state
+      setProfile((prev) => ({
+        ...prev,
+        profilePicture: null,
+        profilePicturePreview: null,
+      }));
+
+      showSuccess("Profile picture removed");
+      fetchUserData(); // Refetch to sync
+    } catch (error) {
+      console.error("Error deleting profile picture:", error);
+      showError(
+        error.response?.data?.message || "Failed to remove profile picture",
+      );
+    } finally {
+      setIsUploadingPicture(false);
     }
   };
 
@@ -732,7 +800,9 @@ function SettingsContent() {
                         <div className="flex items-start gap-8">
                           <div className="relative">
                             <div className="w-32 h-32 border-2 border-zinc-200 dark:border-zinc-800 rounded-full flex items-center justify-center overflow-hidden shrink-0 bg-white dark:bg-zinc-900">
-                              {profile.profilePicturePreview ? (
+                              {isUploadingPicture ? (
+                                <div className="w-6 h-6 border-2 border-zinc-300 dark:border-zinc-700 border-t-black dark:border-t-white rounded-full animate-spin" />
+                              ) : profile.profilePicturePreview ? (
                                 <img
                                   src={profile.profilePicturePreview}
                                   alt="Profile"
@@ -743,8 +813,9 @@ function SettingsContent() {
                               )}
                             </div>
                             <button
-                              onClick={() => fileInputRef.current?.click()}
-                              className="absolute -bottom-2 -right-2 w-10 h-10 rounded-lg border-2 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black flex items-center justify-center hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all text-black dark:text-white"
+                              onClick={() => setShowProfilePictureModal(true)}
+                              disabled={isUploadingPicture}
+                              className="absolute -bottom-2 -right-2 w-10 h-10 rounded-lg border-2 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black flex items-center justify-center hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all text-black dark:text-white disabled:opacity-50"
                             >
                               <svg
                                 className="w-5 h-5"
@@ -762,14 +833,12 @@ function SettingsContent() {
                             </button>
                           </div>
                           <div className="flex-1 pt-2">
-                            <>
-                              <p className="text-sm text-black dark:text-white font-medium">
-                                {profile.username || "username"}
-                              </p>
-                              <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-                                {profile.name || "name"}
-                              </p>
-                            </>
+                            <p className="text-sm text-black dark:text-white font-medium">
+                              {profile.username || "username"}
+                            </p>
+                            <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                              {profile.name || "name"}
+                            </p>
                           </div>
                         </div>
                         <input
@@ -1442,6 +1511,43 @@ function SettingsContent() {
               </div>
             </div>
           </div>
+
+          {/* Profile Picture Modal - Instagram Style */}
+          {showProfilePictureModal && (
+            <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
+              <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-2xl">
+                {/* Upload New Photo Option */}
+                <button
+                  onClick={() => {
+                    fileInputRef.current?.click();
+                  }}
+                  className="w-full px-6 py-4 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-200 dark:border-zinc-700"
+                >
+                  {profile.profilePicturePreview
+                    ? "Update profile picture"
+                    : "Upload profile picture"}
+                </button>
+
+                {/* Remove Photo Option - Only show if picture exists */}
+                {profile.profilePicturePreview && (
+                  <button
+                    onClick={deleteProfilePicture}
+                    className="w-full px-6 py-4 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-200 dark:border-zinc-700"
+                  >
+                    Remove profile picture
+                  </button>
+                )}
+
+                {/* Cancel Option */}
+                <button
+                  onClick={() => setShowProfilePictureModal(false)}
+                  className="w-full px-6 py-4 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Deactivate Modal */}
           {showDeactivateModal && (
