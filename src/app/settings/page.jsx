@@ -251,6 +251,20 @@ function SettingsContent() {
     }
   }, [activeTab, isAdmin]);
 
+  // keep the sub-sections expanded when their content is active
+  useEffect(() => {
+    const activeSection = sections.find((section) =>
+      section.subsections.some((sub) => sub.contentId === activeTab),
+    );
+
+    if (activeSection) {
+      setExpandedSections((prev) => ({
+        ...prev,
+        [activeSection.id]: true,
+      }));
+    }
+  }, [activeTab]);
+
   const fetchUserData = async () => {
     try {
       setIsLoading(true);
@@ -310,6 +324,18 @@ function SettingsContent() {
 
   const handleSubsectionClick = (contentId) => {
     setActiveTab(contentId);
+
+    // Find and expand the parent section
+    const parentSection = sections.find((section) =>
+      section.subsections.some((sub) => sub.contentId === contentId),
+    );
+
+    if (parentSection) {
+      setExpandedSections((prev) => ({
+        ...prev,
+        [parentSection.id]: true,
+      }));
+    }
   };
 
   const handleProfileChange = (field, value) => {
