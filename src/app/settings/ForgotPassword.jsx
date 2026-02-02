@@ -58,7 +58,7 @@ export default function ForgotPassword({ defaultTab = "recovery" }) {
 
     try {
       setIsSaving(true);
-      await axios.post(API.AUTH.SEND_VERIFICATION, {
+      await axios.post(API.AUTH.FORGOT_PASSWORD, {
         email: forgotPasswordData.email,
         type: "forgot_password",
       });

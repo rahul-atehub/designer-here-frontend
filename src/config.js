@@ -39,6 +39,7 @@ export const API = {
     ROLE: process.env.NEXT_PUBLIC_AUTH_ROLE_ENDPOINT
       ? `${BASE_URL}${process.env.NEXT_PUBLIC_AUTH_ROLE_ENDPOINT}`
       : null,
+    FORGOT_PASSWORD: `${BASE_URL}${process.env.NEXT_PUBLIC_AUTH_FORGOT_PASSWORD_ENDPOINT}`,
   },
 
   USER: {
