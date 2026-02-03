@@ -15,11 +15,11 @@ export function UserProvider({ children, serverUser = undefined }) {
   // serverUser === undefined -> no server info (client-only), keep loading true until fetch
   // serverUser === null -> server confirmed "not logged in" (no flash)
   const [user, setUserInternal] = useState(
-    serverUser === undefined ? null : serverUser
+    serverUser === undefined ? null : serverUser,
   );
 
   const [loading, setLoading] = useState(
-    serverUser === undefined ? true : false
+    serverUser === undefined ? true : false,
   );
 
   const [error, setError] = useState(null);
@@ -61,7 +61,7 @@ export function UserProvider({ children, serverUser = undefined }) {
       if (seq !== fetchSeq.current) {
         console.log(
           "[UserProvider] Ignoring stale fetchProfile response seq",
-          seq
+          seq,
         );
         return;
       }
@@ -76,7 +76,7 @@ export function UserProvider({ children, serverUser = undefined }) {
       if (seq !== fetchSeq.current) {
         console.log(
           "[UserProvider] Ignoring stale fetchProfile error seq",
-          seq
+          seq,
         );
         return;
       }
@@ -93,7 +93,7 @@ export function UserProvider({ children, serverUser = undefined }) {
       console.error(
         "[UserProvider] fetchProfile ERROR",
         status,
-        err?.message ?? err
+        err?.message ?? err,
       );
       setError({
         message: err?.message ?? "Unknown error",
@@ -195,7 +195,7 @@ export function UserProvider({ children, serverUser = undefined }) {
       setLoading(false); // <- also ensure loading false on error
       try {
         console.groupCollapsed(
-          "[UserProvider] writing logout marker (error branch)"
+          "[UserProvider] writing logout marker (error branch)",
         );
         console.trace();
         console.groupEnd();

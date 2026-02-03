@@ -231,6 +231,17 @@ export default function Navbar() {
                             {user?.email || ""}
                           </p>
                         </div>
+
+                        {/* Switch Account Button */}
+                        <Link
+                          href="/accounts/switch"
+                          onClick={() => closeMenus()}
+                          className="flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
+                        >
+                          <User size={16} />
+                          <span>Switch Account</span>
+                        </Link>
+
                         <button
                           onClick={async () => {
                             await logout();

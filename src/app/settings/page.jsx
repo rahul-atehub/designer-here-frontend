@@ -6,6 +6,7 @@ import Head from "next/head";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import SearchParamsWrapper from "@/components/SearchParamsWrapper";
+import AccountCenter from "@/app/settings/AccountCenter";
 import { useUser } from "@/context/UserContext";
 import AuthRequired from "@/components/ui/AuthRequired";
 import {
@@ -230,11 +231,15 @@ function SettingsContent() {
     },
     {
       id: "account",
-      label: "Account Control",
+      label: "Account Center",
       icon: SettingsIcon,
       subsections: [
-        { id: "deactivate", label: "Deactivate", contentId: "account" },
-        { id: "delete-account", label: "Delete Account", contentId: "account" },
+        { id: "accounts", label: "Accounts", contentId: "accounts" },
+        {
+          id: "account-ownership",
+          label: "Account Ownership",
+          contentId: "ownership",
+        },
       ],
     },
   ];
@@ -732,8 +737,11 @@ function SettingsContent() {
                 {sections.map((section) => {
                   const Icon = section.icon;
                   const isExpanded = expandedSections[section.id];
-                  const isActive = activeTab === section.id;
-
+                  const isActive =
+                    activeTab === section.id ||
+                    section.subsections.some(
+                      (sub) => sub.contentId === activeTab,
+                    );
                   return (
                     <div key={section.id}>
                       <div
@@ -745,7 +753,7 @@ function SettingsContent() {
                       >
                         <button
                           onClick={() => {
-                            setActiveTab(section.id);
+                            setActiveTab(section.subsections[0].contentId);
                           }}
                           className="flex items-center gap-3 flex-1 text-left"
                         >
@@ -801,16 +809,6 @@ function SettingsContent() {
 
             {/* Main Content */}
             <div className="flex-1 px-8 py-12 max-w-5xl mx-auto w-full overflow-y-auto">
-              {/* Header */}
-              <div className="mb-12">
-                <h1 className="text-5xl font-light tracking-tight text-black dark:text-white mb-2">
-                  Settings
-                </h1>
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  Manage your account, security, and preferences
-                </p>
-              </div>
-
               {/* Content Sections */}
               <div className="space-y-8">
                 {/* EDIT PROFILE TAB */}
@@ -1480,59 +1478,12 @@ function SettingsContent() {
                   </div>
                 )}
 
-                {/* ACCOUNT CONTROL TAB */}
-                {activeTab === "account" && (
-                  <div className="space-y-8 animate-in fade-in duration-300">
-                    <div>
-                      <h2 className="text-2xl font-light text-black dark:text-white mb-8">
-                        Account Control
-                      </h2>
-
-                      {/* Deactivate Account */}
-                      <div className="border-2 border-zinc-200 dark:border-zinc-800 rounded-lg p-8 mb-8">
-                        <div className="flex items-start gap-3">
-                          <LogOut className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
-                          <div className="flex-1">
-                            <h3 className="text-lg font-light text-black dark:text-white mb-2">
-                              Deactivate Account
-                            </h3>
-                            <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed">
-                              Temporarily disable your account. You can
-                              reactivate it anytime by logging in.
-                            </p>
-                            <button
-                              onClick={() => setShowDeactivateModal(true)}
-                              className="px-5 py-3 border-2 border-zinc-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-black dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all"
-                            >
-                              Deactivate Account
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Delete Account */}
-                      <div className="border-2 border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
-                        <div className="flex items-start gap-3">
-                          <Trash2 className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
-                          <div className="flex-1">
-                            <h3 className="text-lg font-light text-black dark:text-white mb-2">
-                              Delete Account
-                            </h3>
-                            <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed">
-                              Permanently delete your account and all associated
-                              data. This action cannot be undone.
-                            </p>
-                            <button
-                              onClick={() => setShowDeleteModal(true)}
-                              className="px-5 py-3 border-2 border-zinc-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-black dark:text-white hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all"
-                            >
-                              Delete Account
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                {(activeTab === "accounts" || activeTab === "ownership") && (
+                  <AccountCenter
+                    defaultTab={
+                      activeTab === "ownership" ? "ownership" : "switch"
+                    }
+                  />
                 )}
               </div>
             </div>
