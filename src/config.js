@@ -44,6 +44,7 @@ export const API = {
 
   ACCOUNTS: {
     ADD: `${BASE_URL}${process.env.NEXT_PUBLIC_ACCOUNT_ADD_ENDPOINT}`,
+    LINK: `${BASE_URL}${process.env.NEXT_PUBLIC_ACCOUNT_LINK_ENDPOINT}`,
     LINKED: `${BASE_URL}${process.env.NEXT_PUBLIC_ACCOUNT_LINKED_ENDPOINT}`,
     SWITCH: `${BASE_URL}${process.env.NEXT_PUBLIC_ACCOUNT_SWITCH_ENDPOINT}`,
     UNLINK: (userId) =>
