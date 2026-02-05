@@ -1,3 +1,5 @@
+// src/app/settings/AccountCenter.jsx
+
 "use client";
 import { useState, useEffect } from "react";
 import axios from "axios";
@@ -122,7 +124,7 @@ export default function AccountCenter({ defaultTab = "switch" }) {
           withCredentials: true,
         });
       } else {
-        await axios.post(
+        const response = await axios.post(
           API.USER.DEACTIVATE_ACCOUNT,
           {
             username: ownershipData.username,
@@ -130,6 +132,16 @@ export default function AccountCenter({ defaultTab = "switch" }) {
           },
           { withCredentials: true },
         );
+
+        // Check if self-deactivation
+        if (response.data.isSelfDeactivation) {
+          document.cookie =
+            "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          localStorage.removeItem("auth_token");
+          window.location.href =
+            "/login?message=Account deactivated successfully";
+          return; // Exit early
+        }
       }
 
       showSuccess(
@@ -215,16 +227,37 @@ export default function AccountCenter({ defaultTab = "switch" }) {
                     return (
                       <div
                         key={account.id}
-                        className={`border rounded-lg p-5 transition-all ${
+                        className={`border rounded-lg p-5 transition-all relative ${
                           isCurrent
                             ? "border-black dark:border-white bg-zinc-50 dark:bg-zinc-900"
-                            : "border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                            : !account.isActive
+                              ? "border-zinc-200 dark:border-zinc-800 opacity-60 cursor-not-allowed"
+                              : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer"
                         }`}
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4 flex-1">
+                        {/* Clickable overlay for switching - only for active, non-current accounts */}
+                        {!isCurrent && account.isActive && (
+                          <button
+                            onClick={() => handleSwitchAccount(account.id)}
+                            disabled={isSwitching}
+                            className="absolute inset-0 w-full h-full cursor-pointer"
+                            aria-label={`Switch to ${account.name}`}
+                          />
+                        )}
+
+                        <div className="flex items-center justify-between relative z-10">
+                          <div className="flex items-center gap-4 flex-1 pointer-events-none">
+                            {/* Avatar */}
                             <div className="w-12 h-12 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center overflow-hidden shrink-0">
-                              {account.profilePic ? (
+                              {isSwitching ? (
+                                <div className="w-5 h-5 border-2 border-zinc-300 dark:border-zinc-700 border-t-black dark:border-t-white rounded-full animate-spin" />
+                              ) : !account.isActive ? (
+                                <img
+                                  src="/avatar-placeholder.png"
+                                  alt="Deactivated"
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : account.profilePic ? (
                                 <img
                                   src={account.profilePic}
                                   alt={account.name}
@@ -234,40 +267,40 @@ export default function AccountCenter({ defaultTab = "switch" }) {
                                 <User className="w-5 h-5 text-black dark:text-white" />
                               )}
                             </div>
+
+                            {/* Account Info */}
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-black dark:text-white">
-                                {account.name}
+                              <p
+                                className={`text-sm font-medium ${
+                                  !account.isActive
+                                    ? "text-zinc-400 dark:text-zinc-600"
+                                    : "text-black dark:text-white"
+                                }`}
+                              >
+                                {!account.isActive
+                                  ? "Deactivated"
+                                  : account.name}
                               </p>
                               <p className="text-xs text-zinc-600 dark:text-zinc-400">
                                 @{account.username}
                               </p>
                             </div>
                           </div>
+
+                          {/* Remove Button - only show for non-current accounts */}
                           {!isCurrent && (
-                            <div className="flex gap-2 ml-4">
-                              <button
-                                onClick={() => handleSwitchAccount(account.id)}
-                                disabled={isSwitching}
-                                className="px-3 py-2 text-xs font-medium border border-zinc-200 dark:border-zinc-800 rounded-lg text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 disabled:opacity-50 transition-all"
-                              >
-                                {isSwitching ? (
-                                  <div className="w-4 h-4 border-2 border-zinc-300 dark:border-zinc-700 border-t-black dark:border-t-white rounded-full animate-spin" />
-                                ) : (
-                                  "Switch"
-                                )}
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleUnlinkAccount(
-                                    account.id,
-                                    account.username,
-                                  )
-                                }
-                                className="px-3 py-2 text-xs font-medium border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950 transition-all"
-                              >
-                                Remove
-                              </button>
-                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent triggering the card click
+                                handleUnlinkAccount(
+                                  account.id,
+                                  account.username,
+                                );
+                              }}
+                              className="px-3 py-2 text-xs font-medium border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950 transition-all pointer-events-auto"
+                            >
+                              Remove
+                            </button>
                           )}
                         </div>
                       </div>

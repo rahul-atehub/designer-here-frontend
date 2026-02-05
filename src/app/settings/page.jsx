@@ -1,3 +1,5 @@
+// src/app/settings/page.jsx
+
 "use client";
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
@@ -623,16 +625,30 @@ function SettingsContent() {
 
     try {
       setIsSaving(true);
-      await axios.post(
+      const response = await axios.post(
         API.USER.DEACTIVATE_ACCOUNT,
-        { password: deactivateData.password },
+        {
+          username: contextUser.username, // ADD THIS
+          password: deactivateData.password,
+        },
         {
           withCredentials: true,
         },
       );
 
-      localStorage.removeItem("auth_token");
-      window.location.href = "/";
+      // Check if self-deactivation
+      if (response.data.isSelfDeactivation) {
+        // Clear cookies and redirect
+        document.cookie =
+          "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        localStorage.removeItem("auth_token");
+        window.location.href =
+          "/login?message=Account deactivated successfully";
+      } else {
+        // Linked account deactivated, just refresh list
+        showSuccess(`Account @${response.data.deactivatedAccount} deactivated`);
+        setShowDeactivateModal(false);
+      }
     } catch (error) {
       console.error("Error deactivating account:", error);
       showError("Failed to deactivate account");
