@@ -255,7 +255,7 @@ export default function AccountCenter({ defaultTab = "switch" }) {
                                 <img
                                   src="/avatar-placeholder.png"
                                   alt="Deactivated"
-                                  className="w-full h-full object-cover"
+                                  className="w-full h-full object-cover scale-120"
                                 />
                               ) : account.profilePic ? (
                                 <img

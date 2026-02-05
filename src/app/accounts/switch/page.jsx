@@ -183,7 +183,7 @@ export default function SwitchAccountPage() {
                           alt="Deactivated"
                           width={80}
                           height={80}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover scale-120"
                         />
                       ) : account.profilePic ? (
                         <Image
@@ -191,7 +191,7 @@ export default function SwitchAccountPage() {
                           alt={account.name}
                           width={80}
                           height={80}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover "
                         />
                       ) : (
                         <User className="w-5 h-5 md:w-7 md:h-7 text-black dark:text-white" />

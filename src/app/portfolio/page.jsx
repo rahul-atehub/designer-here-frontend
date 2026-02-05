@@ -412,31 +412,6 @@ const PortfolioContent = () => {
                       onEdit={(_id) => {
                         console.log("Edit artwork:", _id);
                       }}
-                      onToggleVisibility={(_id, visible) => {
-                        setArtworks((prev) =>
-                          prev.map((art) =>
-                            art._id === _id ? { ...art, visible } : art,
-                          ),
-                        );
-
-                        api
-                          .patch(API.PORTFOLIO.TOGGLE_VISIBILITY(_id), {
-                            visible,
-                          })
-                          .catch((error) => {
-                            console.error(
-                              "Failed to update portfolio visibility:",
-                              error,
-                            );
-                            setArtworks((prev) =>
-                              prev.map((art) =>
-                                art._id === _id
-                                  ? { ...art, visible: !visible }
-                                  : art,
-                              ),
-                            );
-                          });
-                      }}
                     />
                   </motion.div>
                 ))}

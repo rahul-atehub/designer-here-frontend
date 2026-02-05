@@ -57,6 +57,7 @@ export default function ArtworkCard({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [archived, setArchived] = useState(artwork?.archived ?? false);
   const [featured, setFeatured] = useState(artwork?.featured ?? 0);
+  const [isArchiving, setIsArchiving] = useState(false);
 
   const artworkData = artwork
     ? {
@@ -312,6 +313,14 @@ export default function ArtworkCard({
 
   // Handle archive toggle
   const handleArchive = async () => {
+    console.log("🔵 Archive clicked for:", artworkData._id);
+
+    // Close menu immediately
+    setMenuOpen(false);
+
+    // Set loading state
+    setIsArchiving(true);
+
     try {
       const response = await axios.post(
         API.PORTFOLIO.ARCHIVE(artworkData._id),
@@ -319,14 +328,39 @@ export default function ArtworkCard({
         { withCredentials: true },
       );
 
+      console.log("✅ Archive response:", response.data);
+
       if (response.data.success) {
-        // ✅ Refetch data from server like Instagram
+        setArchived(!archived);
+
         if (onArchive) {
           onArchive();
         }
+
+        console.log("✅ Archive successful");
+      } else {
+        console.error(
+          "⚠️ Archive failed:",
+          response.data.message || response.data.error,
+        );
+        alert(
+          `Failed to archive: ${response.data.message || response.data.error || "Unknown error"}`,
+        );
       }
     } catch (err) {
-      console.error("Error archiving post:", err);
+      console.error("❌ Error archiving post:", err);
+      console.error("❌ Error details:", err.response?.data);
+
+      const errorMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        err.message ||
+        "Network error";
+
+      alert(`Error archiving post: ${errorMessage}`);
+    } finally {
+      // Reset loading state
+      setIsArchiving(false);
     }
   };
 
@@ -537,7 +571,10 @@ export default function ArtworkCard({
                             e.stopPropagation();
                             handleArchive();
                           }}
-                          className="flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-colors duration-200"
+                          disabled={isArchiving}
+                          className={`flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-colors duration-200 ${
+                            isArchiving ? "opacity-50 cursor-wait" : ""
+                          }`}
                         >
                           {archived ? (
                             <>
@@ -547,7 +584,11 @@ export default function ArtworkCard({
                                   className="text-green-600 dark:text-green-400"
                                 />
                               </div>
-                              <span>Unarchive Artwork</span>
+                              <span>
+                                {isArchiving
+                                  ? "Unarchiving..."
+                                  : "Unarchive Artwork"}
+                              </span>
                             </>
                           ) : (
                             <>
@@ -557,7 +598,11 @@ export default function ArtworkCard({
                                   className="text-orange-600 dark:text-orange-400"
                                 />
                               </div>
-                              <span>Archive Artwork</span>
+                              <span>
+                                {isArchiving
+                                  ? "Archiving..."
+                                  : "Archive Artwork"}
+                              </span>
                             </>
                           )}
                         </button>
@@ -957,6 +1002,83 @@ export default function ArtworkCard({
                         </div>
                         {/* Action Buttons */}
                         <div className="p-1">
+                          {/* Feature Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFeature();
+                            }}
+                            disabled={archived}
+                            className={`flex items-center space-x-3 w-full px-3 py-2 text-sm rounded-lg transition-colors duration-200 ${
+                              archived
+                                ? "opacity-50 cursor-not-allowed"
+                                : "hover:bg-gray-100 dark:hover:bg-gray-700/50"
+                            }`}
+                          >
+                            <div
+                              className={`p-1 ${
+                                featured > 0
+                                  ? "bg-yellow-500/10"
+                                  : "bg-gray-500/10"
+                              } rounded-lg`}
+                            >
+                              <Star
+                                size={14}
+                                className={
+                                  featured > 0
+                                    ? "text-yellow-600 dark:text-yellow-400 fill-current"
+                                    : "text-gray-600 dark:text-gray-400"
+                                }
+                              />
+                            </div>
+                            <span>
+                              {featured > 0 ? "Unfeature" : "Add to Featured"}
+                            </span>
+                          </button>
+
+                          {/* ✅ Archive Button */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleArchive();
+                            }}
+                            disabled={isArchiving}
+                            className={`flex items-center space-x-3 w-full px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-colors duration-200 ${
+                              isArchiving ? "opacity-50 cursor-wait" : ""
+                            }`}
+                          >
+                            {archived ? (
+                              <>
+                                <div className="p-1 bg-green-500/10 rounded-lg">
+                                  <ArchiveRestore
+                                    size={14}
+                                    className="text-green-600 dark:text-green-400"
+                                  />
+                                </div>
+                                <span>
+                                  {isArchiving
+                                    ? "Unarchiving..."
+                                    : "Unarchive Artwork"}
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <div className="p-1 bg-orange-500/10 rounded-lg">
+                                  <Archive
+                                    size={14}
+                                    className="text-orange-600 dark:text-orange-400"
+                                  />
+                                </div>
+                                <span>
+                                  {isArchiving
+                                    ? "Archiving..."
+                                    : "Archive Artwork"}
+                                </span>
+                              </>
+                            )}
+                          </button>
+
+                          {/* Edit Button */}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();

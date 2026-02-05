@@ -293,7 +293,7 @@ export default function CreatePost({ onClose, userId }) {
             resolve(blob);
           },
           "image/jpeg",
-          0.95
+          0.95,
         );
       };
 
@@ -344,11 +344,10 @@ export default function CreatePost({ onClose, userId }) {
         formData.append("artwork", croppedBlob, imageData.file.name);
         formData.append(
           "title",
-          selectedImages.length > 1 ? `${title} (${i + 1})` : title
+          selectedImages.length > 1 ? `${title} (${i + 1})` : title,
         );
         formData.append("description", description);
         // formData.append("uploadedBy", userId);
-        formData.append("hidden", "false");
 
         // Upload - now uses the main PORTFOLIO endpoint, not UPLOAD
         await axios.post(API.PORTFOLIO.UPLOAD, formData, {
@@ -369,7 +368,7 @@ export default function CreatePost({ onClose, userId }) {
       console.error("Error uploading post:", error);
       alert(
         error.response?.data?.error ||
-          "Failed to upload post. Please try again."
+          "Failed to upload post. Please try again.",
       );
     } finally {
       setUploading(false);
@@ -435,8 +434,8 @@ export default function CreatePost({ onClose, userId }) {
             {step === 1
               ? "Create new post"
               : step === 2
-              ? "Crop"
-              : "Create new post"}
+                ? "Crop"
+                : "Create new post"}
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -761,7 +760,7 @@ export default function CreatePost({ onClose, userId }) {
                       {(
                         selectedImages.reduce(
                           (acc, img) => acc + img.file.size,
-                          0
+                          0,
                         ) /
                         1024 /
                         1024
