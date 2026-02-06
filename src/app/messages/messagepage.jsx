@@ -226,17 +226,18 @@ export default function MessagePage() {
                     <div className="flex-1 min-w-0">
                       <p
                         className={`font-medium text-sm truncate ${
-                          !other?.isActive
+                          !other?.isActive || other?.isDeleted
                             ? "text-zinc-400 dark:text-zinc-600"
                             : ""
                         }`}
                       >
-                        {!other?.isActive
-                          ? "Deactivated"
-                          : other?.name || "Unknown"}
+                        {other?.isDeleted
+                          ? "Deleted User"
+                          : !other?.isActive
+                            ? "Deactivated"
+                            : other?.name || "Unknown"}
                       </p>
-
-                      {!other?.isActive && (
+                      {(!other?.isActive || other?.isDeleted) && (
                         <p className="text-xs text-zinc-500 dark:text-zinc-600">
                           @{other?.username || other?.email?.split("@")[0]}
                         </p>

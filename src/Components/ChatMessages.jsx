@@ -56,8 +56,8 @@ export default function ChatMessages({ chatId, currentUserId }) {
 
     setMessages((prev) =>
       prev.map((msg) =>
-        msg.tempId === tempId ? { ...msg, status: "sending" } : msg
-      )
+        msg.tempId === tempId ? { ...msg, status: "sending" } : msg,
+      ),
     );
 
     try {
@@ -74,8 +74,8 @@ export default function ChatMessages({ chatId, currentUserId }) {
       console.error("Retry failed:", error);
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.tempId === tempId ? { ...msg, status: "failed" } : msg
-        )
+          msg.tempId === tempId ? { ...msg, status: "failed" } : msg,
+        ),
       );
     }
   };
@@ -124,7 +124,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
             };
           }
           return msg;
-        })
+        }),
       );
     };
 
@@ -155,7 +155,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
             };
           }
           return msg;
-        })
+        }),
       );
     };
 
@@ -186,7 +186,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
             };
           }
           return msg;
-        })
+        }),
       );
     };
 
@@ -281,8 +281,8 @@ export default function ChatMessages({ chatId, currentUserId }) {
         prev.map((msg) =>
           msg.tempId === tempId
             ? { ...msg, status: "failed", optimistic: true }
-            : msg
-        )
+            : msg,
+        ),
       );
     };
 
@@ -340,7 +340,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
           })) || [];
 
         return [...prev, ...newMessages].sort(
-          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+          (a, b) => new Date(b.timestamp) - new Date(a.timestamp),
         );
       });
     };
@@ -349,7 +349,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
     return () =>
       window.removeEventListener(
         "queued-message-received",
-        handleQueuedMessages
+        handleQueuedMessages,
       );
   }, [chatId]);
 
@@ -389,8 +389,8 @@ export default function ChatMessages({ chatId, currentUserId }) {
 
           setMessages(
             normalizedMessages.sort(
-              (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
-            )
+              (a, b) => new Date(b.timestamp) - new Date(a.timestamp),
+            ),
           );
 
           // ✅ Mark unread messages as delivered
@@ -398,7 +398,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
             .filter(
               (msg) =>
                 msg.senderId !== currentUserId &&
-                !msg.deliveredTo?.some((d) => d.userId === currentUserId)
+                !msg.deliveredTo?.some((d) => d.userId === currentUserId),
             )
             .map((msg) => msg._id);
 
@@ -414,7 +414,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
             .filter(
               (msg) =>
                 msg.senderId !== currentUserId &&
-                !msg.readBy?.some((r) => r.userId === currentUserId)
+                !msg.readBy?.some((r) => r.userId === currentUserId),
             )
             .map((msg) => msg._id);
 
@@ -480,7 +480,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
         `${API.CHAT.MESSAGES(chatId)}?messageId=${messageId}`,
         {
           withCredentials: true,
-        }
+        },
       );
 
       setMessages((prev) => prev.filter((m) => m.id !== messageId));
@@ -517,7 +517,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
       !messages.some(
         (m) =>
           m.senderId === currentUserId &&
-          new Date(m.timestamp) > new Date(message.timestamp)
+          new Date(m.timestamp) > new Date(message.timestamp),
       );
 
     // ✅ NEW: Check if this is the latest message from OTHER user
@@ -526,12 +526,12 @@ export default function ChatMessages({ chatId, currentUserId }) {
       !messages.some(
         (m) =>
           m.senderId !== currentUserId &&
-          new Date(m.timestamp) > new Date(message.timestamp)
+          new Date(m.timestamp) > new Date(message.timestamp),
       );
 
     // ✅ NEW: Check if current user has read this message
     const isReadByCurrentUser = message.readBy?.some(
-      (r) => r.userId === currentUserId
+      (r) => r.userId === currentUserId,
     );
 
     const getTimeSinceMessage = () => {
@@ -818,7 +818,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
             const isOwn = message.senderId === currentUserId;
             const showDateSeparator = shouldShowDateSeparator(
               message,
-              messages[index + 1]
+              messages[index + 1],
             );
 
             return (

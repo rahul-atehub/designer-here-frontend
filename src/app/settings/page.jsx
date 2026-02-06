@@ -602,13 +602,26 @@ function SettingsContent() {
 
     try {
       setIsSaving(true);
-      await axios.delete(API.USER.DELETE_ACCOUNT, {
-        data: { password: deleteData.password },
+      const response = await axios.delete(API.USER.DELETE_ACCOUNT, {
+        data: {
+          username: contextUser.username,
+          password: deleteData.password,
+        },
         withCredentials: true,
       });
 
-      localStorage.removeItem("auth_token");
-      window.location.href = "/";
+      // Check if self-deletion
+      if (response.data.isSelfDeletion) {
+        // Clear cookies and redirect
+        document.cookie =
+          "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+        localStorage.removeItem("auth_token");
+        window.location.href = "/login?message=Account deleted successfully";
+      } else {
+        // Linked account deleted
+        showSuccess(`Account deleted successfully`);
+        setShowDeleteModal(false);
+      }
     } catch (error) {
       console.error("Error deleting account:", error);
       showError("Failed to delete account");

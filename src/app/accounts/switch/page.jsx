@@ -1,3 +1,5 @@
+// src/app/accounts/switch/page.jsx
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -162,7 +164,12 @@ export default function SwitchAccountPage() {
                   !account.isActive &&
                   handleSwitchAccount(account.id)
                 }
-                disabled={isCurrent || isSwitching || !account.isActive}
+                disabled={
+                  isCurrent ||
+                  isSwitching ||
+                  !account.isActive ||
+                  account.isDeleted
+                }
                 className={`w-full border rounded-xl p-4 md:p-8 transition-all duration-200 text-left ${
                   isCurrent
                     ? "border-black dark:border-white bg-zinc-50 dark:bg-zinc-900 cursor-default"
@@ -177,10 +184,10 @@ export default function SwitchAccountPage() {
                     <div className="w-14 h-14 md:w-20 md:h-20 border-2 border-zinc-200 dark:border-zinc-800 rounded-full flex items-center justify-center overflow-hidden bg-white dark:bg-zinc-900">
                       {isSwitching ? (
                         <div className="w-5 h-5 md:w-6 md:h-6 border-2 border-zinc-300 dark:border-zinc-700 border-t-black dark:border-t-white rounded-full animate-spin" />
-                      ) : !account.isActive ? (
+                      ) : !account.isActive || account.isDeleted ? (
                         <Image
                           src="/avatar-placeholder.png"
-                          alt="Deactivated"
+                          alt={account.isDeleted ? "Deleted" : "Deactivated"}
                           width={80}
                           height={80}
                           className="w-full h-full object-cover scale-120"
@@ -203,12 +210,16 @@ export default function SwitchAccountPage() {
                   <div className="flex-1 min-w-0">
                     <p
                       className={`text-sm md:text-lg font-medium mb-0.5 md:mb-1 ${
-                        !account.isActive
+                        !account.isActive || account.isDeleted
                           ? "text-zinc-400 dark:text-zinc-600"
                           : "text-black dark:text-white"
                       }`}
                     >
-                      {!account.isActive ? "Deactivated" : account.name}
+                      {account.isDeleted
+                        ? "Deleted User"
+                        : !account.isActive
+                          ? "Deactivated"
+                          : account.name}
                     </p>
                     <p className="text-xs md:text-sm text-zinc-600 dark:text-zinc-400 truncate">
                       @{account.username}

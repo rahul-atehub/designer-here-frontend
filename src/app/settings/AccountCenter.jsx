@@ -251,10 +251,14 @@ export default function AccountCenter({ defaultTab = "switch" }) {
                             <div className="w-12 h-12 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center overflow-hidden shrink-0">
                               {isSwitching ? (
                                 <div className="w-5 h-5 border-2 border-zinc-300 dark:border-zinc-700 border-t-black dark:border-t-white rounded-full animate-spin" />
-                              ) : !account.isActive ? (
+                              ) : !account.isActive || account.isDeleted ? (
                                 <img
                                   src="/avatar-placeholder.png"
-                                  alt="Deactivated"
+                                  alt={
+                                    account.isDeleted
+                                      ? "Deleted"
+                                      : "Deactivated"
+                                  }
                                   className="w-full h-full object-cover scale-120"
                                 />
                               ) : account.profilePic ? (
@@ -272,14 +276,16 @@ export default function AccountCenter({ defaultTab = "switch" }) {
                             <div className="flex-1 min-w-0">
                               <p
                                 className={`text-sm font-medium ${
-                                  !account.isActive
+                                  !account.isActive || account.isDeleted
                                     ? "text-zinc-400 dark:text-zinc-600"
                                     : "text-black dark:text-white"
                                 }`}
                               >
-                                {!account.isActive
-                                  ? "Deactivated"
-                                  : account.name}
+                                {account.isDeleted
+                                  ? "Deleted User"
+                                  : !account.isActive
+                                    ? "Deactivated"
+                                    : account.name}
                               </p>
                               <p className="text-xs text-zinc-600 dark:text-zinc-400">
                                 @{account.username}

@@ -196,8 +196,18 @@ export default function ChatHeader({
       )}
 
       <img
-        src={!participant.isActive ? "/avatar-placeholder.png" : avatarUrl}
-        alt={!participant.isActive ? "Deactivated" : participant.name || "User"}
+        src={
+          !participant.isActive || participant.isDeleted
+            ? "/avatar-placeholder.png"
+            : avatarUrl
+        }
+        alt={
+          participant.isDeleted
+            ? "Deleted User"
+            : !participant.isActive
+              ? "Deactivated"
+              : participant.name || "User"
+        }
         onError={(e) => {
           e.currentTarget.src = "/avatar-placeholder.png";
         }}
@@ -206,12 +216,16 @@ export default function ChatHeader({
       <div className="flex-1 min-w-0">
         <h2
           className={`text-lg font-semibold truncate ${
-            !participant.isActive
+            !participant.isActive || participant.isDeleted
               ? "text-zinc-400 dark:text-zinc-600"
               : "text-black dark:text-white"
           }`}
         >
-          {!participant.isActive ? "Deactivated" : participant.name}
+          {participant.isDeleted
+            ? "Deleted User"
+            : !participant.isActive
+              ? "Deactivated"
+              : participant.name}
         </h2>
       </div>
 
