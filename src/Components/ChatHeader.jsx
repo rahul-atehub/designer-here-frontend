@@ -2,7 +2,13 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef, useEffect } from "react";
-import { EllipsisVertical, Ban, Trash2, Archive } from "lucide-react";
+import {
+  EllipsisVertical,
+  Ban,
+  Trash2,
+  Archive,
+  ArrowLeft,
+} from "lucide-react";
 import axios from "axios";
 import { API } from "@/config";
 
@@ -12,10 +18,12 @@ export default function ChatHeader({
   onChatDeleted,
   onChatBlocked,
   onChatArchived,
+  onBack,
+  isMobile = false,
 }) {
   const [showMenu, setShowMenu] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(
-    participant?.avatar || "/avatar-placeholder.png"
+    participant?.avatar || "/avatar-placeholder.png",
   );
   const [isLoading, setIsLoading] = useState(false);
   const menuRef = useRef(null);
@@ -74,7 +82,7 @@ export default function ChatHeader({
     if (participant.status === "online") return "Online";
     if (participant.lastSeen) {
       const mins = Math.floor(
-        (Date.now() - new Date(participant.lastSeen)) / 60000
+        (Date.now() - new Date(participant.lastSeen)) / 60000,
       );
       return mins < 60 ? `${mins}m ago` : "Offline";
     }
@@ -93,7 +101,7 @@ export default function ChatHeader({
       const response = await axios.post(
         API.CHAT.MESSAGES_BLOCK(chatId),
         {},
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (response.status === 200) {
@@ -118,7 +126,7 @@ export default function ChatHeader({
     }
 
     const confirmDelete = window.confirm(
-      "Are you sure you want to delete this chat? This action cannot be undone."
+      "Are you sure you want to delete this chat? This action cannot be undone.",
     );
 
     if (!confirmDelete) return;
@@ -155,7 +163,7 @@ export default function ChatHeader({
       const response = await axios.post(
         API.CHAT.MESSAGES_ARCHIVE(chatId),
         {},
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (response.status === 200) {
@@ -178,21 +186,33 @@ export default function ChatHeader({
       animate={{ opacity: 1, y: 0 }}
       className="bg-gray-100/50 dark:bg-neutral-900/50 backdrop-blur-md border-b border-gray-300 dark:border-neutral-800 px-6 py-4 flex items-center space-x-3 relative"
     >
+      {isMobile && onBack && (
+        <button
+          onClick={onBack}
+          className="p-2 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+      )}
+
       <img
-        src={avatarUrl}
-        alt={participant.name || "User"}
+        src={!participant.isActive ? "/avatar-placeholder.png" : avatarUrl}
+        alt={!participant.isActive ? "Deactivated" : participant.name || "User"}
         onError={(e) => {
           e.currentTarget.src = "/avatar-placeholder.png";
         }}
         className="w-10 h-10 rounded-full object-cover"
       />
       <div className="flex-1 min-w-0">
-        <h2 className="text-lg font-semibold text-black dark:text-white truncate">
-          {participant.name}
+        <h2
+          className={`text-lg font-semibold truncate ${
+            !participant.isActive
+              ? "text-zinc-400 dark:text-zinc-600"
+              : "text-black dark:text-white"
+          }`}
+        >
+          {!participant.isActive ? "Deactivated" : participant.name}
         </h2>
-        <p className="text-sm text-gray-400 dark:text-neutral-400">
-          {getStatusText()}
-        </p>
       </div>
 
       {/* Three-dot menu button */}

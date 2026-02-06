@@ -9,6 +9,8 @@ import ChatInput from "@/Components/ChatInput";
 import { useUser } from "@/context/UserContext";
 import socketClient from "@/lib/socket-client";
 import TypingIndicator from "@/Components/TypingIndicator";
+import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import axios from "axios";
 import { API } from "@/config";
 
@@ -31,6 +33,16 @@ export default function MessagePage() {
       </div>
     );
   }
+  const router = useRouter();
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     socketClient.connect();
@@ -69,17 +81,14 @@ export default function MessagePage() {
           viewerType === "admin"
             ? API.CHAT.MESSAGES_CHATS // ADMIN backend file
             : API.CHAT.MESSAGES_USERS_CHATS(user._id), // USER backend file
-          { withCredentials: true }
+          { withCredentials: true },
         );
 
         const chats = data?.data?.chats || [];
 
         setConversations(chats);
 
-        if (chats.length > 0) {
-          setSelectedChatId(chats[0]._id);
-          setActiveChatParticipant(getOtherParticipant(chats[0]));
-        }
+        // Don't auto-select - show landing page by default
       } catch (error) {
         console.error("Failed to fetch conversations:", error);
       } finally {
@@ -95,10 +104,15 @@ export default function MessagePage() {
     setActiveChatParticipant(getOtherParticipant(conversation));
   };
 
+  const handleBackToList = () => {
+    setSelectedChatId(null);
+    setActiveChatParticipant(null);
+  };
+
   const filteredConversations = conversations.filter(
     (conv) =>
       conv &&
-      (conv.name || "").toLowerCase().includes(searchQuery.toLowerCase())
+      (conv.name || "").toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -122,12 +136,22 @@ export default function MessagePage() {
         initial={{ x: -300, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ delay: 0.1 }}
-        className="w-80 bg-gray-100/50 dark:bg-neutral-900/50 backdrop-blur-md border-r border-gray-300 dark:border-neutral-800 flex flex-col z-20 relative"
+        className={`${
+          isMobile && selectedChatId ? "hidden" : "flex"
+        } w-80 bg-gray-100/50 dark:bg-neutral-900/50 backdrop-blur-md border-r border-gray-300 dark:border-neutral-800 flex-col z-20 relative`}
       >
         {/* Header */}
         <div className="p-4 border-b border-gray-300 dark:border-neutral-800">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-xl font-bold">Messages</h1>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => router.back()}
+                className="p-2 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-lg transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </button>
+              <h1 className="text-xl font-bold">{user?.username || "User"}</h1>
+            </div>
             <button className="p-2 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-lg transition-colors">
               <svg
                 className="w-5 h-5"
@@ -182,8 +206,16 @@ export default function MessagePage() {
                   <div className="flex items-start space-x-3">
                     <div className="relative">
                       <img
-                        src={other?.avatar || "/avatar-placeholder.png"}
-                        alt={other?.name || "User"}
+                        src={
+                          !other?.isActive
+                            ? "/avatar-placeholder.png"
+                            : other?.avatar || "/avatar-placeholder.png"
+                        }
+                        alt={
+                          !other?.isActive
+                            ? "Deactivated"
+                            : other?.name || "User"
+                        }
                         onError={(e) => {
                           e.currentTarget.src = "/avatar-placeholder.png";
                         }}
@@ -192,10 +224,23 @@ export default function MessagePage() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">
-                        {other?.name || "Unknown"}
+                      <p
+                        className={`font-medium text-sm truncate ${
+                          !other?.isActive
+                            ? "text-zinc-400 dark:text-zinc-600"
+                            : ""
+                        }`}
+                      >
+                        {!other?.isActive
+                          ? "Deactivated"
+                          : other?.name || "Unknown"}
                       </p>
 
+                      {!other?.isActive && (
+                        <p className="text-xs text-zinc-500 dark:text-zinc-600">
+                          @{other?.username || other?.email?.split("@")[0]}
+                        </p>
+                      )}
                       <p className="text-xs text-gray-400 dark:text-neutral-400 truncate">
                         {conv.lastMessage?.text || "No messages yet"}
                       </p>
@@ -203,7 +248,7 @@ export default function MessagePage() {
                       <p className="text-xs text-gray-500 dark:text-neutral-500 mt-1">
                         {conv.lastMessage?.createdAt
                           ? new Date(
-                              conv.lastMessage.createdAt
+                              conv.lastMessage.createdAt,
                             ).toLocaleTimeString()
                           : ""}
                       </p>
@@ -225,12 +270,17 @@ export default function MessagePage() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
-        className="flex-1 flex flex-col relative z-10"
+        className={`${
+          isMobile && !selectedChatId ? "hidden" : "flex"
+        } flex-1 flex-col relative z-10`}
       >
         {activeChatParticipant ? (
           <>
-            <ChatHeader participant={activeChatParticipant} />
-
+            <ChatHeader
+              participant={activeChatParticipant}
+              onBack={handleBackToList}
+              isMobile={isMobile}
+            />
             <TypingIndicator
               show={typing}
               participant={activeChatParticipant}
@@ -242,8 +292,13 @@ export default function MessagePage() {
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
-            <div className="text-gray-400 dark:text-neutral-400 text-center">
-              <p>Select a conversation to start messaging</p>
+            <div className="text-center">
+              <h2 className="text-2xl font-semibold text-black dark:text-white mb-2">
+                Your Messages
+              </h2>
+              <p className="text-sm text-gray-400 dark:text-neutral-400">
+                Send a message to start a chat.
+              </p>
             </div>
           </div>
         )}
