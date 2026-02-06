@@ -54,6 +54,7 @@ export default function ArtworkCard({
   const cardRef = useRef(null);
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   const menuButtonRef = useRef(null);
+  const menuRef = useRef(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [archived, setArchived] = useState(artwork?.archived ?? false);
   const [featured, setFeatured] = useState(artwork?.featured ?? 0);
@@ -244,9 +245,12 @@ export default function ArtworkCard({
   useEffect(() => {
     if (menuOpen) {
       const handleClickOutside = (e) => {
+        // Check if click is outside BOTH the button AND the menu
         if (
           menuButtonRef.current &&
-          !menuButtonRef.current.contains(e.target)
+          !menuButtonRef.current.contains(e.target) &&
+          menuRef.current &&
+          !menuRef.current.contains(e.target)
         ) {
           setMenuOpen(false);
         }
@@ -313,8 +317,6 @@ export default function ArtworkCard({
 
   // Handle archive toggle
   const handleArchive = async () => {
-    console.log("🔵 Archive clicked for:", artworkData._id);
-
     // Close menu immediately
     setMenuOpen(false);
 
@@ -461,6 +463,7 @@ export default function ArtworkCard({
                   typeof window !== "undefined" &&
                   createPortal(
                     <div
+                      ref={menuRef}
                       className="fixed w-48 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg shadow-xl border border-gray-200/50 dark:border-gray-700/50 z-60"
                       style={{
                         top: `${menuPosition.top}px`,
@@ -565,7 +568,7 @@ export default function ArtworkCard({
                           </span>
                         </button>
 
-                        {/* ✅ Archive Button */}
+                        {/* Archive Button */}
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -932,6 +935,7 @@ export default function ArtworkCard({
                     typeof window !== "undefined" &&
                     createPortal(
                       <div
+                        ref={menuRef}
                         className="fixed w-48 rounded-xl bg-white/95 dark:bg-gray-800/95 backdrop-blur-lg shadow-xl border border-gray-200/50 dark:border-gray-700/50 z-60"
                         style={{
                           top: `${menuPosition.top}px`,
