@@ -116,13 +116,22 @@ export default function AccountCenter({ defaultTab = "switch" }) {
       setIsSaving(true);
 
       if (ownershipAction === "delete") {
-        await axios.delete(API.USER.DELETE_ACCOUNT, {
+        const response = await axios.delete(API.USER.DELETE_ACCOUNT, {
           data: {
             username: ownershipData.username,
             password: ownershipData.password,
           },
           withCredentials: true,
         });
+
+        // Check if self-deletion
+        if (response.data.isSelfDeletion) {
+          document.cookie =
+            "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+          localStorage.removeItem("auth_token");
+          window.location.href = "/login?message=Account deleted successfully";
+          return; // Exit early
+        }
       } else {
         const response = await axios.post(
           API.USER.DEACTIVATE_ACCOUNT,
