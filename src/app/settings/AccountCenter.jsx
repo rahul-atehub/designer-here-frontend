@@ -126,10 +126,14 @@ export default function AccountCenter({ defaultTab = "switch" }) {
 
         // Check if self-deletion
         if (response.data.isSelfDeletion) {
-          document.cookie =
-            "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-          localStorage.removeItem("auth_token");
-          window.location.href = "/login?message=Account deleted successfully";
+          setShowOwnershipModal(false); // Close modal first
+          showSuccess("Account deleted successfully");
+          setTimeout(() => {
+            document.cookie =
+              "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            localStorage.removeItem("auth_token");
+            window.location.href = "/auth/login";
+          }, 1500);
           return; // Exit early
         }
       } else {
@@ -144,20 +148,23 @@ export default function AccountCenter({ defaultTab = "switch" }) {
 
         // Check if self-deactivation
         if (response.data.isSelfDeactivation) {
-          document.cookie =
-            "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-          localStorage.removeItem("auth_token");
-          window.location.href =
-            "/login?message=Account deactivated successfully";
+          setShowOwnershipModal(false); // Close modal first
+          showSuccess("Account deactivated successfully");
+          setTimeout(() => {
+            document.cookie =
+              "auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            localStorage.removeItem("auth_token");
+            window.location.href = "/auth/login";
+          }, 1500);
           return; // Exit early
         }
       }
 
+      // If we reach here, it's a linked account deletion/deactivation
+      setShowOwnershipModal(false);
       showSuccess(
         `Account ${ownershipAction === "delete" ? "deleted" : "deactivated"} successfully`,
       );
-
-      setShowOwnershipModal(false);
       setOwnershipData({ username: "", password: "", confirmation: "" });
       fetchLinkedAccounts();
     } catch (error) {
@@ -236,6 +243,11 @@ export default function AccountCenter({ defaultTab = "switch" }) {
                     return (
                       <div
                         key={account.id}
+                        onClick={() => {
+                          if (!isCurrent && account.isActive && !isSwitching) {
+                            handleSwitchAccount(account.id);
+                          }
+                        }}
                         className={`border rounded-lg p-5 transition-all relative ${
                           isCurrent
                             ? "border-black dark:border-white bg-zinc-50 dark:bg-zinc-900"
@@ -244,18 +256,8 @@ export default function AccountCenter({ defaultTab = "switch" }) {
                               : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer"
                         }`}
                       >
-                        {/* Clickable overlay for switching - only for active, non-current accounts */}
-                        {!isCurrent && account.isActive && (
-                          <button
-                            onClick={() => handleSwitchAccount(account.id)}
-                            disabled={isSwitching}
-                            className="absolute inset-0 w-full h-full cursor-pointer"
-                            aria-label={`Switch to ${account.name}`}
-                          />
-                        )}
-
                         <div className="flex items-center justify-between relative z-10">
-                          <div className="flex items-center gap-4 flex-1 pointer-events-none">
+                          <div className="flex items-center gap-4 flex-1">
                             {/* Avatar */}
                             <div className="w-12 h-12 rounded-full bg-zinc-200 dark:bg-zinc-800 flex items-center justify-center overflow-hidden shrink-0">
                               {isSwitching ? (
@@ -312,7 +314,7 @@ export default function AccountCenter({ defaultTab = "switch" }) {
                                   account.username,
                                 );
                               }}
-                              className="px-3 py-2 text-xs font-medium border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950 transition-all pointer-events-auto"
+                              className="px-3 py-2 text-xs font-medium border border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 rounded-lg hover:bg-red-50 dark:hover:bg-red-950 transition-all"
                             >
                               Remove
                             </button>

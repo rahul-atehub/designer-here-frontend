@@ -161,7 +161,7 @@ export default function SwitchAccountPage() {
                 transition={{ duration: 0.4 }}
                 onClick={() =>
                   !isCurrent &&
-                  !account.isActive &&
+                  account.isActive &&
                   handleSwitchAccount(account.id)
                 }
                 disabled={
