@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Search } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Search, ChevronDown } from "lucide-react";
 import ChatHeader from "@/Components/ChatHeader";
 import ChatMessages from "@/Components/ChatMessages";
 import ChatInput from "@/Components/ChatInput";
@@ -26,6 +26,12 @@ export default function MessagePage() {
   const { user } = useUser();
   const viewerType = user?.role;
 
+  // Account switcher states
+  const [showAccountDropdown, setShowAccountDropdown] = useState(false);
+  const [linkedAccounts, setLinkedAccounts] = useState([]);
+  const [switchingUserId, setSwitchingUserId] = useState(null);
+  const dropdownRef = useRef(null);
+
   if (!viewerType) {
     return (
       <div className="h-screen flex items-center justify-center text-gray-400 dark:text-neutral-400">
@@ -47,6 +53,76 @@ export default function MessagePage() {
   useEffect(() => {
     socketClient.connect();
   }, []);
+
+  // Fetch linked accounts
+  useEffect(() => {
+    fetchLinkedAccounts();
+  }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowAccountDropdown(false);
+      }
+    };
+
+    if (showAccountDropdown) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showAccountDropdown]);
+
+  const fetchLinkedAccounts = async () => {
+    try {
+      const response = await axios.get(API.ACCOUNTS.LINKED, {
+        withCredentials: true,
+      });
+      const accounts = response.data.accounts || [];
+
+      // Filter only active accounts (no deactivated/deleted)
+      const activeAccounts = accounts.filter(
+        (acc) => acc.isActive && !acc.isDeleted,
+      );
+
+      // Sort: current account first, then others
+      const sortedAccounts = activeAccounts.sort((a, b) => {
+        if (a.isCurrent) return -1;
+        if (b.isCurrent) return 1;
+        return 0;
+      });
+
+      setLinkedAccounts(sortedAccounts);
+    } catch (error) {
+      console.error("Error fetching linked accounts:", error);
+    }
+  };
+
+  const handleSwitchAccount = async (userId) => {
+    if (switchingUserId) return; // Prevent multiple clicks
+
+    try {
+      setSwitchingUserId(userId);
+
+      await axios.post(
+        API.ACCOUNTS.SWITCH,
+        { userId },
+        { withCredentials: true },
+      );
+
+      // Close dropdown
+      setShowAccountDropdown(false);
+
+      // Redirect to messages page (will reload with new account)
+      window.location.href = "/messages";
+    } catch (error) {
+      console.error("Error switching account:", error);
+      setSwitchingUserId(null);
+    }
+  };
 
   const getOtherParticipant = (chat) => {
     if (!chat || !user?._id) return null;
@@ -150,23 +226,81 @@ export default function MessagePage() {
               >
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <h1 className="text-xl font-bold">{user?.username || "User"}</h1>
+
+              {/* Account Switcher Dropdown */}
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setShowAccountDropdown(!showAccountDropdown)}
+                  className="flex items-center gap-2 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-lg px-3 py-2 transition-colors group"
+                >
+                  <h1 className="text-xl font-bold">
+                    {user?.username || "User"}
+                  </h1>
+                  <ChevronDown
+                    className={`w-4 h-4 transition-transform ${
+                      showAccountDropdown ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* Dropdown Menu */}
+                <AnimatePresence>
+                  {showAccountDropdown && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-full left-0 mt-2 w-56 bg-white dark:bg-neutral-900 border border-gray-300 dark:border-neutral-800 rounded-lg shadow-lg overflow-hidden z-50"
+                    >
+                      {linkedAccounts.map((account) => {
+                        const isCurrent = account.isCurrent;
+                        const isSwitching = switchingUserId === account.id;
+
+                        return (
+                          <button
+                            key={account.id}
+                            onClick={() => {
+                              if (!isCurrent) {
+                                handleSwitchAccount(account.id);
+                              }
+                            }}
+                            disabled={isCurrent || isSwitching}
+                            className={`w-full px-4 py-3 text-left flex items-center gap-3 transition-colors ${
+                              isCurrent
+                                ? "bg-gray-100 dark:bg-neutral-800 cursor-default"
+                                : "hover:bg-gray-100 dark:hover:bg-neutral-800 cursor-pointer"
+                            } ${isSwitching ? "opacity-50" : ""}`}
+                          >
+                            {/* Avatar */}
+                            <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-neutral-800 flex items-center justify-center overflow-hidden shrink-0">
+                              {isSwitching ? (
+                                <div className="w-4 h-4 border-2 border-gray-300 dark:border-neutral-700 border-t-black dark:border-t-white rounded-full animate-spin" />
+                              ) : account.profilePic ? (
+                                <img
+                                  src={account.profilePic}
+                                  alt={account.username}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-xs font-medium text-black dark:text-white">
+                                  {account.username?.[0]?.toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+
+                            {/* Username */}
+                            <span className="text-sm font-medium text-black dark:text-white truncate">
+                              {account.username}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
-            <button className="p-2 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-lg transition-colors">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
-            </button>
           </div>
 
           {/* Search */}
