@@ -1,3 +1,5 @@
+// src/app/contact/page.jsx
+
 "use client";
 import Head from "next/head";
 import { useState, useEffect, useRef, Suspense } from "react";
@@ -27,6 +29,7 @@ function ContactContent() {
   const [emailFormData, setEmailFormData] = useState({
     name: "",
     email: "",
+    subject: "",
     message: "",
   });
   const [emailErrors, setEmailErrors] = useState({});
@@ -85,6 +88,8 @@ function ContactContent() {
     if (!emailFormData.email.trim()) newErrors.email = "Email is required";
     else if (!/^\S+@\S+\.\S+$/.test(emailFormData.email))
       newErrors.email = "Invalid email format";
+    if (!emailFormData.subject.trim())
+      newErrors.subject = "Subject is required";
     if (!emailFormData.message.trim())
       newErrors.message = "Message is required";
     return newErrors;
@@ -109,6 +114,7 @@ function ContactContent() {
         {
           name: emailFormData.name,
           email: emailFormData.email,
+          subject: emailFormData.subject,
           message: emailFormData.message,
         },
         {
@@ -121,7 +127,7 @@ function ContactContent() {
       console.log("Email service response:", response.data);
 
       showSuccess("Email sent successfully!");
-      setEmailFormData({ name: "", email: "", message: "" });
+      setEmailFormData({ name: "", email: "", subject: "", message: "" });
     } catch (error) {
       console.error("Error sending email:", error);
 
@@ -395,6 +401,30 @@ function ContactContent() {
                     {emailErrors.email && (
                       <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
                         {emailErrors.email}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Subject Field */}
+                  <div>
+                    <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide font-medium">
+                      Subject
+                    </label>
+                    <input
+                      type="text"
+                      name="subject"
+                      value={emailFormData.subject}
+                      onChange={handleEmailInputChange}
+                      placeholder="What is this regarding?"
+                      className={`w-full text-sm border rounded-lg px-4 py-3 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:ring-1 transition-all ${
+                        emailErrors.subject
+                          ? "border-red-400 focus:ring-red-400"
+                          : "border-zinc-200 dark:border-zinc-800 focus:ring-zinc-400"
+                      }`}
+                    />
+                    {emailErrors.subject && (
+                      <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                        {emailErrors.subject}
                       </p>
                     )}
                   </div>
