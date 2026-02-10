@@ -3,10 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { useState } from "react";
-import Modal from "@/components/ui/modal";
-import PrivacyPolicyContent from "@/components/ui/PrivacyPolicyContent";
-import TermsOfServiceContent from "@/components/ui/TermsOfServiceContent";
-import CookiePolicyContent from "@/components/ui/Cookiepolicycontent";
+
 import {
   Mail,
   Phone,
@@ -20,10 +17,6 @@ import {
 } from "lucide-react";
 
 const Footer = () => {
-  const [showPrivacy, setShowPrivacy] = useState(false);
-  const [showTerms, setShowTerms] = useState(false);
-  const [showCookies, setShowCookies] = useState(false);
-
   const socialLinks = [
     {
       icon: Twitter,
@@ -98,9 +91,11 @@ const Footer = () => {
     {
       title: "Legal",
       links: [
-        { name: "Privacy Policy", onClick: () => setShowPrivacy(true) },
-        { name: "Terms of Service", onClick: () => setShowTerms(true) },
-        { name: "Cookie Policy", onClick: () => setShowCookies(true) },
+        { name: "Privacy Policy", href: "/privacy-policy" },
+        { name: "Terms of Service", href: "/terms-services" },
+        { name: "Cookie Policy", href: "/cookie-policy" },
+        { name: "Developer Docs", href: "/developer-docs" },
+        { name: "Support", href: "/contact-support" },
       ],
     },
   ];
@@ -108,7 +103,7 @@ const Footer = () => {
   return (
     <footer className="relative bg-neutral-950 dark:bg-black text-gray-300 overflow-hidden">
       {/* Subtle top border accent */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-red-500/50 to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-px bg-linear-to-r from-transparent via-white to-transparent" />
 
       {/* Minimal background pattern */}
       <div className="absolute inset-0 opacity-[0.02]">
@@ -157,6 +152,20 @@ const Footer = () => {
                 >
                   <Mail className="w-4 h-4" />
                   <span>designerheredev@gmail.com</span>
+                </Link>
+                <Link
+                  href="mailto:designerherehq@gmail.com"
+                  className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span>designerherehq@gmail.com</span>
+                </Link>{" "}
+                <Link
+                  href="mailto:designerhere.business@gmail.com"
+                  className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span>designerhere.business@gmail.com</span>
                 </Link>
                 <Link
                   href="tel:+6589735984"
@@ -229,33 +238,6 @@ const Footer = () => {
           </div>
         </div>
       </div>
-
-      {/* Privacy Policy Modal */}
-      <Modal
-        isOpen={showPrivacy}
-        onClose={() => setShowPrivacy(false)}
-        title="Privacy Policy"
-      >
-        <PrivacyPolicyContent />
-      </Modal>
-
-      {/* Terms of Service Modal */}
-      <Modal
-        isOpen={showTerms}
-        onClose={() => setShowTerms(false)}
-        title="Terms of Service"
-      >
-        <TermsOfServiceContent />
-      </Modal>
-
-      {/* Cookie Policy Modal */}
-      <Modal
-        isOpen={showCookies}
-        onClose={() => setShowCookies(false)}
-        title="Cookie Policy"
-      >
-        <CookiePolicyContent />
-      </Modal>
     </footer>
   );
 };

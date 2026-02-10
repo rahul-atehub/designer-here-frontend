@@ -28,6 +28,11 @@ import {
   HelpCircle,
   Trash2,
   LogOut,
+  Eye, // ADD THIS
+  BarChart3, // ADD THIS
+  Cookie, // ADD THIS
+  Code, // ADD THIS
+  Headphones, // ADD THIS
 } from "lucide-react";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import PasswordAndSecurity from "@/app/settings/PasswordAndSecurity";
@@ -129,9 +134,8 @@ function SettingsContent() {
 
   // Privacy settings
   const [privacy, setPrivacy] = useState({
-    publicProfile: true,
-    allowMessages: true,
     showActivity: true,
+    analyticsCollection: true,
   });
 
   const sections = [
@@ -711,44 +715,44 @@ function SettingsContent() {
         </Head>
 
         <style>{`
-        /* Thin scrollbar for all browsers */
-        ::-webkit-scrollbar {
-          width: 6px;
-          height: 6px;
-        }
+          /* Thin scrollbar for all browsers */
+          ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
 
-        ::-webkit-scrollbar-track {
-          background: transparent;
-        }
+          ::-webkit-scrollbar-track {
+            background: transparent;
+          }
 
-        ::-webkit-scrollbar-thumb {
-          background: #d4d4d8;
-          border-radius: 3px;
-        }
+          ::-webkit-scrollbar-thumb {
+            background: #d4d4d8;
+            border-radius: 3px;
+          }
 
-        ::-webkit-scrollbar-thumb:hover {
-          background: #a1a1aa;
-        }
+          ::-webkit-scrollbar-thumb:hover {
+            background: #a1a1aa;
+          }
 
-        /* Dark mode scrollbar */
-        .dark ::-webkit-scrollbar-thumb {
-          background: #52525b;
-        }
+          /* Dark mode scrollbar */
+          .dark ::-webkit-scrollbar-thumb {
+            background: #52525b;
+          }
 
-        .dark ::-webkit-scrollbar-thumb:hover {
-          background: #71717a;
-        }
+          .dark ::-webkit-scrollbar-thumb:hover {
+            background: #71717a;
+          }
 
-        /* Firefox scrollbar */
-        * {
-          scrollbar-width: thin;
-          scrollbar-color: #d4d4d8 transparent;
-        }
+          /* Firefox scrollbar */
+          * {
+            scrollbar-width: thin;
+            scrollbar-color: #d4d4d8 transparent;
+          }
 
-        .dark {
-          scrollbar-color: #52525b transparent;
-        }
-      `}</style>
+          .dark {
+            scrollbar-color: #52525b transparent;
+          }
+        `}</style>
 
         <div className="min-h-screen bg-white dark:bg-neutral-950">
           <div className="flex">
@@ -1382,6 +1386,7 @@ function SettingsContent() {
                 )}
 
                 {/* PRIVACY & HELP TAB */}
+                {/* PRIVACY & HELP TAB */}
                 {activeTab === "privacy" && (
                   <div className="space-y-8 animate-in fade-in duration-300">
                     <div>
@@ -1389,116 +1394,165 @@ function SettingsContent() {
                         Privacy & Help
                       </h2>
 
-                      {/* Privacy Settings */}
+                      {/* Privacy Settings Card */}
                       <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 mb-8">
-                        <h3 className="text-lg font-light text-black dark:text-white mb-8">
+                        <h3 className="text-lg font-light text-black dark:text-white mb-2">
                           Privacy Settings
                         </h3>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-8">
+                          ACTIVITY & PRESENCE
+                        </p>
+
                         <div className="space-y-6">
-                          {[
-                            {
-                              key: "publicProfile",
-                              label: "Public Profile",
-                              icon: User,
-                              desc: "Make your profile visible to everyone",
-                            },
-                            {
-                              key: "allowMessages",
-                              label: "Allow Messages",
-                              icon: MessageSquare,
-                              desc: "Let others send you direct messages",
-                            },
-                            {
-                              key: "showActivity",
-                              label: "Show Activity",
-                              icon: Bell,
-                              desc: "Display your activity status to others",
-                            },
-                          ].map((item) => {
-                            const ItemIcon = item.icon;
-                            return (
-                              <div
-                                key={item.key}
-                                className="flex items-center justify-between"
-                              >
-                                <div className="flex items-start gap-4">
-                                  <ItemIcon className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
-                                  <div>
-                                    <p className="text-sm font-medium text-black dark:text-white">
-                                      {item.label}
-                                    </p>
-                                    <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-                                      {item.desc}
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  onClick={() =>
-                                    setPrivacy((prev) => ({
-                                      ...prev,
-                                      [item.key]: !prev[item.key],
-                                    }))
-                                  }
-                                  className={`relative w-12 h-6 rounded-full transition-all duration-300 border border-zinc-600 dark:border-zinc-600 shrink-0 ${
-                                    privacy[item.key]
-                                      ? "bg-zinc-700 dark:bg-zinc-700"
-                                      : "bg-zinc-200 dark:bg-zinc-800"
-                                  }`}
-                                >
-                                  <div
-                                    className={`absolute top-0.5 w-5 h-5 border border-zinc-200 dark:border-zinc-800 rounded-full transition-transform duration-300 bg-white dark:bg-black ${
-                                      privacy[item.key]
-                                        ? "translate-x-6"
-                                        : "translate-x-0.5"
-                                    }`}
-                                  />
-                                </button>
+                          {/* Show Activity Status */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-start gap-4">
+                              <Eye className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
+                              <div>
+                                <p className="text-sm font-medium text-black dark:text-white">
+                                  Show Activity Status
+                                </p>
+                                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                  Let others see when you're active on the
+                                  platform
+                                </p>
                               </div>
-                            );
-                          })}
+                            </div>
+                            <button
+                              onClick={() =>
+                                setPrivacy((prev) => ({
+                                  ...prev,
+                                  showActivity: !prev.showActivity,
+                                }))
+                              }
+                              className={`relative w-12 h-6 rounded-full transition-all duration-300 border border-zinc-600 dark:border-zinc-600 shrink-0 ${
+                                privacy.showActivity
+                                  ? "bg-zinc-700 dark:bg-zinc-700"
+                                  : "bg-zinc-200 dark:bg-zinc-800"
+                              }`}
+                            >
+                              <div
+                                className={`absolute top-0.5 w-5 h-5 border border-zinc-200 dark:border-zinc-800 rounded-full transition-transform duration-300 bg-white dark:bg-black ${
+                                  privacy.showActivity
+                                    ? "translate-x-6"
+                                    : "translate-x-0.5"
+                                }`}
+                              />
+                            </button>
+                          </div>
+
+                          {/* Divider */}
+                          <div className="border-t border-zinc-200 dark:border-zinc-800 my-6"></div>
+
+                          <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-4">
+                            DATA & ANALYTICS
+                          </p>
+
+                          {/* Analytics Collection */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-start gap-4">
+                              <BarChart3 className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
+                              <div>
+                                <p className="text-sm font-medium text-black dark:text-white">
+                                  Analytics Collection
+                                </p>
+                                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                  Help us improve by sharing anonymous usage
+                                  data
+                                </p>
+                              </div>
+                            </div>
+                            <button
+                              onClick={() =>
+                                setPrivacy((prev) => ({
+                                  ...prev,
+                                  analyticsCollection:
+                                    !prev.analyticsCollection,
+                                }))
+                              }
+                              className={`relative w-12 h-6 rounded-full transition-all duration-300 border border-zinc-600 dark:border-zinc-600 shrink-0 ${
+                                privacy.analyticsCollection
+                                  ? "bg-zinc-700 dark:bg-zinc-700"
+                                  : "bg-zinc-200 dark:bg-zinc-800"
+                              }`}
+                            >
+                              <div
+                                className={`absolute top-0.5 w-5 h-5 border border-zinc-200 dark:border-zinc-800 rounded-full transition-transform duration-300 bg-white dark:bg-black ${
+                                  privacy.analyticsCollection
+                                    ? "translate-x-6"
+                                    : "translate-x-0.5"
+                                }`}
+                              />
+                            </button>
+                          </div>
                         </div>
                       </div>
 
-                      {/* Help & Documentation */}
+                      {/* Help & Documentation Card */}
                       <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
-                        <h3 className="text-lg font-light text-black dark:text-white mb-6 flex items-center gap-2">
-                          <HelpCircle className="w-5 h-5" />
-                          Documentation
+                        <h3 className="text-lg font-light text-black dark:text-white mb-6">
+                          Help & Documentation
                         </h3>
-                        <div className="space-y-4">
+                        <div className="space-y-3">
                           {[
                             {
                               title: "Privacy Policy",
-                              url: "/privacy",
-                              desc: "Review how we handle your data",
+                              url: "/privacy-policy",
+                              desc: "Learn how we protect your data",
+                              icon: Shield,
                             },
                             {
                               title: "Terms of Service",
-                              url: "/terms",
+                              url: "/terms-services",
                               desc: "Understand our terms and conditions",
+                              icon: FileText,
                             },
                             {
-                              title: "Developer Docs",
+                              title: "Cookie Policy",
+                              url: "/cookie-policy",
+                              desc: "How we use cookies",
+                              icon: Cookie,
+                            },
+                            {
+                              title: "Developer Documentation",
                               url: "/developer-docs",
-                              desc: "API docs, webhooks, and integration guides",
+                              desc: "API guides and integration",
+                              icon: Code,
                             },
                             {
-                              title: "Support",
+                              title: "Contact Support",
                               url: "/contact-support",
-                              desc: "Get help from our support team",
+                              desc: "Get help from our team",
+                              icon: Headphones,
                             },
                           ].map((link, idx) => (
                             <a
                               key={idx}
                               href={link.url}
-                              className="block p-4 rounded-lg transition-all border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                              className="flex items-start gap-4 p-4 rounded-lg transition-all border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 group"
                             >
-                              <p className="text-sm font-medium text-black dark:text-white">
-                                {link.title}
-                              </p>
-                              <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-                                {link.desc}
-                              </p>
+                              <link.icon className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-0.5 shrink-0 group-hover:text-black dark:group-hover:text-white transition-colors" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-black dark:text-white">
+                                  {link.title}
+                                </p>
+                                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                  {link.desc}
+                                </p>
+                              </div>
+                              <svg
+                                className="w-4 h-4 text-zinc-400 dark:text-zinc-600 group-hover:translate-x-0.5 transition-transform shrink-0 mt-1"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 5l7 7-7 7"
+                                />
+                              </svg>
                             </a>
                           ))}
                         </div>

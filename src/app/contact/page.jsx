@@ -31,6 +31,7 @@ function ContactContent() {
     email: "",
     subject: "",
     message: "",
+    issueType: "design",
   });
   const [emailErrors, setEmailErrors] = useState({});
   const [emailSuccess, setEmailSuccess] = useState(false);
@@ -114,6 +115,7 @@ function ContactContent() {
         {
           name: emailFormData.name,
           email: emailFormData.email,
+          issueType: emailFormData.issueType,
           subject: emailFormData.subject,
           message: emailFormData.message,
         },
@@ -127,7 +129,13 @@ function ContactContent() {
       console.log("Email service response:", response.data);
 
       showSuccess("Email sent successfully!");
-      setEmailFormData({ name: "", email: "", subject: "", message: "" });
+      setEmailFormData({
+        name: "",
+        email: "",
+        subject: "",
+        message: "",
+        issueType: "design",
+      });
     } catch (error) {
       console.error("Error sending email:", error);
 
@@ -405,6 +413,23 @@ function ContactContent() {
                     )}
                   </div>
 
+                  {/* Issue Type Field - NEW */}
+                  <div>
+                    <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide font-medium">
+                      Issue Type
+                    </label>
+                    <select
+                      name="issueType"
+                      value={emailFormData.issueType}
+                      onChange={handleEmailInputChange}
+                      className="w-full text-sm border border-zinc-200 dark:border-zinc-800 rounded-lg px-4 py-3 bg-white dark:bg-zinc-900 text-black dark:text-white focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
+                    >
+                      <option value="design">Design Inquiry</option>
+                      <option value="feature">Feature Request</option>
+                      <option value="collaboration">Collaboration</option>
+                    </select>
+                  </div>
+
                   {/* Subject Field */}
                   <div>
                     <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-2 uppercase tracking-wide font-medium">
@@ -656,6 +681,34 @@ function ContactContent() {
                   </AnimatePresence>
                 </form>
               </div>
+            </div>
+          </div>
+
+          {/* SUPPORT CENTER LINK - ADD THIS */}
+          <div className="mt-16 pt-8 border-t border-zinc-200 dark:border-zinc-800">
+            <div className="text-center">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-3">
+                Need help with the platform or have technical questions?
+              </p>
+              <a
+                href="/contact-support"
+                className="inline-flex items-center gap-2 text-sm font-medium text-black dark:text-white hover:text-zinc-600 dark:hover:text-zinc-400 transition-colors group"
+              >
+                <span>Visit our Support Center</span>
+                <svg
+                  className="w-4 h-4 group-hover:translate-x-1 transition-transform"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 8l4 4m0 0l-4 4m4-4H3"
+                  />
+                </svg>
+              </a>
             </div>
           </div>
         </div>
