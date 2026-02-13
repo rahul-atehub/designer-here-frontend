@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/ui/theme.toggle";
 import { FiSun, FiMoon } from "react-icons/fi";
 import { useTheme } from "next-themes";
 import { useUser } from "@/context/UserContext";
+import { useNotifications } from "@/context/NotificationContext";
 
 import {
   User,
@@ -36,6 +37,7 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const pathname = usePathname();
   const isLoggedIn = !!user;
   const [imgError, setImgError] = useState(false);
@@ -43,8 +45,7 @@ export default function Navbar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const isAdmin = user?.role === "admin";
-  const [unreadCount, setUnreadCount] = useState(0);
-
+  const { unreadCount, markTabAsRead } = useNotifications();
   // Scroll effect
   useEffect(() => {
     const handleScroll = () => {
@@ -52,6 +53,11 @@ export default function Navbar() {
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Fix hydration
+  useEffect(() => {
+    setMounted(true);
   }, []);
 
   // Main navigation links
@@ -70,6 +76,14 @@ export default function Navbar() {
     { label: "Profile", href: "/profile", icon: User },
     { label: "Settings", href: "/settings", icon: Settings },
   ];
+
+  // Close all overlays helper
+  const closeAllExcept = (keepOpen) => {
+    if (keepOpen !== "profile") setIsProfileOpen(false);
+    if (keepOpen !== "notification") setIsNotificationOpen(false);
+    if (keepOpen !== "search") setIsSearchOpen(false);
+    if (keepOpen !== "mobile") setIsMobileMenuOpen(false);
+  };
 
   const closeMenus = () => {
     setIsProfileOpen(false);
@@ -172,7 +186,15 @@ export default function Navbar() {
 
               {/* Notifications - Hidden on Mobile */}
               <button
-                onClick={() => setIsNotificationOpen(true)}
+                onClick={async () => {
+                  closeAllExcept("notification");
+                  setIsNotificationOpen(true);
+
+                  // Auto mark all as read when opening
+                  if (unreadCount > 0) {
+                    await markTabAsRead(null); // null = mark ALL notifications as read
+                  }
+                }}
                 className="hidden sm:flex p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] rounded-xl transition-all duration-200 relative"
               >
                 <Bell size={20} />
@@ -329,18 +351,12 @@ export default function Navbar() {
 
           {/* Desktop: Slide-out Panel */}
           <div className="hidden md:block fixed top-0 right-0 bottom-0 w-96 bg-white dark:bg-neutral-900 shadow-2xl z-50 border-l border-gray-200 dark:border-neutral-800 animate-in slide-in-from-right duration-300">
-            <NotificationPanel
-              onClose={() => setIsNotificationOpen(false)}
-              onMarkAsRead={() => setUnreadCount(0)}
-            />
+            <NotificationPanel onClose={() => setIsNotificationOpen(false)} />
           </div>
 
           {/* Mobile: Fullscreen */}
           <div className="md:hidden fixed inset-0 bg-white dark:bg-neutral-900 z-50 animate-in fade-in duration-200">
-            <NotificationPanel
-              onClose={() => setIsNotificationOpen(false)}
-              onMarkAsRead={() => setUnreadCount(0)}
-            />
+            <NotificationPanel onClose={() => setIsNotificationOpen(false)} />
           </div>
         </>
       )}
@@ -439,24 +455,28 @@ export default function Navbar() {
                   <span className="font-medium text-gray-700 dark:text-gray-300">
                     Theme
                   </span>
-                  <button
-                    onClick={() =>
-                      setTheme(theme === "dark" ? "light" : "dark")
-                    }
-                    className="relative inline-flex h-6 w-10 items-center rounded-full bg-gray-300 dark:bg-gray-700 transition-colors"
-                  >
-                    <span
-                      className={`absolute h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform flex items-center justify-center ${
-                        theme === "dark" ? "translate-x-5" : "translate-x-0.5"
-                      }`}
+                  {mounted ? (
+                    <button
+                      onClick={() =>
+                        setTheme(theme === "dark" ? "light" : "dark")
+                      }
+                      className="relative inline-flex h-6 w-10 items-center rounded-full bg-gray-300 dark:bg-gray-700 transition-colors"
                     >
-                      {theme === "dark" ? (
-                        <FiMoon className="w-4 h-4 text-neutral-950" />
-                      ) : (
-                        <FiSun className="w-4 h-4 text-orange-500" />
-                      )}
-                    </span>
-                  </button>
+                      <span
+                        className={`absolute h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform flex items-center justify-center ${
+                          theme === "dark" ? "translate-x-5" : "translate-x-0.5"
+                        }`}
+                      >
+                        {theme === "dark" ? (
+                          <FiMoon className="w-4 h-4 text-neutral-950" />
+                        ) : (
+                          <FiSun className="w-4 h-4 text-orange-500" />
+                        )}
+                      </span>
+                    </button>
+                  ) : (
+                    <div className="w-10 h-6" />
+                  )}
                 </div>
 
                 {/* Notifications - Mobile Only */}
@@ -482,12 +502,15 @@ export default function Navbar() {
       </div>
 
       {/* Click outside handler for profile dropdown */}
-      {isProfileOpen && (
-        <div
-          className="fixed inset-0 z-30"
-          onClick={() => setIsProfileOpen(false)}
-        />
-      )}
+      {isProfileOpen &&
+        !isNotificationOpen &&
+        !isSearchOpen &&
+        !isMobileMenuOpen && (
+          <div
+            className="fixed inset-0 z-30"
+            onClick={() => setIsProfileOpen(false)}
+          />
+        )}
     </>
   );
 }

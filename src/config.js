@@ -131,6 +131,17 @@ export const API = {
     MESSAGE_USERS_SEARCH: `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_USER_SEARCH_ENDPOINT}`, // to search user's inbox. [make it admin only.]
     MESSAGES_SEND: `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_SEND_ENDPOINT}`, // to send a messages through contact form.
   },
+
+  NOTIFICATIONS: {
+    GET_ALL: `${BASE_URL}${process.env.NEXT_PUBLIC_NOTIFICATIONS_ENDPOINT}`,
+    GET_UNREAD_COUNT: `${BASE_URL}${process.env.NEXT_PUBLIC_NOTIFICATIONS_ENDPOINT}?type=unread-count`,
+    MARK_AS_READ: (id) =>
+      `${BASE_URL}${process.env.NEXT_PUBLIC_NOTIFICATIONS_ENDPOINT}/${id}`,
+    MARK_ALL_AS_READ: `${BASE_URL}${process.env.NEXT_PUBLIC_NOTIFICATIONS_ENDPOINT}/read-all`,
+    DELETE: (id) =>
+      `${BASE_URL}${process.env.NEXT_PUBLIC_NOTIFICATIONS_ENDPOINT}/${id}`,
+    PREFERENCES: `${BASE_URL}${process.env.NEXT_PUBLIC_NOTIFICATIONS_PREFERENCES_ENDPOINT}`,
+  },
 };
 
 // make a api endpoint for searchbar.

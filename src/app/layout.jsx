@@ -4,7 +4,8 @@ import { ThemeProvider } from "next-themes";
 import { LikedPostsProvider } from "@/context/LikedPostsContext";
 import { SavedPostsProvider } from "@/context/SavedPostsContext";
 import { UserProvider } from "@/context/UserContext";
-import { getUserFromServer } from "@/lib/auth"; // your server-side util
+import { getUserFromServer } from "@/lib/auth";
+import { NotificationProvider } from "@/context/NotificationContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,7 +33,9 @@ export default async function RootLayout({ children }) {
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <UserProvider serverUser={serverUser}>
             <LikedPostsProvider>
-              <SavedPostsProvider>{children}</SavedPostsProvider>
+              <NotificationProvider>
+                <SavedPostsProvider>{children}</SavedPostsProvider>
+              </NotificationProvider>
             </LikedPostsProvider>
           </UserProvider>
         </ThemeProvider>

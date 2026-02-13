@@ -28,14 +28,15 @@ import {
   HelpCircle,
   Trash2,
   LogOut,
-  Eye, // ADD THIS
-  BarChart3, // ADD THIS
-  Cookie, // ADD THIS
-  Code, // ADD THIS
-  Headphones, // ADD THIS
+  Eye,
+  BarChart3,
+  Cookie,
+  Code,
+  Headphones,
 } from "lucide-react";
 import LayoutWrapper from "@/Components/LayoutWrapper";
 import PasswordAndSecurity from "@/app/settings/PasswordAndSecurity";
+import { fetchPreferences, updatePreference } from "@/lib/notification-service";
 
 function SettingsContent() {
   const {
@@ -117,19 +118,22 @@ function SettingsContent() {
   });
 
   // Admin states
-  const [users, setUsers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterStatus, setFilterStatus] = useState("all");
-  const [searchAdminEmail, setSearchAdminEmail] = useState("");
-  const [adminPromotionResult, setAdminPromotionResult] = useState(null);
   const [blockedAccounts, setBlockedAccounts] = useState([]);
 
   // Notification settings
   const [notifications, setNotifications] = useState({
-    emailNotifications: true,
-    newPostNotifications: true,
     messageNotifications: true,
+    newPostNotifications: true,
+    featuredPostNotifications: true,
+    likeNotifications: true,
+    saveNotifications: true,
+    emailNotifications: true,
+    emailMessages: true,
     weeklyDigest: true,
+    emailNewPosts: true,
+    emailFeatured: true,
+    emailLikes: true,
+    emailSaves: true,
   });
 
   // Privacy settings
@@ -182,8 +186,7 @@ function SettingsContent() {
             label: "Team Management",
             icon: Users,
             subsections: [
-              { id: "add-members", label: "Add Members", contentId: "admin" },
-              { id: "member-list", label: "Member List", contentId: "admin" },
+              { id: "team-overview", label: "Overview", contentId: "admin" },
             ],
           },
         ]
@@ -252,9 +255,6 @@ function SettingsContent() {
 
   useEffect(() => {
     fetchUserData();
-    if (activeTab === "admin" && isAdmin) {
-      fetchUsers();
-    }
     if (activeTab === "blocked") {
       if (isAdmin) {
         fetchBlockedAccounts();
@@ -303,15 +303,47 @@ function SettingsContent() {
     }
   };
 
-  const fetchUsers = async () => {
-    try {
-      const response = await axios.get(API.ADMIN.USERS, {
-        withCredentials: true,
-      });
-      setUsers(response.data.users || []);
-    } catch (error) {
-      console.error("Error fetching users:", error);
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        const prefs = await fetchPreferences();
+        setNotifications({
+          messageNotifications: prefs.messageAlerts ?? true,
+          newPostNotifications: prefs.newPostAlerts ?? true,
+          featuredPostNotifications: prefs.featuredPostAlerts ?? true,
+          likeNotifications: prefs.likeAlerts ?? true,
+          saveNotifications: prefs.saveAlerts ?? true,
+          emailNotifications: prefs.emailNotifications ?? true,
+          emailMessages: prefs.emailMessages ?? true,
+          weeklyDigest: prefs.weeklyDigest ?? true,
+          emailNewPosts: prefs.emailNewPosts ?? true,
+          emailFeatured: prefs.emailFeatured ?? true,
+          emailLikes: prefs.emailLikes ?? true,
+          emailSaves: prefs.emailSaves ?? true,
+        });
+      } catch (err) {
+        console.error("Failed to load notification preferences:", err.message);
+      }
+    };
+
+    if (activeTab === "notifications") {
+      loadPreferences();
     }
+  }, [activeTab]);
+
+  const preferenceKeyMap = {
+    messageNotifications: "messageAlerts",
+    newPostNotifications: "newPostAlerts",
+    featuredPostNotifications: "featuredPostAlerts",
+    likeNotifications: "likeAlerts",
+    saveNotifications: "saveAlerts",
+    emailNotifications: "emailNotifications",
+    emailMessages: "emailMessages",
+    weeklyDigest: "weeklyDigest",
+    emailNewPosts: "emailNewPosts",
+    emailFeatured: "emailFeatured",
+    emailLikes: "emailLikes",
+    emailSaves: "emailSaves",
   };
 
   const fetchBlockedAccounts = async () => {
@@ -322,6 +354,40 @@ function SettingsContent() {
       setBlockedAccounts(response.data.blockedUsers || []);
     } catch (error) {
       console.error("Error fetching blocked accounts:", error);
+    }
+  };
+
+  const blockUser = async (userId) => {
+    try {
+      await axios.post(
+        API.ADMIN.BLOCK_USER,
+        { userId },
+        {
+          withCredentials: true,
+        },
+      );
+      fetchBlockedAccounts();
+      showSuccess("User blocked successfully");
+    } catch (error) {
+      console.error("Error blocking user:", error);
+      showError("Failed to block user");
+    }
+  };
+
+  const unblockUser = async (userId) => {
+    try {
+      await axios.post(
+        API.ADMIN.UNBLOCK_USER,
+        { userId },
+        {
+          withCredentials: true,
+        },
+      );
+      fetchBlockedAccounts();
+      showSuccess("User unblocked successfully");
+    } catch (error) {
+      console.error("Error unblocking user:", error);
+      showError("Failed to unblock user");
     }
   };
 
@@ -476,128 +542,6 @@ function SettingsContent() {
     }
   };
 
-  const changePassword = async () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      showError("New passwords do not match");
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      await axios.put(
-        API.USER.CHANGE_PASSWORD,
-        {
-          oldPassword: passwordData.oldPassword,
-          newPassword: passwordData.newPassword,
-        },
-        {
-          withCredentials: true,
-        },
-      );
-
-      showSuccess("Password changed successfully");
-      setPasswordData({
-        oldPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      });
-    } catch (error) {
-      console.error("Error changing password:", error);
-      showError("Failed to change password");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const promoteToAdmin = async () => {
-    if (!searchAdminEmail) {
-      showError("Please enter a user email");
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      await axios.post(
-        API.ADMIN.MAKE_ADMIN,
-        { email: searchAdminEmail },
-        {
-          withCredentials: true,
-        },
-      );
-
-      setAdminPromotionResult({
-        success: true,
-        message: `User ${searchAdminEmail} promoted to team member successfully!`,
-      });
-      setSearchAdminEmail("");
-      setTimeout(() => setAdminPromotionResult(null), 3000);
-      fetchUsers();
-    } catch (error) {
-      console.error("Error promoting user:", error);
-      setAdminPromotionResult({
-        success: false,
-        message: error.response?.data?.message || "Failed to promote user",
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const removeFromAdmin = async (userId) => {
-    if (!window.confirm("Remove this user from team members?")) return;
-
-    try {
-      await axios.post(
-        API.ADMIN.REMOVE_ADMIN,
-        { userId },
-        {
-          withCredentials: true,
-        },
-      );
-      fetchUsers();
-      showSuccess("User removed from team members");
-    } catch (error) {
-      console.error("Error removing admin:", error);
-      showError("Failed to remove user from team");
-    }
-  };
-
-  const blockUser = async (userId) => {
-    try {
-      await axios.post(
-        API.ADMIN.BLOCK_USER,
-        { userId },
-        {
-          withCredentials: true,
-        },
-      );
-      fetchUsers();
-      fetchBlockedAccounts();
-      showSuccess("User blocked successfully");
-    } catch (error) {
-      console.error("Error blocking user:", error);
-      showError("Failed to block user");
-    }
-  };
-
-  const unblockUser = async (userId) => {
-    try {
-      await axios.post(
-        API.ADMIN.UNBLOCK_USER,
-        { userId },
-        {
-          withCredentials: true,
-        },
-      );
-      fetchUsers();
-      fetchBlockedAccounts();
-      showSuccess("User unblocked successfully");
-    } catch (error) {
-      console.error("Error unblocking user:", error);
-      showError("Failed to unblock user");
-    }
-  };
-
   const deleteAccount = async () => {
     if (deleteData.inputConfirmation !== "DELETE") {
       showError('Please type "DELETE" to confirm');
@@ -645,7 +589,7 @@ function SettingsContent() {
       const response = await axios.post(
         API.USER.DEACTIVATE_ACCOUNT,
         {
-          username: contextUser.username, // ADD THIS
+          username: contextUser.username,
           password: deactivateData.password,
         },
         {
@@ -673,17 +617,6 @@ function SettingsContent() {
       setIsSaving(false);
     }
   };
-
-  const filteredUsers = users.filter((user) => {
-    const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFilter =
-      filterStatus === "all" ||
-      (filterStatus === "active" && !user.isBlocked) ||
-      (filterStatus === "blocked" && user.isBlocked);
-    return matchesSearch && matchesFilter;
-  });
 
   // 🔄 Loading state (while UserContext is fetching /me)
   if (userLoading) {
@@ -1092,142 +1025,25 @@ function SettingsContent() {
                         Team Management
                       </h2>
 
-                      {/* Add Team Member Card */}
-                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 mb-8">
-                        <h3 className="text-lg font-light text-black dark:text-white mb-2">
-                          Add Team Member
-                        </h3>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-6">
-                          Grant team member privileges to a user by searching
-                          their email
-                        </p>
-
-                        {adminPromotionResult && (
-                          <div
-                            className={`p-4 rounded-lg mb-6 text-xs font-medium border ${
-                              adminPromotionResult.success
-                                ? "border-green-200 dark:border-green-900 bg-green-50 dark:bg-green-950 text-green-800 dark:text-green-300"
-                                : "border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-950 text-red-800 dark:text-red-300"
-                            }`}
-                          >
-                            {adminPromotionResult.message}
+                      {/* Coming Soon Card */}
+                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-16 text-center">
+                        <div className="max-w-md mx-auto">
+                          <div className="w-16 h-16 mx-auto mb-6 rounded-full border-2 border-zinc-200 dark:border-zinc-800 flex items-center justify-center">
+                            <Users className="w-8 h-8 text-zinc-400 dark:text-zinc-600" />
                           </div>
-                        )}
-
-                        <div className="flex gap-3">
-                          <input
-                            type="email"
-                            placeholder="Enter user email"
-                            value={searchAdminEmail}
-                            onChange={(e) =>
-                              setSearchAdminEmail(e.target.value)
-                            }
-                            className="flex-1 text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                          />
-                          <button
-                            onClick={promoteToAdmin}
-                            disabled={isSaving}
-                            className="px-6 py-3 border border-zinc-200 dark:border-zinc-800 rounded-lg text-xs font-medium text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 disabled:opacity-50 transition-all whitespace-nowrap"
-                          >
-                            {isSaving ? "Adding..." : "Add Member"}
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Team Members List */}
-                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
-                        <h3 className="text-lg font-light text-black dark:text-white mb-6">
-                          Team Members
-                        </h3>
-
-                        <div className="flex gap-3 mb-8">
-                          <input
-                            type="text"
-                            placeholder="Search team members..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="flex-1 text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                          />
-                          <select
-                            value={filterStatus}
-                            onChange={(e) => setFilterStatus(e.target.value)}
-                            className="text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                          >
-                            <option value="all">All Members</option>
-                            <option value="active">Active</option>
-                            <option value="blocked">Blocked</option>
-                          </select>
-                        </div>
-
-                        <div className="space-y-3">
-                          {filteredUsers.length > 0 ? (
-                            filteredUsers.map((user) => (
-                              <div
-                                key={user._id}
-                                className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5 flex items-center justify-between transition-all hover:bg-zinc-50 dark:hover:bg-zinc-900"
-                              >
-                                <div className="flex items-center gap-4 flex-1 min-w-0">
-                                  <div className="w-12 h-12 border border-zinc-200 dark:border-zinc-800 rounded-lg flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900">
-                                    {user.profilePicture ? (
-                                      <img
-                                        src={user.profilePicture}
-                                        alt={user.name}
-                                        className="w-full h-full object-cover rounded-lg"
-                                      />
-                                    ) : (
-                                      <User className="w-5 h-5 text-black dark:text-white" />
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-black dark:text-white">
-                                      {user.name}
-                                    </p>
-                                    <p className="text-xs text-zinc-600 dark:text-zinc-400 truncate">
-                                      {user.email}
-                                    </p>
-                                  </div>
-                                  <span
-                                    className={`text-xs px-3 py-1 rounded border ${
-                                      user.isBlocked
-                                        ? "border-red-200 dark:border-red-900 text-red-700 dark:text-red-400"
-                                        : "border-green-200 dark:border-green-900 text-green-700 dark:text-green-400"
-                                    }`}
-                                  >
-                                    {user.isBlocked ? "Blocked" : "Active"}
-                                  </span>
-                                </div>
-                                <div className="flex gap-2 ml-4 shrink-0">
-                                  <button
-                                    onClick={() =>
-                                      user.isBlocked
-                                        ? unblockUser(user._id)
-                                        : blockUser(user._id)
-                                    }
-                                    className={`px-3 py-2 text-xs font-medium border rounded-lg transition-all ${
-                                      user.isBlocked
-                                        ? "border-green-200 dark:border-green-900 text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-950"
-                                        : "border-red-200 dark:border-red-900 text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950"
-                                    }`}
-                                  >
-                                    {user.isBlocked ? "Unblock" : "Block"}
-                                  </button>
-                                </div>
-                              </div>
-                            ))
-                          ) : (
-                            <div className="text-center py-8">
-                              <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                                No team members found
-                              </p>
-                            </div>
-                          )}
+                          <h3 className="text-xl font-light text-black dark:text-white mb-3">
+                            Coming Soon
+                          </h3>
+                          <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                            Team management features are currently under
+                            development. Stay tuned for updates!
+                          </p>
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* NOTIFICATIONS TAB */}
                 {activeTab === "notifications" && (
                   <div className="space-y-8 animate-in fade-in duration-300">
                     <div>
@@ -1235,37 +1051,191 @@ function SettingsContent() {
                         Notifications
                       </h2>
 
-                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
-                        <h3 className="text-lg font-light text-black dark:text-white mb-8">
-                          Email Alerts
+                      {/* In-App Notifications Card */}
+                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 mb-8">
+                        <h3 className="text-lg font-light text-black dark:text-white mb-2">
+                          In-App Notifications
                         </h3>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-8 uppercase tracking-wide">
+                          {isAdmin ? "Admin Alerts" : "Activity Alerts"}
+                        </p>
+
                         <div className="space-y-6">
-                          {[
-                            {
-                              key: "emailNotifications",
-                              label: "General Notifications",
-                              icon: Mail,
-                              desc: "Receive important updates via email",
-                            },
-                            {
-                              key: "newPostNotifications",
-                              label: "New Post Updates",
-                              icon: FileText,
-                              desc: "Get notified when users post new content",
-                            },
-                            {
-                              key: "messageNotifications",
-                              label: "Message Alerts",
-                              icon: MessageSquare,
-                              desc: "Get notified when you receive new messages",
-                            },
-                            {
-                              key: "weeklyDigest",
-                              label: "Weekly Summary",
-                              icon: Bell,
-                              desc: "Receive a summary of activities every week",
-                            },
-                          ].map((item) => {
+                          {(isAdmin
+                            ? [
+                                {
+                                  key: "messageNotifications",
+                                  label: "Message Alerts",
+                                  icon: MessageSquare,
+                                  desc: "Get notified when you receive new messages",
+                                },
+                                {
+                                  key: "likeNotifications",
+                                  label: "Like Notifications",
+                                  icon: Bell,
+                                  desc: "Get notified when someone likes a post",
+                                },
+                                {
+                                  key: "saveNotifications",
+                                  label: "Save Notifications",
+                                  icon: Bell,
+                                  desc: "Get notified when someone saves a post",
+                                },
+                              ]
+                            : [
+                                {
+                                  key: "messageNotifications",
+                                  label: "Message Alerts",
+                                  icon: MessageSquare,
+                                  desc: "Get notified when you receive new messages",
+                                },
+                                {
+                                  key: "newPostNotifications",
+                                  label: "New Post Alerts",
+                                  icon: FileText,
+                                  desc: "Get notified when new posts are published",
+                                },
+                                {
+                                  key: "featuredPostNotifications",
+                                  label: "Featured Post Alerts",
+                                  icon: Bell,
+                                  desc: "Get notified when a post gets featured",
+                                },
+                              ]
+                          ).map((item) => {
+                            const ItemIcon = item.icon;
+                            return (
+                              <div
+                                key={item.key}
+                                className="flex items-center justify-between"
+                              >
+                                <div className="flex items-start gap-4">
+                                  <ItemIcon className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
+                                  <div>
+                                    <p className="text-sm font-medium text-black dark:text-white">
+                                      {item.label}
+                                    </p>
+                                    <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                      {item.desc}
+                                    </p>
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={async () => {
+                                    const newValue = !notifications[item.key];
+                                    setNotifications((prev) => ({
+                                      ...prev,
+                                      [item.key]: newValue,
+                                    }));
+                                    try {
+                                      await updatePreference({
+                                        [preferenceKeyMap[item.key]]: newValue,
+                                      });
+                                    } catch (err) {
+                                      // Revert on failure
+                                      setNotifications((prev) => ({
+                                        ...prev,
+                                        [item.key]: !newValue,
+                                      }));
+                                      showError("Failed to update preference");
+                                    }
+                                  }}
+                                  className={`relative w-12 h-6 rounded-full transition-all duration-300 border border-zinc-600 dark:border-zinc-600 shrink-0 ${
+                                    notifications[item.key]
+                                      ? "bg-zinc-700 dark:bg-zinc-700"
+                                      : "bg-zinc-200 dark:bg-zinc-800"
+                                  }`}
+                                >
+                                  <div
+                                    className={`absolute top-0.5 w-5 h-5 border border-zinc-200 dark:border-zinc-800 rounded-full transition-transform duration-300 bg-white dark:bg-black ${
+                                      notifications[item.key]
+                                        ? "translate-x-6"
+                                        : "translate-x-0.5"
+                                    }`}
+                                  />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Email Preferences Card */}
+                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
+                        <h3 className="text-lg font-light text-black dark:text-white mb-2">
+                          Email Preferences
+                        </h3>
+                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-8 uppercase tracking-wide">
+                          Email Delivery
+                        </p>
+
+                        <div className="space-y-6">
+                          {(isAdmin
+                            ? [
+                                {
+                                  key: "emailNotifications",
+                                  label: "General Notifications",
+                                  icon: Mail,
+                                  desc: "Receive important updates via email",
+                                },
+                                {
+                                  key: "emailMessages",
+                                  label: "Message Emails",
+                                  icon: MessageSquare,
+                                  desc: "Get an email when you receive new messages",
+                                },
+                                {
+                                  key: "emailLikes",
+                                  label: "Like Emails",
+                                  icon: Bell,
+                                  desc: "Get an email when someone likes a post",
+                                },
+                                {
+                                  key: "emailSaves",
+                                  label: "Save Emails",
+                                  icon: Bell,
+                                  desc: "Get an email when someone saves a post",
+                                },
+                                {
+                                  key: "weeklyDigest",
+                                  label: "Weekly Summary",
+                                  icon: Mail,
+                                  desc: "Receive a summary of activities every week",
+                                },
+                              ]
+                            : [
+                                {
+                                  key: "emailNotifications",
+                                  label: "General Notifications",
+                                  icon: Mail,
+                                  desc: "Receive important updates via email",
+                                },
+                                {
+                                  key: "emailMessages",
+                                  label: "Message Emails",
+                                  icon: MessageSquare,
+                                  desc: "Get an email when you receive new messages",
+                                },
+                                {
+                                  key: "emailNewPosts",
+                                  label: "New Post Emails",
+                                  icon: FileText,
+                                  desc: "Get an email when new posts are published",
+                                },
+                                {
+                                  key: "emailFeatured",
+                                  label: "Featured Post Emails",
+                                  icon: Bell,
+                                  desc: "Get an email when a post gets featured",
+                                },
+                                {
+                                  key: "weeklyDigest",
+                                  label: "Weekly Summary",
+                                  icon: Mail,
+                                  desc: "Receive a summary of activities every week",
+                                },
+                              ]
+                          ).map((item) => {
                             const ItemIcon = item.icon;
                             return (
                               <div
@@ -1385,7 +1355,6 @@ function SettingsContent() {
                   </div>
                 )}
 
-                {/* PRIVACY & HELP TAB */}
                 {/* PRIVACY & HELP TAB */}
                 {activeTab === "privacy" && (
                   <div className="space-y-8 animate-in fade-in duration-300">

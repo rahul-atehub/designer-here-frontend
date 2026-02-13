@@ -1,4 +1,6 @@
+// src/Components/NotificationPanel.jsx
 "use client";
+
 import { useState, useEffect, useRef } from "react";
 import {
   X,
@@ -10,53 +12,42 @@ import {
   Heart,
   MessageSquare,
   Image as ImageIcon,
-  AlertCircle,
   Info,
   Star,
   Bookmark,
+  LogIn,
 } from "lucide-react";
-import axios from "axios";
+import Link from "next/link";
 import { useUser } from "@/context/UserContext";
+import { useNotifications } from "@/hooks/useNotifications";
+import { useNotifications as useNotificationContext } from "@/context/NotificationContext";
 import { useRouter } from "next/navigation";
 
 export default function NotificationPanel({ onClose, onMarkAsRead }) {
   const [activeTab, setActiveTab] = useState("messages");
-  const [notifications, setNotifications] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [underlineStyle, setUnderlineStyle] = useState({ left: 0, width: 0 });
   const tabRefs = useRef({});
   const { user } = useUser();
   const isAdmin = user?.role === "admin";
   const router = useRouter();
 
-  // useEffect(() => {
-  //   const fetchNotifications = async () => {
-  //     if (!user) return;
+  const { unreadCount } = useNotificationContext();
 
-  //     setIsLoading(true);
-  //     try {
-  //       const response = await axios.get(`/api/notifications/${activeTab}`);
-  //       setNotifications(response.data);
-  //     } catch (error) {
-  //       console.error("Error fetching notifications:", error);
-  //       setNotifications([]);
-  //     } finally {
-  //       setIsLoading(false);
-  //     }
-  //   };
+  const {
+    notifications,
+    isLoading,
+    error,
+    handleDelete,
+    handleMarkAsRead,
+    handleMarkAllAsRead,
+  } = useNotifications(activeTab);
 
-  //   fetchNotifications();
-  // }, [activeTab, user]);
-
+  // Update underline position when active tab changes
   useEffect(() => {
-    // Update underline position when active tab changes
     const activeTabElement = tabRefs.current[activeTab];
     if (activeTabElement) {
       const { offsetLeft, offsetWidth } = activeTabElement;
-      setUnderlineStyle({
-        left: offsetLeft,
-        width: offsetWidth,
-      });
+      setUnderlineStyle({ left: offsetLeft, width: offsetWidth });
     }
   }, [activeTab]);
 
@@ -78,79 +69,105 @@ export default function NotificationPanel({ onClose, onMarkAsRead }) {
         return <Heart className="w-4 h-4 text-red-500" fill="currentColor" />;
       case "message":
         return <MessageSquare className="w-4 h-4 text-purple-500" />;
-      case "post":
+      case "new_post":
         return <ImageIcon className="w-4 h-4 text-orange-500" />;
+      case "save":
+        return <Bookmark className="w-4 h-4 text-blue-500" />;
+      case "featured":
+        return <Star className="w-4 h-4 text-yellow-500" />;
       default:
         return <Info className="w-4 h-4 text-gray-500" />;
     }
   };
 
-  const markAsRead = async (id) => {
-    try {
-      // await axios.put(`/api/notifications/${id}/read`);
-
-      // Update the navbar's unread count
-      const updatedNotifications = notifications.map((notif) =>
-        notif.id === id ? { ...notif, read: true } : notif,
-      );
-      setNotifications(updatedNotifications);
-
-      const newUnreadCount = updatedNotifications.filter((n) => !n.read).length;
-      if (newUnreadCount === 0 && onMarkAsRead) {
-        onMarkAsRead();
-      }
-    } catch (error) {
-      console.error("Error marking notification as read:", error);
+  const getNotificationMessage = (notification) => {
+    switch (notification.type) {
+      case "like":
+        return "liked your post";
+      case "save":
+        return "saved your post";
+      case "message":
+        return "sent you a message";
+      case "new_post":
+        return "published a new post";
+      case "featured":
+        return "your post was featured";
+      default:
+        return "sent you a notification";
     }
   };
 
-  const markAllAsRead = async () => {
-    try {
-      // await axios.put(`/api/notifications/read-all`, { tab: activeTab });
-      setNotifications((prev) =>
-        prev.map((notif) => ({ ...notif, read: true })),
-      );
+  const formatTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diff = Math.floor((now - date) / 1000);
 
-      // Update the navbar's unread count
-      if (onMarkAsRead) {
-        onMarkAsRead();
-      }
-    } catch (error) {
-      console.error("Error marking all as read:", error);
-    }
-  };
-
-  const deleteNotification = async (id) => {
-    try {
-      // await axios.delete(`/api/notifications/${id}`);
-      const deletedNotif = notifications.find((n) => n.id === id);
-      const updatedNotifications = notifications.filter(
-        (notif) => notif.id !== id,
-      );
-      setNotifications(updatedNotifications);
-
-      // If deleted notification was unread, update navbar count
-      if (deletedNotif && !deletedNotif.read) {
-        const newUnreadCount = updatedNotifications.filter(
-          (n) => !n.read,
-        ).length;
-        if (newUnreadCount === 0 && onMarkAsRead) {
-          onMarkAsRead();
-        }
-      }
-    } catch (error) {
-      console.error("Error deleting notification:", error);
-    }
+    if (diff < 60) return "just now";
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
   };
 
   const handleNotificationSettings = () => {
     router.push("/settings?tab=notifications");
-    if (onClose) {
-      onClose();
-    }
+    if (onClose) onClose();
   };
 
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const localUnreadCount = notifications.filter((n) => !n.read).length;
+
+  // Show login prompt if not authenticated
+  if (!user) {
+    return (
+      <div className="flex flex-col h-full w-full bg-white dark:bg-neutral-800 overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-neutral-900">
+          <div className="flex items-center gap-3">
+            <Bell className="w-6 h-6 text-gray-900 dark:text-white" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Notifications
+            </h2>
+          </div>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 dark:hover:bg-neutral-800 rounded-lg transition-colors duration-200"
+            >
+              <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+            </button>
+          )}
+        </div>
+
+        {/* Login Required Message */}
+        <div className="flex-1 flex flex-col items-center justify-center px-4 py-12 text-center">
+          <div className="w-20 h-20 bg-linear-to-br from-red-500 to-orange-500 rounded-full flex items-center justify-center mb-6">
+            <LogIn className="w-10 h-10 text-white" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-3">
+            Login Required
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs mb-6">
+            Please log in to view your notifications and stay updated
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Link
+              href="/auth/login"
+              onClick={onClose}
+              className="px-6 py-2.5 bg-linear-to-r from-red-500 to-orange-500 text-white font-medium rounded-lg hover:from-red-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              Login
+            </Link>
+            <Link
+              href="/auth/signup"
+              onClick={onClose}
+              className="px-6 py-2.5 bg-gray-100 dark:bg-neutral-800 text-gray-900 dark:text-white font-medium rounded-lg hover:bg-gray-200 dark:hover:bg-neutral-700 transition-all duration-200"
+            >
+              Sign Up
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full w-full bg-white dark:bg-neutral-800 overflow-hidden">
@@ -171,9 +188,9 @@ export default function NotificationPanel({ onClose, onMarkAsRead }) {
         </div>
 
         <div className="flex items-center gap-2">
-          {unreadCount > 0 && (
+          {localUnreadCount > 0 && (
             <button
-              onClick={markAllAsRead}
+              onClick={handleMarkAllAsRead}
               className="p-2 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/20 rounded-lg transition-all duration-200"
             >
               Mark all read
@@ -193,7 +210,7 @@ export default function NotificationPanel({ onClose, onMarkAsRead }) {
       {/* Tabs */}
       <div className="px-4 border-b border-gray-200 dark:border-neutral-800">
         <div className="flex items-center justify-around relative w-full">
-          {tabs.map(({ id, label, icon: Icon }, index) => (
+          {tabs.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               ref={(el) => (tabRefs.current[id] = el)}
@@ -229,6 +246,25 @@ export default function NotificationPanel({ onClose, onMarkAsRead }) {
           <div className="flex items-center justify-center h-full">
             <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
           </div>
+        ) : error === "authentication" ? (
+          <div className="flex flex-col items-center justify-center h-full px-4 py-12 text-center">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-950/20 rounded-full flex items-center justify-center mb-4">
+              <LogIn className="w-8 h-8 text-red-500" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Session Expired
+            </h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 max-w-xs mb-4">
+              Please log in again to view your notifications
+            </p>
+            <Link
+              href="/auth/login"
+              onClick={onClose}
+              className="px-4 py-2 bg-linear-to-r from-red-500 to-orange-500 text-white font-medium rounded-lg hover:from-red-600 hover:to-orange-600 transition-all duration-200"
+            >
+              Login
+            </Link>
+          </div>
         ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full px-4 py-12 text-center animate-in fade-in zoom-in-95 duration-300">
             <div className="w-16 h-16 bg-gray-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-4">
@@ -245,23 +281,21 @@ export default function NotificationPanel({ onClose, onMarkAsRead }) {
           <div className="divide-y divide-gray-100 dark:divide-neutral-800">
             {notifications.map((notification, index) => (
               <div
-                key={notification.id}
+                key={notification._id}
                 className={`
                   relative group p-4 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-all duration-200 cursor-pointer
                   ${!notification.read ? "bg-blue-50/30 dark:bg-blue-950/10" : ""}
                   animate-in fade-in slide-in-from-top-2
                 `}
                 style={{ animationDelay: `${index * 30}ms` }}
-                onClick={() => markAsRead(notification.id)}
+                onClick={() => handleMarkAsRead(notification._id)}
               >
                 <div className="flex gap-3">
                   {/* Avatar with notification icon */}
                   <div className="relative shrink-0">
-                    <img
-                      src={notification.avatar}
-                      alt={notification.user}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
+                    <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-neutral-700 flex items-center justify-center">
+                      <User className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                    </div>
                     <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white dark:bg-neutral-900 rounded-full flex items-center justify-center shadow-sm">
                       {getNotificationIcon(notification.type)}
                     </div>
@@ -271,25 +305,16 @@ export default function NotificationPanel({ onClose, onMarkAsRead }) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
                       <p className="text-sm text-gray-900 dark:text-white">
-                        <span className="font-semibold">
-                          {notification.user}
-                        </span>{" "}
                         <span className="text-gray-600 dark:text-gray-400">
-                          {notification.message}
+                          {getNotificationMessage(notification)}
                         </span>
-                        {notification.postTitle && (
-                          <span className="text-gray-900 dark:text-white font-medium">
-                            {" "}
-                            "{notification.postTitle}"
-                          </span>
-                        )}
                       </p>
                       {!notification.read && (
                         <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0 mt-1.5 animate-in zoom-in duration-200" />
                       )}
                     </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      {notification.time}
+                      {formatTime(notification.createdAt)}
                     </p>
                   </div>
 
@@ -299,7 +324,7 @@ export default function NotificationPanel({ onClose, onMarkAsRead }) {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          markAsRead(notification.id);
+                          handleMarkAsRead(notification._id);
                         }}
                         className="p-1.5 hover:bg-gray-200 dark:hover:bg-neutral-700 rounded transition-colors"
                         title="Mark as read"
@@ -310,7 +335,7 @@ export default function NotificationPanel({ onClose, onMarkAsRead }) {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        deleteNotification(notification.id);
+                        handleDelete(notification._id);
                       }}
                       className="p-1.5 hover:bg-red-100 dark:hover:bg-red-950/20 rounded transition-colors"
                       title="Delete"
