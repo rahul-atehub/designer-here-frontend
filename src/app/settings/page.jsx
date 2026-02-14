@@ -125,6 +125,7 @@ function SettingsContent() {
     messageNotifications: true,
     newPostNotifications: true,
     featuredPostNotifications: true,
+    postUpdateNotifications: true,
     likeNotifications: true,
     saveNotifications: true,
     emailNotifications: true,
@@ -132,6 +133,7 @@ function SettingsContent() {
     weeklyDigest: true,
     emailNewPosts: true,
     emailFeatured: true,
+    emailPostUpdates: true,
     emailLikes: true,
     emailSaves: true,
   });
@@ -311,6 +313,7 @@ function SettingsContent() {
           messageNotifications: prefs.messageAlerts ?? true,
           newPostNotifications: prefs.newPostAlerts ?? true,
           featuredPostNotifications: prefs.featuredPostAlerts ?? true,
+          postUpdateNotifications: prefs.postUpdateAlerts ?? true,
           likeNotifications: prefs.likeAlerts ?? true,
           saveNotifications: prefs.saveAlerts ?? true,
           emailNotifications: prefs.emailNotifications ?? true,
@@ -318,6 +321,7 @@ function SettingsContent() {
           weeklyDigest: prefs.weeklyDigest ?? true,
           emailNewPosts: prefs.emailNewPosts ?? true,
           emailFeatured: prefs.emailFeatured ?? true,
+          emailPostUpdates: prefs.emailPostUpdates ?? true,
           emailLikes: prefs.emailLikes ?? true,
           emailSaves: prefs.emailSaves ?? true,
         });
@@ -335,6 +339,7 @@ function SettingsContent() {
     messageNotifications: "messageAlerts",
     newPostNotifications: "newPostAlerts",
     featuredPostNotifications: "featuredPostAlerts",
+    postUpdateNotifications: "postUpdateAlerts",
     likeNotifications: "likeAlerts",
     saveNotifications: "saveAlerts",
     emailNotifications: "emailNotifications",
@@ -342,6 +347,7 @@ function SettingsContent() {
     weeklyDigest: "weeklyDigest",
     emailNewPosts: "emailNewPosts",
     emailFeatured: "emailFeatured",
+    emailPostUpdates: "emailPostUpdates",
     emailLikes: "emailLikes",
     emailSaves: "emailSaves",
   };
@@ -1101,6 +1107,12 @@ function SettingsContent() {
                                   icon: Bell,
                                   desc: "Get notified when a post gets featured",
                                 },
+                                {
+                                  key: "postUpdateNotifications",
+                                  label: "Post Update Alerts",
+                                  icon: FileText,
+                                  desc: "Get notified when posts are updated",
+                                },
                               ]
                           ).map((item) => {
                             const ItemIcon = item.icon;
@@ -1227,6 +1239,12 @@ function SettingsContent() {
                                   label: "Featured Post Emails",
                                   icon: Bell,
                                   desc: "Get an email when a post gets featured",
+                                },
+                                {
+                                  key: "emailPostUpdates",
+                                  label: "Post Update Emails",
+                                  icon: FileText,
+                                  desc: "Get an email when posts are updated",
                                 },
                                 {
                                   key: "weeklyDigest",

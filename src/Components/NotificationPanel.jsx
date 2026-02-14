@@ -16,6 +16,7 @@ import {
   Star,
   Bookmark,
   LogIn,
+  RefreshCw,
 } from "lucide-react";
 import Link from "next/link";
 import { useUser } from "@/context/UserContext";
@@ -61,6 +62,7 @@ export default function NotificationPanel({ onClose, onMarkAsRead }) {
         { id: "messages", label: "New Messages", icon: MessageSquare },
         { id: "posts", label: "New Posts", icon: ImageIcon },
         { id: "featured", label: "Featured Posts", icon: Star },
+        { id: "updates", label: "Post Updates", icon: RefreshCw },
       ];
 
   const getNotificationIcon = (type) => {
@@ -75,25 +77,90 @@ export default function NotificationPanel({ onClose, onMarkAsRead }) {
         return <Bookmark className="w-4 h-4 text-blue-500" />;
       case "featured":
         return <Star className="w-4 h-4 text-yellow-500" />;
+      case "post_updated":
+        return <RefreshCw className="w-4 h-4 text-green-500" />;
       default:
         return <Info className="w-4 h-4 text-gray-500" />;
     }
   };
 
   const getNotificationMessage = (notification) => {
+    // Extract populated data
+    const senderName = notification.senderId?.username || "Someone";
+    const postTitle = notification.postId?.title || "a post";
+
     switch (notification.type) {
       case "like":
-        return "liked your post";
+        return (
+          <>
+            <span className="font-semibold">{senderName}</span> liked your post
+            {notification.postId && (
+              <>
+                : <span className="font-medium">{postTitle}</span>
+              </>
+            )}
+          </>
+        );
       case "save":
-        return "saved your post";
+        return (
+          <>
+            <span className="font-semibold">{senderName}</span> saved your post
+            {notification.postId && (
+              <>
+                : <span className="font-medium">{postTitle}</span>
+              </>
+            )}
+          </>
+        );
       case "message":
-        return "sent you a message";
+        return (
+          <>
+            <span className="font-semibold">{senderName}</span> sent you a
+            message
+          </>
+        );
       case "new_post":
-        return "published a new post";
+        return (
+          <>
+            <span className="font-semibold">{senderName}</span> published a new
+            post
+            {notification.postId && (
+              <>
+                : <span className="font-medium">{postTitle}</span>
+              </>
+            )}
+          </>
+        );
       case "featured":
-        return "your post was featured";
+        return (
+          <>
+            <span className="font-semibold">{senderName}</span> featured your
+            post
+            {notification.postId && (
+              <>
+                : <span className="font-medium">{postTitle}</span>
+              </>
+            )}
+          </>
+        );
+      case "post_updated":
+        return (
+          <>
+            <span className="font-semibold">{senderName}</span> updated a post
+            {notification.postId && (
+              <>
+                : <span className="font-medium">{postTitle}</span>
+              </>
+            )}
+          </>
+        );
       default:
-        return "sent you a notification";
+        return (
+          <>
+            <span className="font-semibold">{senderName}</span> sent you a
+            notification
+          </>
+        );
     }
   };
 
@@ -282,19 +349,50 @@ export default function NotificationPanel({ onClose, onMarkAsRead }) {
             {notifications.map((notification, index) => (
               <div
                 key={notification._id}
-                className={`
+                className={` 
                   relative group p-4 hover:bg-gray-50 dark:hover:bg-neutral-800/50 transition-all duration-200 cursor-pointer
                   ${!notification.read ? "bg-blue-50/30 dark:bg-blue-950/10" : ""}
                   animate-in fade-in slide-in-from-top-2
                 `}
                 style={{ animationDelay: `${index * 30}ms` }}
-                onClick={() => handleMarkAsRead(notification._id)}
+                onClick={() => {
+                  // Mark as read
+                  handleMarkAsRead(notification._id);
+
+                  // Navigate based on notification type
+                  if (notification.type === "message") {
+                    // Navigate to messages with sender ID - will auto-open that specific chat
+                    const senderId = notification.senderId?._id;
+                    if (senderId) {
+                      router.push(`/messages?userId=${senderId}`);
+                    } else {
+                      router.push("/messages");
+                    }
+                  } else if (notification.type === "featured") {
+                    // Navigate to home page and scroll to featured section
+                    router.push("/#featured");
+                  } else if (notification.postId?._id) {
+                    // Navigate to portfolio for all other post notifications
+                    router.push("/portfolio");
+                  }
+
+                  // Close the notification panel
+                  if (onClose) onClose();
+                }}
               >
                 <div className="flex gap-3">
                   {/* Avatar with notification icon */}
                   <div className="relative shrink-0">
-                    <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-neutral-700 flex items-center justify-center">
-                      <User className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                    <div className="w-12 h-12 rounded-full bg-gray-200 dark:bg-neutral-700 flex items-center justify-center overflow-hidden">
+                      {notification.senderId?.profilePicture ? (
+                        <img
+                          src={notification.senderId.profilePicture}
+                          alt={notification.senderId.username || "User"}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User className="w-6 h-6 text-gray-500 dark:text-gray-400" />
+                      )}
                     </div>
                     <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-white dark:bg-neutral-900 rounded-full flex items-center justify-center shadow-sm">
                       {getNotificationIcon(notification.type)}
@@ -304,16 +402,33 @@ export default function NotificationPanel({ onClose, onMarkAsRead }) {
                   {/* Content */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <p className="text-sm text-gray-900 dark:text-white">
-                        <span className="text-gray-600 dark:text-gray-400">
-                          {getNotificationMessage(notification)}
-                        </span>
-                      </p>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-gray-900 dark:text-white">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            {getNotificationMessage(notification)}
+                          </span>
+                        </p>
+                        {/* Post thumbnail - show for post-related notifications */}
+                        {notification.postId?.image &&
+                          (notification.type === "like" ||
+                            notification.type === "save" ||
+                            notification.type === "new_post" ||
+                            notification.type === "featured" ||
+                            notification.type === "post_updated") && (
+                            <div className="mt-2">
+                              <img
+                                src={notification.postId.image}
+                                alt={notification.postId.title || "Post"}
+                                className="w-16 h-16 rounded-lg object-cover border border-gray-200 dark:border-neutral-700"
+                              />
+                            </div>
+                          )}
+                      </div>
                       {!notification.read && (
                         <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0 mt-1.5 animate-in zoom-in duration-200" />
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {formatTime(notification.createdAt)}
                     </p>
                   </div>

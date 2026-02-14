@@ -40,7 +40,11 @@ export default function FeaturedGallery() {
   }
 
   return (
-    <section className="relative py-20 bg-white dark:bg-neutral-950 overflow-hidden">
+    <section
+      id="featured"
+      className="relative py-20 bg-white dark:bg-neutral-950 overflow-hidden"
+    >
+      {" "}
       {/* Animated Background - matching hero and ContactCTA style */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <motion.div
@@ -94,7 +98,6 @@ export default function FeaturedGallery() {
           }}
         />
       </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <motion.div

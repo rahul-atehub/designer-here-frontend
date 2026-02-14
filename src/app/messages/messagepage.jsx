@@ -9,6 +9,7 @@ import ChatInput from "@/Components/ChatInput";
 import { useUser } from "@/context/UserContext";
 import socketClient from "@/lib/socket-client";
 import TypingIndicator from "@/Components/TypingIndicator";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import axios from "axios";
@@ -40,6 +41,7 @@ export default function MessagePage() {
     );
   }
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isMobile, setIsMobile] = useState(false);
 
   // Mobile detection
@@ -174,6 +176,23 @@ export default function MessagePage() {
 
     fetchConversations();
   }, [viewerType, user?._id]);
+
+  // Auto-open chat from notification
+  useEffect(() => {
+    const userId = searchParams.get("userId");
+
+    if (userId && conversations.length > 0 && !loading) {
+      // Find the conversation with this specific user
+      const targetChat = conversations.find((conv) => {
+        const other = getOtherParticipant(conv);
+        return other?._id === userId;
+      });
+
+      if (targetChat) {
+        handleSelectConversation(targetChat);
+      }
+    }
+  }, [searchParams, conversations, loading]);
 
   const handleSelectConversation = (conversation) => {
     setSelectedChatId(conversation._id);
