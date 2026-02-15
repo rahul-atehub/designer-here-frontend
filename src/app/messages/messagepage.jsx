@@ -149,31 +149,33 @@ export default function MessagePage() {
     setTyping(false);
   }, [selectedChatId]);
 
+  // Define fetchConversations outside useEffect so it can be reused
+  const fetchConversations = async () => {
+    if (!user?._id) return;
+
+    try {
+      setLoading(true);
+
+      const { data } = await axios.get(
+        viewerType === "admin"
+          ? API.CHAT.MESSAGES_CHATS // ADMIN backend file
+          : API.CHAT.MESSAGES_USERS_CHATS(user._id), // USER backend file
+        { withCredentials: true },
+      );
+
+      const chats = data?.data?.chats || [];
+
+      setConversations(chats);
+    } catch (error) {
+      console.error("Failed to fetch conversations:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Call it on mount
   useEffect(() => {
     if (!user?._id) return;
-    const fetchConversations = async () => {
-      try {
-        setLoading(true);
-
-        const { data } = await axios.get(
-          viewerType === "admin"
-            ? API.CHAT.MESSAGES_CHATS // ADMIN backend file
-            : API.CHAT.MESSAGES_USERS_CHATS(user._id), // USER backend file
-          { withCredentials: true },
-        );
-
-        const chats = data?.data?.chats || [];
-
-        setConversations(chats);
-
-        // Don't auto-select - show landing page by default
-      } catch (error) {
-        console.error("Failed to fetch conversations:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchConversations();
   }, [viewerType, user?._id]);
 
@@ -360,14 +362,18 @@ export default function MessagePage() {
                     <div className="relative">
                       <img
                         src={
-                          !other?.isActive
+                          !other?.isActive || other?.isBlocked
                             ? "/avatar-placeholder.png"
                             : other?.avatar || "/avatar-placeholder.png"
                         }
                         alt={
-                          !other?.isActive
-                            ? "Deactivated"
-                            : other?.name || "User"
+                          other?.isDeleted
+                            ? "Deleted User"
+                            : !other?.isActive
+                              ? "Deactivated"
+                              : other?.isBlocked
+                                ? "User"
+                                : other?.name || "User"
                         }
                         onError={(e) => {
                           e.currentTarget.src = "/avatar-placeholder.png";
@@ -379,7 +385,9 @@ export default function MessagePage() {
                     <div className="flex-1 min-w-0">
                       <p
                         className={`font-medium text-sm truncate ${
-                          !other?.isActive || other?.isDeleted
+                          !other?.isActive ||
+                          other?.isDeleted ||
+                          other?.isBlocked
                             ? "text-zinc-400 dark:text-zinc-600"
                             : ""
                         }`}
@@ -388,7 +396,9 @@ export default function MessagePage() {
                           ? "Deleted User"
                           : !other?.isActive
                             ? "Deactivated"
-                            : other?.name || "Unknown"}
+                            : other?.isBlocked
+                              ? "User"
+                              : other?.name || "Unknown"}
                       </p>
                       {(!other?.isActive || other?.isDeleted) && (
                         <p className="text-xs text-zinc-500 dark:text-zinc-600">
@@ -432,17 +442,34 @@ export default function MessagePage() {
           <>
             <ChatHeader
               participant={activeChatParticipant}
+              chatId={selectedChatId}
               onBack={handleBackToList}
               isMobile={isMobile}
+              onChatDeleted={() => {
+                setSelectedChatId(null);
+                setActiveChatParticipant(null);
+                fetchConversations();
+              }}
+              onChatBlocked={() => {
+                fetchConversations();
+              }}
+              onChatArchived={() => {
+                fetchConversations();
+              }}
             />
             <TypingIndicator
               show={typing}
               participant={activeChatParticipant}
             />
-
             <ChatMessages chatId={selectedChatId} currentUserId={user._id} />
-
-            <ChatInput chatId={selectedChatId} />
+            <ChatInput
+              chatId={selectedChatId}
+              participant={activeChatParticipant}
+              onUserUnblocked={() => {
+                // Refresh conversations to update blocked status
+                fetchConversations();
+              }}
+            />{" "}
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">

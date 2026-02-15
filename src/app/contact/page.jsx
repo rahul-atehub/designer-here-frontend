@@ -123,6 +123,7 @@ function ContactContent() {
           headers: {
             "Content-Type": "application/json",
           },
+          withCredentials: true, // ✅ Add this to send auth cookies
         },
       );
 
@@ -139,8 +140,26 @@ function ContactContent() {
     } catch (error) {
       console.error("Error sending email:", error);
 
-      if (error.response?.data?.message) {
+      // ✅ Handle blocked user attempting commercial email (403)
+      if (error.response?.status === 403) {
+        showError(
+          error.response?.data?.error ||
+            "Your account has been blocked. You can still contact technical support for assistance.",
+        );
+
+        // Show link to support center
+        setTimeout(() => {
+          const shouldRedirect = window.confirm(
+            "Would you like to visit the Support Center for technical assistance?",
+          );
+          if (shouldRedirect) {
+            window.location.href = "/contact-support";
+          }
+        }, 1500);
+      } else if (error.response?.data?.message) {
         showError(error.response.data.message);
+      } else if (error.response?.data?.error) {
+        showError(error.response.data.error);
       } else {
         showError("Failed to send email. Please try again.");
       }

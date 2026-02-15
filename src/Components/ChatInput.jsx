@@ -1,4 +1,3 @@
-// src/components/ChatInput.jsx
 "use client";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -6,17 +5,23 @@ import { API } from "@/config";
 import axios from "axios";
 import EmojiPicker from "@/components/ui/EmojiPicker";
 import socketClient from "@/lib/socket-client";
+import { useUser } from "@/context/UserContext";
 
-export default function ChatInput({ chatId }) {
+export default function ChatInput({ chatId, participant, onUserUnblocked }) {
   const [message, setMessage] = useState("");
   const [selectedImages, setSelectedImages] = useState([]);
   const [sending, setSending] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isUnblocking, setIsUnblocking] = useState(false);
+  const [isDeletingChat, setIsDeletingChat] = useState(false);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
   const menuRef = useRef(null);
+  const { user } = useUser();
+  const isAdmin = user?.role === "admin";
+  const isUserBlocked = participant?.isBlocked === true;
 
   const handleSend = async () => {
     if (!message.trim() && selectedImages.length === 0) return;
@@ -34,7 +39,7 @@ export default function ChatInput({ chatId }) {
             imageUrl: null,
             status: "sending",
           },
-        })
+        }),
       );
 
       setMessage("");
@@ -64,7 +69,7 @@ export default function ChatInput({ chatId }) {
                   messageId: response.data.messageId,
                   status: "sent",
                 },
-              })
+              }),
             );
           }
         })
@@ -74,7 +79,7 @@ export default function ChatInput({ chatId }) {
           window.dispatchEvent(
             new CustomEvent("message-failed", {
               detail: { tempId },
-            })
+            }),
           );
         });
     } catch (error) {
@@ -82,8 +87,53 @@ export default function ChatInput({ chatId }) {
       window.dispatchEvent(
         new CustomEvent("message-failed", {
           detail: { tempId: `temp-${Date.now()}-${Math.random()}` },
-        })
+        }),
       );
+    }
+  };
+
+  const handleUnblockUser = async () => {
+    if (!participant?._id) return;
+
+    setIsUnblocking(true);
+    try {
+      await axios.post(
+        API.ADMIN.UNBLOCK_USER,
+        { userId: participant._id },
+        { withCredentials: true },
+      );
+
+      if (onUserUnblocked) {
+        onUserUnblocked();
+      }
+    } catch (error) {
+      console.error("Error unblocking user:", error);
+      alert("Failed to unblock user");
+    } finally {
+      setIsUnblocking(false);
+    }
+  };
+
+  const handleDeleteChat = async () => {
+    if (!chatId) return;
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this chat? This action cannot be undone.",
+    );
+    if (!confirmed) return;
+
+    setIsDeletingChat(true);
+    try {
+      await axios.delete(API.CHAT.MESSAGES(chatId), {
+        withCredentials: true,
+      });
+
+      window.location.href = "/messages";
+    } catch (error) {
+      console.error("Error deleting chat:", error);
+      alert("Failed to delete chat");
+    } finally {
+      setIsDeletingChat(false);
     }
   };
 
@@ -199,8 +249,8 @@ export default function ChatInput({ chatId }) {
       reader.onload = (e) => {
         setSelectedImages((prev) =>
           prev.map((img) =>
-            img.id === id ? { ...img, preview: e.target.result } : img
-          )
+            img.id === id ? { ...img, preview: e.target.result } : img,
+          ),
         );
       };
       reader.readAsDataURL(file);
@@ -244,6 +294,52 @@ export default function ChatInput({ chatId }) {
 
   const hasContent = message.trim() || selectedImages.length > 0;
 
+  // ✅ Instagram-style: If admin viewing blocked user, show action buttons
+  if (isAdmin && isUserBlocked) {
+    return (
+      <div className="bg-white dark:bg-neutral-950 border-t border-gray-300 dark:border-neutral-800 p-6">
+        <div className="flex items-center justify-center gap-3">
+          {/* Unblock Button */}
+          <button
+            onClick={handleUnblockUser}
+            disabled={isUnblocking}
+            className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isUnblocking ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Unblocking...
+              </>
+            ) : (
+              "Unblock User"
+            )}
+          </button>
+
+          {/* Delete Chat Button */}
+          <button
+            onClick={handleDeleteChat}
+            disabled={isDeletingChat}
+            className="px-6 py-3 border border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isDeletingChat ? (
+              <>
+                <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+                Deleting...
+              </>
+            ) : (
+              "Delete Chat"
+            )}
+          </button>
+        </div>
+
+        <p className="text-xs text-center text-zinc-500 dark:text-zinc-400 mt-3">
+          You can't send messages to blocked users
+        </p>
+      </div>
+    );
+  }
+
+  // ✅ Normal input for non-admin or non-blocked users
   return (
     <div className="bg-white dark:bg-neutral-950 border-t border-gray-300 dark:border-neutral-800">
       {/* Image Previews */}
@@ -309,7 +405,7 @@ export default function ChatInput({ chatId }) {
         onDrop={handleDrop}
       >
         <div className="flex items-end gap-3">
-          {/* 3-DOT MENU (Attachment + Emoji) */}
+          {/* 3-DOT MENU */}
           <div ref={menuRef} className="relative">
             <motion.button
               whileHover={{ scale: 1.05 }}
@@ -378,7 +474,7 @@ export default function ChatInput({ chatId }) {
               )}
             </AnimatePresence>
 
-            {/* ✅ EMOJI PICKER POPUP - PLACED HERE */}
+            {/* Emoji Picker */}
             <div className="relative">
               <AnimatePresence>
                 {showEmojiPicker && (
@@ -393,7 +489,7 @@ export default function ChatInput({ chatId }) {
             </div>
           </div>
 
-          {/* Text Input Area - FULL WIDTH */}
+          {/* Text Input */}
           <div className="flex-1 relative">
             <div className="relative flex items-end bg-gray-200 dark:bg-neutral-800 rounded-2xl border border-gray-300 dark:border-neutral-700 focus-within:border-gray-400 dark:focus-within:border-neutral-600 transition-colors">
               <textarea
@@ -415,7 +511,7 @@ export default function ChatInput({ chatId }) {
                 }}
               />
 
-              {/* Send Button - ONLY SHOW ON CONTENT */}
+              {/* Send Button */}
               <AnimatePresence>
                 {hasContent && (
                   <motion.button
@@ -427,7 +523,7 @@ export default function ChatInput({ chatId }) {
                     whileTap={{ scale: 0.95 }}
                     onClick={handleSend}
                     disabled={sending}
-                    className="px-3 py-1 pb-3.5  text-blue-600 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shrink-0"
+                    className="px-3 py-1 pb-3.5 text-blue-600 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm shrink-0"
                     title="Send message"
                   >
                     {sending ? "Sending..." : "Send"}
