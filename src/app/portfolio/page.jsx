@@ -60,18 +60,7 @@ const PortfolioContent = () => {
     } catch (error) {
       console.error("Error fetching portfolio:", error);
 
-      // ✅ Handle blocked user error
-      if (error.response?.status === 403) {
-        // Show error message to user
-        setArtworks([]);
-        // You can add a toast/alert here if you want
-        alert(
-          error.response?.data?.error ||
-            "Your account has been blocked. Contact support for assistance.",
-        );
-      } else {
-        setArtworks([]);
-      }
+      setArtworks([]);
     } finally {
       setLoading(false);
     }

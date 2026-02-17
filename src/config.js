@@ -65,6 +65,7 @@ export const API = {
 
   ADMIN: {
     PROFILE: `${BASE_URL}${process.env.NEXT_PUBLIC_ADMIN_PROFILE_ENDPOINT}`, //to fecth admin profile and also update it.
+    BLOCKED_USERS: `${BASE_URL}${process.env.NEXT_PUBLIC_ADMIN_BLOCKED_USER_ENDPOINT}`,
     BLOCK_USER: `${BASE_URL}${process.env.NEXT_PUBLIC_ADMIN_BLOCK_USER_ENDPOINT}`,
     UNBLOCK_USER: `${BASE_URL}${process.env.NEXT_PUBLIC_ADMIN_UNBLOCK_USER_ENDPOINT}`,
     USERS: `${BASE_URL}${process.env.NEXT_PUBLIC_ADMIN_USERS_ENDPOINT}`, // to fetch all the users.

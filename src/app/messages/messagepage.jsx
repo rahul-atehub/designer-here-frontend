@@ -165,6 +165,7 @@ export default function MessagePage() {
 
       const chats = data?.data?.chats || [];
 
+      console.log("🔍 FETCHED CONVERSATIONS:", JSON.stringify(chats, null, 2)); // ✅ ADD THIS
       setConversations(chats);
     } catch (error) {
       console.error("Failed to fetch conversations:", error);
@@ -198,7 +199,12 @@ export default function MessagePage() {
 
   const handleSelectConversation = (conversation) => {
     setSelectedChatId(conversation._id);
-    setActiveChatParticipant(getOtherParticipant(conversation));
+    const otherParticipant = getOtherParticipant(conversation);
+    setActiveChatParticipant({
+      ...otherParticipant,
+      isBlockedByMe: conversation.isBlockedByMe || false,
+      isBlockedByAdmin: conversation.isBlockedByAdmin || false,
+    });
   };
 
   const handleBackToList = () => {
@@ -362,7 +368,7 @@ export default function MessagePage() {
                     <div className="relative">
                       <img
                         src={
-                          !other?.isActive || other?.isBlocked
+                          !other?.isActive || conv.isBlockedByMe
                             ? "/avatar-placeholder.png"
                             : other?.avatar || "/avatar-placeholder.png"
                         }
@@ -396,7 +402,7 @@ export default function MessagePage() {
                           ? "Deleted User"
                           : !other?.isActive
                             ? "Deactivated"
-                            : other?.isBlocked
+                            : conv.isBlockedByMe || conv.isBlockedByAdmin
                               ? "User"
                               : other?.name || "Unknown"}
                       </p>

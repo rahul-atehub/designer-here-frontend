@@ -357,7 +357,11 @@ function SettingsContent() {
       const response = await axios.get(API.ADMIN.BLOCKED_USERS, {
         withCredentials: true,
       });
-      setBlockedAccounts(response.data.blockedUsers || []);
+
+      console.log("BLOCKED ACCOUNTS RESPONSE:", response);
+      console.log("BLOCKED ACCOUNTS DATA:", response.data);
+      console.log("USERS ARRAY:", response.data.data?.users);
+      setBlockedAccounts(response.data.users || []);
     } catch (error) {
       console.error("Error fetching blocked accounts:", error);
     }
@@ -1319,17 +1323,17 @@ function SettingsContent() {
                         <div className="space-y-3">
                           {isAdmin ? (
                             blockedAccounts.length > 0 ? (
-                              blockedAccounts.map((user) => (
+                              blockedAccounts.map((block) => (
                                 <div
-                                  key={user._id}
+                                  key={block.blockId}
                                   className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5 flex items-center justify-between transition-all hover:bg-zinc-50 dark:hover:bg-zinc-900"
                                 >
                                   <div className="flex items-center gap-4 flex-1 min-w-0">
-                                    <div className="w-12 h-12 border border-zinc-200 dark:border-zinc-800 rounded-lg flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900">
-                                      {user.profilePicture ? (
+                                    <div className="w-12 h-12 border border-zinc-200 dark:border-zinc-800 rounded-lg flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900 overflow-hidden">
+                                      {block.user?.avatar ? (
                                         <img
-                                          src={user.profilePicture}
-                                          alt={user.name}
+                                          src={block.user.avatar}
+                                          alt={block.user?.name || "User"}
                                           className="w-full h-full object-cover rounded-lg"
                                         />
                                       ) : (
@@ -1338,16 +1342,16 @@ function SettingsContent() {
                                     </div>
                                     <div className="flex-1 min-w-0">
                                       <p className="text-sm font-medium text-black dark:text-white">
-                                        {user.name}
+                                        {block.user?.name || "Unknown"}
                                       </p>
                                       <p className="text-xs text-zinc-600 dark:text-zinc-400 truncate">
-                                        {user.email}
+                                        {block.user?.email || ""}
                                       </p>
                                     </div>
                                   </div>
                                   <button
-                                    onClick={() => unblockUser(user._id)}
-                                    className="px-3 py-2 text-xs font-medium border border-green-200 dark:border-green-900 text-green-700 dark:text-green-400 rounded-lg transition-all hover:bg-green-50 dark:hover:bg-green-950"
+                                    onClick={() => unblockUser(block.userId)}
+                                    className="px-3 py-2 text-xs font-medium border border-zinc-200 dark:border-zinc-600 text-black dark:text-white rounded-lg transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800"
                                   >
                                     Unblock
                                   </button>

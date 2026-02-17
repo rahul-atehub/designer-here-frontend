@@ -21,8 +21,25 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
   const menuRef = useRef(null);
   const { user } = useUser();
   const isAdmin = user?.role === "admin";
-  const isUserBlocked = participant?.isBlocked === true;
+  const isUserBlocked = participant?.isBlockedByMe === true;
 
+  const [showUnblockModal, setShowUnblockModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [showErrorToast, setShowErrorToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+
+  const showSuccess = (message) => {
+    setToastMessage(message);
+    setShowSuccessToast(true);
+    setTimeout(() => setShowSuccessToast(false), 3000);
+  };
+
+  const showError = (message) => {
+    setToastMessage(message);
+    setShowErrorToast(true);
+    setTimeout(() => setShowErrorToast(false), 3000);
+  };
   const handleSend = async () => {
     if (!message.trim() && selectedImages.length === 0) return;
     if (sending || !chatId) return;
@@ -95,6 +112,7 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
   const handleUnblockUser = async () => {
     if (!participant?._id) return;
 
+    setShowUnblockModal(false); // Close modal first
     setIsUnblocking(true);
     try {
       await axios.post(
@@ -103,12 +121,13 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
         { withCredentials: true },
       );
 
+      showSuccess("User unblocked successfully");
       if (onUserUnblocked) {
         onUserUnblocked();
       }
     } catch (error) {
       console.error("Error unblocking user:", error);
-      alert("Failed to unblock user");
+      showError("Failed to unblock user");
     } finally {
       setIsUnblocking(false);
     }
@@ -117,11 +136,7 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
   const handleDeleteChat = async () => {
     if (!chatId) return;
 
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this chat? This action cannot be undone.",
-    );
-    if (!confirmed) return;
-
+    setShowDeleteModal(false); // Close modal first
     setIsDeletingChat(true);
     try {
       await axios.delete(API.CHAT.MESSAGES(chatId), {
@@ -131,7 +146,7 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
       window.location.href = "/messages";
     } catch (error) {
       console.error("Error deleting chat:", error);
-      alert("Failed to delete chat");
+      showError("Failed to delete chat");
     } finally {
       setIsDeletingChat(false);
     }
@@ -294,48 +309,162 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
 
   const hasContent = message.trim() || selectedImages.length > 0;
 
-  // ✅ Instagram-style: If admin viewing blocked user, show action buttons
+  // If admin viewing blocked user, show centered card
   if (isAdmin && isUserBlocked) {
     return (
-      <div className="bg-white dark:bg-neutral-950 border-t border-gray-300 dark:border-neutral-800 p-6">
-        <div className="flex items-center justify-center gap-3">
-          {/* Unblock Button */}
-          <button
-            onClick={handleUnblockUser}
-            disabled={isUnblocking}
-            className="flex-1 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {isUnblocking ? (
-              <>
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                Unblocking...
-              </>
-            ) : (
-              "Unblock User"
-            )}
-          </button>
+      <>
+        <div className="bg-white dark:bg-neutral-950 border-t border-gray-300 dark:border-neutral-800 py-16">
+          <div className="max-w-md mx-auto text-center px-6">
+            <h3 className="text-base font-semibold text-black dark:text-white mb-2">
+              You've blocked this account
+            </h3>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400 mb-8">
+              You can't message blocked user
+            </p>
 
-          {/* Delete Chat Button */}
-          <button
-            onClick={handleDeleteChat}
-            disabled={isDeletingChat}
-            className="px-6 py-3 border border-red-600 text-red-600 hover:bg-red-50 dark:hover:bg-red-950 rounded-lg font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {isDeletingChat ? (
-              <>
-                <div className="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
-                Deleting...
-              </>
-            ) : (
-              "Delete Chat"
-            )}
-          </button>
+            <div className="flex items-center justify-center gap-8">
+              <button
+                onClick={() => setShowUnblockModal(true)}
+                disabled={isUnblocking}
+                className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500 disabled:opacity-50 transition-colors"
+              >
+                Unblock
+              </button>
+
+              <div className="w-px h-6 bg-zinc-300 dark:bg-zinc-700" />
+
+              <button
+                onClick={() => setShowDeleteModal(true)}
+                disabled={isDeletingChat}
+                className="text-sm font-medium text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-500 disabled:opacity-50 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
 
-        <p className="text-xs text-center text-zinc-500 dark:text-zinc-400 mt-3">
-          You can't send messages to blocked users
-        </p>
-      </div>
+        {/* Unblock Confirmation Modal */}
+        {showUnblockModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-2xl">
+              <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700">
+                <h2 className="text-lg font-semibold text-black dark:text-white text-center">
+                  Unblock {participant?.username || "this user"}?
+                </h2>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2 text-center leading-relaxed">
+                  They will be able to message you and see your portfolio again.
+                </p>
+              </div>
+
+              <div className="flex flex-col">
+                <button
+                  onClick={handleUnblockUser}
+                  disabled={isUnblocking}
+                  className="w-full px-6 py-4 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-200 dark:border-zinc-700 disabled:opacity-50"
+                >
+                  {isUnblocking ? "Unblocking..." : "Unblock"}
+                </button>
+                <button
+                  onClick={() => setShowUnblockModal(false)}
+                  className="w-full px-6 py-4 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Delete Chat Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+            <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-2xl">
+              <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700">
+                <h2 className="text-lg font-semibold text-black dark:text-white text-center">
+                  Delete chat?
+                </h2>
+                <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2 text-center leading-relaxed">
+                  This action cannot be undone. All messages will be permanently
+                  deleted.
+                </p>
+              </div>
+
+              <div className="flex flex-col">
+                <button
+                  onClick={handleDeleteChat}
+                  disabled={isDeletingChat}
+                  className="w-full px-6 py-4 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors border-b border-zinc-200 dark:border-zinc-700 disabled:opacity-50"
+                >
+                  {isDeletingChat ? "Deleting..." : "Delete"}
+                </button>
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="w-full px-6 py-4 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Success Toast */}
+        <AnimatePresence>
+          {showSuccessToast && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50"
+            >
+              <div className="bg-white dark:bg-neutral-950 text-black dark:text-white px-6 py-3 rounded-full shadow-lg border border-zinc-200 dark:border-zinc-800 flex items-center gap-2">
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="text-sm font-medium">{toastMessage}</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Error Toast */}
+        <AnimatePresence>
+          {showErrorToast && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.3 }}
+              className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50"
+            >
+              <div className="bg-white dark:bg-neutral-950 text-black dark:text-white px-6 py-3 rounded-full shadow-lg border border-zinc-200 dark:border-zinc-800 flex items-center gap-2">
+                <svg
+                  className="w-4 h-4 text-red-500"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="text-sm font-medium">{toastMessage}</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </>
     );
   }
 

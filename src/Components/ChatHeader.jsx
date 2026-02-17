@@ -129,6 +129,27 @@ export default function ChatHeader({
     }
   };
 
+  const handleUnblockUser = async () => {
+    if (!participant?._id) return;
+    setIsLoading(true);
+    try {
+      await axios.post(
+        API.ADMIN.UNBLOCK_USER,
+        { userId: participant._id },
+        { withCredentials: true },
+      );
+      showSuccess("User unblocked successfully");
+      if (onChatBlocked) {
+        onChatBlocked(participant);
+      }
+    } catch (error) {
+      console.error("Error unblocking user:", error);
+      showError("Failed to unblock user");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleDeleteChat = async () => {
     setShowDeleteModal(false);
     if (!chatId) {
@@ -205,7 +226,8 @@ export default function ChatHeader({
           src={
             !participant.isActive ||
             participant.isDeleted ||
-            participant.isBlocked
+            participant.isBlockedByMe ||
+            participant.isBlockedByAdmin
               ? "/avatar-placeholder.png"
               : avatarUrl
           }
@@ -214,7 +236,7 @@ export default function ChatHeader({
               ? "Deleted User"
               : !participant.isActive
                 ? "Deactivated"
-                : participant.isBlocked
+                : participant.isBlockedByMe || participant.isBlockedByAdmin
                   ? "User"
                   : participant.name || "User"
           }
@@ -228,7 +250,8 @@ export default function ChatHeader({
             className={`text-lg font-semibold truncate ${
               !participant.isActive ||
               participant.isDeleted ||
-              participant.isBlocked
+              participant.isBlockedByMe ||
+              participant.isBlockedByAdmin
                 ? "text-zinc-400 dark:text-zinc-600"
                 : "text-black dark:text-white"
             }`}
@@ -237,7 +260,7 @@ export default function ChatHeader({
               ? "Deleted User"
               : !participant.isActive
                 ? "Deactivated"
-                : participant.isBlocked
+                : participant.isBlockedByMe || participant.isBlockedByAdmin
                   ? "User"
                   : participant.name}
           </h2>
@@ -279,13 +302,17 @@ export default function ChatHeader({
                 <button
                   onClick={() => {
                     setShowMenu(false);
-                    setShowBlockModal(true);
+                    participant.isBlockedByMe
+                      ? handleUnblockUser()
+                      : setShowBlockModal(true);
                   }}
                   disabled={isLoading}
-                  className="w-full px-4 py-3 text-left flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors duration-150 text-red-600 dark:text-red-400  border-t border-gray-200 dark:border-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-4 py-3 text-left flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors duration-150 text-red-600 dark:text-red-400 border-t border-gray-200 dark:border-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Ban className="w-5 h-5" />
-                  <span className="text-sm  font-medium">Block</span>
+                  <span className="text-sm font-medium">
+                    {participant.isBlockedByMe ? "Unblock" : "Block"}
+                  </span>
                 </button>
 
                 <button
