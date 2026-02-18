@@ -158,15 +158,31 @@ export default function MessagePage() {
 
       const { data } = await axios.get(
         viewerType === "admin"
-          ? API.CHAT.MESSAGES_CHATS // ADMIN backend file
-          : API.CHAT.MESSAGES_USERS_CHATS(user._id), // USER backend file
+          ? API.CHAT.MESSAGES_CHATS
+          : API.CHAT.MESSAGES_USERS_CHATS(user._id),
         { withCredentials: true },
       );
 
       const chats = data?.data?.chats || [];
 
-      console.log("🔍 FETCHED CONVERSATIONS:", JSON.stringify(chats, null, 2)); // ✅ ADD THIS
+      console.log("🔍 FETCHED CONVERSATIONS:", JSON.stringify(chats, null, 2));
       setConversations(chats);
+
+      // ✅ ADD THIS BLOCK — sync activeChatParticipant if a chat is open
+      if (selectedChatId) {
+        const activeChat = chats.find((c) => c._id === selectedChatId);
+        if (activeChat) {
+          const otherParticipant = getOtherParticipant(activeChat);
+          if (otherParticipant) {
+            setActiveChatParticipant({
+              ...otherParticipant,
+              isBlockedByMe: activeChat.isBlockedByMe || false,
+              isBlockedByAdmin: activeChat.isBlockedByAdmin || false,
+            });
+          }
+        }
+      }
+      // ✅ END OF ADDED BLOCK
     } catch (error) {
       console.error("Failed to fetch conversations:", error);
     } finally {
