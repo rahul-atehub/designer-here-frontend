@@ -28,6 +28,8 @@ import {
   HelpCircle,
   Trash2,
   LogOut,
+  ChevronRight,
+  ChevronLeft,
   Eye,
   BarChart3,
   Cookie,
@@ -59,6 +61,14 @@ function SettingsContent() {
   const [toastMessage, setToastMessage] = useState("");
   const [showProfilePictureModal, setShowProfilePictureModal] = useState(false);
   const [isUploadingPicture, setIsUploadingPicture] = useState(false);
+  const [mobileView, setMobileView] = useState("menu");
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1280);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const isAdmin = contextUser?.role === "admin";
 
@@ -698,870 +708,1738 @@ function SettingsContent() {
         `}</style>
 
         <div className="min-h-screen bg-white dark:bg-neutral-950">
-          <div className="flex">
-            {/* Left Sidebar Navigation */}
-            <div className="hidden xl:flex flex-col w-72 bg-zinc-50 dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 px-6 py-8 sticky top-0 h-screen overflow-y-auto">
-              {/* Settings Header */}
-              <div className="mb-8">
-                <h2 className="text-lg font-semibold text-black dark:text-white">
-                  Settings
-                </h2>
-              </div>
-
-              {/* Navigation Items */}
-              <div className="flex-1 space-y-1">
-                {sections.map((section) => {
-                  const Icon = section.icon;
-                  const isExpanded = expandedSections[section.id];
-                  const isActive =
-                    activeTab === section.id ||
-                    section.subsections.some(
-                      (sub) => sub.contentId === activeTab,
-                    );
-                  return (
-                    <div key={section.id}>
-                      <div
-                        className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 group cursor-pointer ${
-                          isActive
-                            ? "bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white"
-                            : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900"
-                        }`}
-                      >
+          {isMobile ? (
+            <>
+              {mobileView === "menu" && (
+                <div className="bg-white dark:bg-neutral-950 min-h-screen px-6 py-8">
+                  <h2 className="text-lg font-semibold text-black dark:text-white mb-6">
+                    Settings
+                  </h2>
+                  <div className="space-y-1">
+                    {sections.map((section) => {
+                      const Icon = section.icon;
+                      return (
                         <button
+                          key={section.id}
                           onClick={() => {
                             setActiveTab(section.subsections[0].contentId);
+                            setMobileView("content");
                           }}
-                          className="flex items-center gap-3 flex-1 text-left"
+                          className="w-full flex items-center justify-between px-4 py-4 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all duration-200"
                         >
-                          <Icon className="w-5 h-5" />
-                          <span className="text-sm font-medium">
-                            {section.label}
-                          </span>
+                          <div className="flex items-center gap-3">
+                            <Icon className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                            <span className="text-sm font-medium text-black dark:text-white">
+                              {section.label}
+                            </span>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-zinc-400 dark:text-zinc-600" />
                         </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleSection(section.id, e);
-                          }}
-                          className="text-black dark:text-white transition-transform duration-300 hover:opacity-70 ml-2"
-                        >
-                          {isExpanded ? (
-                            <ChevronUp className="w-4 h-4" />
-                          ) : (
-                            <ChevronDown className="w-4 h-4" />
-                          )}
-                        </button>
-                      </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {mobileView === "content" && (
+                <div>
+                  <div className="flex items-center gap-3 px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
+                    <button
+                      onClick={() => setMobileView("menu")}
+                      className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      <span>Settings</span>
+                    </button>
+                  </div>
+                  <div className="px-6 py-8">
+                    <div className="space-y-8">
+                      {/* EDIT PROFILE TAB */}
+                      {activeTab === "profile" && (
+                        <div className="space-y-8 animate-in fade-in duration-300">
+                          <div>
+                            <h2 className="text-2xl font-light text-black dark:text-white mb-8">
+                              Edit Profile
+                            </h2>
 
-                      {/* Expanded Subsections */}
-                      <div
-                        className={`overflow-hidden transition-all duration-300 ease-in-out ${
-                          isExpanded ? "max-h-96" : "max-h-0"
-                        }`}
-                      >
-                        <div className="ml-4 mt-1 space-y-1 border-l border-zinc-200 dark:border-zinc-800 pl-3">
-                          {section.subsections.map((subsection) => (
-                            <button
-                              key={subsection.id}
-                              onClick={() =>
-                                handleSubsectionClick(subsection.contentId)
-                              }
-                              className={`w-full text-left text-xs px-3 py-2 rounded transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-900 ${
-                                isActive
-                                  ? "text-black dark:text-white font-medium"
-                                  : "text-zinc-600 dark:text-zinc-400"
-                              }`}
-                            >
-                              {subsection.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Main Content */}
-            <div className="flex-1 px-8 py-12 max-w-5xl mx-auto w-full overflow-y-auto">
-              {/* Content Sections */}
-              <div className="space-y-8">
-                {/* EDIT PROFILE TAB */}
-                {activeTab === "profile" && (
-                  <div className="space-y-8 animate-in fade-in duration-300">
-                    <div>
-                      <h2 className="text-2xl font-light text-black dark:text-white mb-8">
-                        Edit Profile
-                      </h2>
-
-                      {/* Profile Picture Card */}
-                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 mb-8">
-                        <div className="flex items-start gap-8">
-                          <div className="relative">
-                            <div className="w-32 h-32 border-2 border-zinc-200 dark:border-zinc-800 rounded-full flex items-center justify-center overflow-hidden shrink-0 bg-white dark:bg-zinc-900">
-                              {isUploadingPicture ? (
-                                <div className="w-6 h-6 border-2 border-zinc-300 dark:border-zinc-700 border-t-black dark:border-t-white rounded-full animate-spin" />
-                              ) : profile.profilePicturePreview ? (
-                                <img
-                                  src={profile.profilePicturePreview}
-                                  alt="Profile"
-                                  className="w-full h-full object-cover"
-                                />
-                              ) : (
-                                <User className="w-8 h-8 text-black dark:text-white" />
-                              )}
+                            {/* Profile Picture Card */}
+                            <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 mb-8">
+                              <div className="flex items-start gap-8">
+                                <div className="relative">
+                                  <div className="w-32 h-32 border-2 border-zinc-200 dark:border-zinc-800 rounded-full flex items-center justify-center overflow-hidden shrink-0 bg-white dark:bg-zinc-900">
+                                    {isUploadingPicture ? (
+                                      <div className="w-6 h-6 border-2 border-zinc-300 dark:border-zinc-700 border-t-black dark:border-t-white rounded-full animate-spin" />
+                                    ) : profile.profilePicturePreview ? (
+                                      <img
+                                        src={profile.profilePicturePreview}
+                                        alt="Profile"
+                                        className="w-full h-full object-cover"
+                                      />
+                                    ) : (
+                                      <User className="w-8 h-8 text-black dark:text-white" />
+                                    )}
+                                  </div>
+                                  <button
+                                    onClick={() =>
+                                      setShowProfilePictureModal(true)
+                                    }
+                                    disabled={isUploadingPicture}
+                                    className="absolute -bottom-2 -right-2 w-10 h-10 rounded-lg border-2 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black flex items-center justify-center hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all text-black dark:text-white disabled:opacity-50"
+                                  >
+                                    <svg
+                                      className="w-5 h-5"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                      />
+                                    </svg>
+                                  </button>
+                                </div>
+                                <div className="flex-1 pt-2">
+                                  <p className="text-sm text-black dark:text-white font-medium">
+                                    {profile.username || "username"}
+                                  </p>
+                                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                    {profile.name || "name"}
+                                  </p>
+                                </div>
+                              </div>
+                              <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                onChange={handleImageUpload}
+                                className="hidden"
+                              />
                             </div>
-                            <button
-                              onClick={() => setShowProfilePictureModal(true)}
-                              disabled={isUploadingPicture}
-                              className="absolute -bottom-2 -right-2 w-10 h-10 rounded-lg border-2 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black flex items-center justify-center hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all text-black dark:text-white disabled:opacity-50"
-                            >
-                              <svg
-                                className="w-5 h-5"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+
+                            {/* Profile Fields */}
+                            <div className="space-y-6 mb-8">
+                              {/* Username and Name in one row */}
+                              <div className="grid grid-cols-2 gap-8">
+                                <div>
+                                  <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
+                                    Username
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={profile.username || ""}
+                                    onChange={(e) =>
+                                      handleProfileChange(
+                                        "username",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="Enter your username"
+                                    className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
+                                    Name
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={profile.name}
+                                    onChange={(e) =>
+                                      handleProfileChange(
+                                        "name",
+                                        e.target.value,
+                                      )
+                                    }
+                                    placeholder="Enter your name"
+                                    className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
+                                  />
+                                </div>
+                              </div>
+
+                              {/* Gender Section */}
+                              <div className="grid grid-cols-2 gap-8">
+                                <div className="relative">
+                                  <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
+                                    Gender
+                                  </label>
+                                  <button
+                                    onClick={() =>
+                                      setShowGenderDropdown(!showGenderDropdown)
+                                    }
+                                    className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all text-left flex items-center justify-between"
+                                  >
+                                    <span>
+                                      {profile.gender === "custom" &&
+                                      profile.customGender
+                                        ? profile.customGender
+                                        : profile.gender
+                                          ? profile.gender
+                                              .charAt(0)
+                                              .toUpperCase() +
+                                            profile.gender
+                                              .slice(1)
+                                              .replace(/_/g, " ")
+                                          : "Select Gender"}
+                                    </span>
+                                    {showGenderDropdown ? (
+                                      <ChevronUp className="w-4 h-4" />
+                                    ) : (
+                                      <ChevronDown className="w-4 h-4" />
+                                    )}
+                                  </button>
+
+                                  {/* Gender Dropdown */}
+                                  {showGenderDropdown && (
+                                    <div className="absolute top-full mt-1 w-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-lg shadow-lg z-10">
+                                      <div className="p-4 space-y-4">
+                                        {[
+                                          {
+                                            value: "female",
+                                            label: "Female",
+                                          },
+                                          { value: "male", label: "Male" },
+                                          {
+                                            value: "custom",
+                                            label: "Custom",
+                                          },
+                                          {
+                                            value: "prefer_not_to_say",
+                                            label: "Prefer not to say",
+                                          },
+                                        ].map((option) => (
+                                          <div key={option.value}>
+                                            <button
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleProfileChange(
+                                                  "gender",
+                                                  option.value,
+                                                );
+                                                if (option.value !== "custom") {
+                                                  setShowGenderDropdown(false);
+                                                }
+                                              }}
+                                              className="w-full flex items-center justify-between px-3 py-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all text-left"
+                                            >
+                                              <label className="text-sm text-black dark:text-white cursor-pointer">
+                                                {option.label}
+                                              </label>
+                                              <div
+                                                className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center shrink-0 ${
+                                                  profile.gender ===
+                                                  option.value
+                                                    ? "border-black dark:border-white"
+                                                    : "border-zinc-300 dark:border-zinc-700"
+                                                }`}
+                                              >
+                                                {profile.gender ===
+                                                  option.value && (
+                                                  <div className="w-3 h-3 rounded-full bg-black dark:bg-white" />
+                                                )}
+                                              </div>
+                                            </button>
+
+                                            {/* Custom Gender Input - appears right after custom button */}
+                                            {option.value === "custom" &&
+                                              profile.gender === "custom" && (
+                                                <input
+                                                  type="text"
+                                                  value={
+                                                    profile.customGender || ""
+                                                  }
+                                                  onChange={(e) =>
+                                                    handleProfileChange(
+                                                      "customGender",
+                                                      e.target.value,
+                                                    )
+                                                  }
+                                                  onKeyDown={(e) => {
+                                                    if (e.key === "Enter") {
+                                                      setShowGenderDropdown(
+                                                        false,
+                                                      );
+                                                    }
+                                                  }}
+                                                  onBlur={() => {
+                                                    setShowGenderDropdown(
+                                                      false,
+                                                    );
+                                                  }}
+                                                  autoFocus
+                                                  className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 mt-2 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
+                                                />
+                                              )}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Bio */}
+                              <div>
+                                <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
+                                  Bio
+                                </label>
+                                <textarea
+                                  value={profile.bio}
+                                  onChange={(e) =>
+                                    handleProfileChange("bio", e.target.value)
+                                  }
+                                  placeholder="Tell us about yourself..."
+                                  rows="4"
+                                  className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all resize-none"
                                 />
-                              </svg>
-                            </button>
-                          </div>
-                          <div className="flex-1 pt-2">
-                            <p className="text-sm text-black dark:text-white font-medium">
-                              {profile.username || "username"}
-                            </p>
-                            <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-                              {profile.name || "name"}
-                            </p>
-                          </div>
-                        </div>
-                        <input
-                          ref={fileInputRef}
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageUpload}
-                          className="hidden"
-                        />
-                      </div>
+                              </div>
+                            </div>
 
-                      {/* Profile Fields */}
-                      <div className="space-y-6 mb-8">
-                        {/* Username and Name in one row */}
-                        <div className="grid grid-cols-2 gap-8">
-                          <div>
-                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
-                              Username
-                            </label>
-                            <input
-                              type="text"
-                              value={profile.username || ""}
-                              onChange={(e) =>
-                                handleProfileChange("username", e.target.value)
-                              }
-                              placeholder="Enter your username"
-                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                            />
-                          </div>
-
-                          <div>
-                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
-                              Name
-                            </label>
-                            <input
-                              type="text"
-                              value={profile.name}
-                              onChange={(e) =>
-                                handleProfileChange("name", e.target.value)
-                              }
-                              placeholder="Enter your name"
-                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Gender Section */}
-                        <div className="grid grid-cols-2 gap-8">
-                          <div className="relative">
-                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
-                              Gender
-                            </label>
                             <button
-                              onClick={() =>
-                                setShowGenderDropdown(!showGenderDropdown)
-                              }
-                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all text-left flex items-center justify-between"
+                              onClick={saveProfile}
+                              disabled={isSaving}
+                              className="w-full px-6 py-3 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 disabled:opacity-50 transition-all"
                             >
-                              <span>
-                                {profile.gender === "custom" &&
-                                profile.customGender
-                                  ? profile.customGender
-                                  : profile.gender
-                                    ? profile.gender.charAt(0).toUpperCase() +
-                                      profile.gender.slice(1).replace(/_/g, " ")
-                                    : "Select Gender"}
-                              </span>
-                              {showGenderDropdown ? (
-                                <ChevronUp className="w-4 h-4" />
-                              ) : (
-                                <ChevronDown className="w-4 h-4" />
-                              )}
+                              {isSaving ? "Saving..." : "Save Changes"}
                             </button>
+                          </div>
+                        </div>
+                      )}
 
-                            {/* Gender Dropdown */}
-                            {showGenderDropdown && (
-                              <div className="absolute top-full mt-1 w-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-lg shadow-lg z-10">
-                                <div className="p-4 space-y-4">
-                                  {[
-                                    { value: "female", label: "Female" },
-                                    { value: "male", label: "Male" },
-                                    { value: "custom", label: "Custom" },
-                                    {
-                                      value: "prefer_not_to_say",
-                                      label: "Prefer not to say",
-                                    },
-                                  ].map((option) => (
-                                    <div key={option.value}>
+                      {/* PASSWORD & SECURITY TAB */}
+                      {(activeTab === "password" ||
+                        activeTab === "email" ||
+                        activeTab === "recovery") && (
+                        <PasswordAndSecurity
+                          defaultTab={
+                            activeTab === "recovery"
+                              ? "forgot-password"
+                              : activeTab
+                          }
+                        />
+                      )}
+
+                      {/* TEAM MANAGEMENT TAB - Admin Only */}
+                      {activeTab === "admin" && isAdmin && (
+                        <div className="space-y-8 animate-in fade-in duration-300">
+                          <div>
+                            <h2 className="text-2xl font-light text-black dark:text-white mb-8">
+                              Team Management
+                            </h2>
+
+                            {/* Coming Soon Card */}
+                            <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-16 text-center">
+                              <div className="max-w-md mx-auto">
+                                <div className="w-16 h-16 mx-auto mb-6 rounded-full border-2 border-zinc-200 dark:border-zinc-800 flex items-center justify-center">
+                                  <Users className="w-8 h-8 text-zinc-400 dark:text-zinc-600" />
+                                </div>
+                                <h3 className="text-xl font-light text-black dark:text-white mb-3">
+                                  Coming Soon
+                                </h3>
+                                <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                                  Team management features are currently under
+                                  development. Stay tuned for updates!
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {activeTab === "notifications" && (
+                        <div className="space-y-8 animate-in fade-in duration-300">
+                          <div>
+                            <h2 className="text-2xl font-light text-black dark:text-white mb-8">
+                              Notifications
+                            </h2>
+
+                            {/* In-App Notifications Card */}
+                            <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 mb-8">
+                              <h3 className="text-lg font-light text-black dark:text-white mb-2">
+                                In-App Notifications
+                              </h3>
+                              <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-8 uppercase tracking-wide">
+                                {isAdmin ? "Admin Alerts" : "Activity Alerts"}
+                              </p>
+
+                              <div className="space-y-6">
+                                {(isAdmin
+                                  ? [
+                                      {
+                                        key: "messageNotifications",
+                                        label: "Message Alerts",
+                                        icon: MessageSquare,
+                                        desc: "Get notified when you receive new messages",
+                                      },
+                                      {
+                                        key: "likeNotifications",
+                                        label: "Like Notifications",
+                                        icon: Bell,
+                                        desc: "Get notified when someone likes a post",
+                                      },
+                                      {
+                                        key: "saveNotifications",
+                                        label: "Save Notifications",
+                                        icon: Bell,
+                                        desc: "Get notified when someone saves a post",
+                                      },
+                                    ]
+                                  : [
+                                      {
+                                        key: "messageNotifications",
+                                        label: "Message Alerts",
+                                        icon: MessageSquare,
+                                        desc: "Get notified when you receive new messages",
+                                      },
+                                      {
+                                        key: "newPostNotifications",
+                                        label: "New Post Alerts",
+                                        icon: FileText,
+                                        desc: "Get notified when new posts are published",
+                                      },
+                                      {
+                                        key: "featuredPostNotifications",
+                                        label: "Featured Post Alerts",
+                                        icon: Bell,
+                                        desc: "Get notified when a post gets featured",
+                                      },
+                                      {
+                                        key: "postUpdateNotifications",
+                                        label: "Post Update Alerts",
+                                        icon: FileText,
+                                        desc: "Get notified when posts are updated",
+                                      },
+                                    ]
+                                ).map((item) => {
+                                  const ItemIcon = item.icon;
+                                  return (
+                                    <div
+                                      key={item.key}
+                                      className="flex items-center justify-between"
+                                    >
+                                      <div className="flex items-start gap-4">
+                                        <ItemIcon className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
+                                        <div>
+                                          <p className="text-sm font-medium text-black dark:text-white">
+                                            {item.label}
+                                          </p>
+                                          <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                            {item.desc}
+                                          </p>
+                                        </div>
+                                      </div>
                                       <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleProfileChange(
-                                            "gender",
-                                            option.value,
-                                          );
-                                          if (option.value !== "custom") {
-                                            setShowGenderDropdown(false);
+                                        onClick={async () => {
+                                          const newValue =
+                                            !notifications[item.key];
+                                          setNotifications((prev) => ({
+                                            ...prev,
+                                            [item.key]: newValue,
+                                          }));
+                                          try {
+                                            await updatePreference({
+                                              [preferenceKeyMap[item.key]]:
+                                                newValue,
+                                            });
+                                          } catch (err) {
+                                            // Revert on failure
+                                            setNotifications((prev) => ({
+                                              ...prev,
+                                              [item.key]: !newValue,
+                                            }));
+                                            showError(
+                                              "Failed to update preference",
+                                            );
                                           }
                                         }}
-                                        className="w-full flex items-center justify-between px-3 py-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all text-left"
+                                        className={`relative w-12 h-6 rounded-full transition-all duration-300 border border-zinc-600 dark:border-zinc-600 shrink-0 ${
+                                          notifications[item.key]
+                                            ? "bg-zinc-700 dark:bg-zinc-700"
+                                            : "bg-zinc-200 dark:bg-zinc-800"
+                                        }`}
                                       >
-                                        <label className="text-sm text-black dark:text-white cursor-pointer">
-                                          {option.label}
-                                        </label>
                                         <div
-                                          className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center shrink-0 ${
-                                            profile.gender === option.value
-                                              ? "border-black dark:border-white"
-                                              : "border-zinc-300 dark:border-zinc-700"
+                                          className={`absolute top-0.5 w-5 h-5 border border-zinc-200 dark:border-zinc-800 rounded-full transition-transform duration-300 bg-white dark:bg-black ${
+                                            notifications[item.key]
+                                              ? "translate-x-6"
+                                              : "translate-x-0.5"
                                           }`}
-                                        >
-                                          {profile.gender === option.value && (
-                                            <div className="w-3 h-3 rounded-full bg-black dark:bg-white" />
-                                          )}
-                                        </div>
-                                      </button>
-
-                                      {/* Custom Gender Input - appears right after custom button */}
-                                      {option.value === "custom" &&
-                                        profile.gender === "custom" && (
-                                          <input
-                                            type="text"
-                                            value={profile.customGender || ""}
-                                            onChange={(e) =>
-                                              handleProfileChange(
-                                                "customGender",
-                                                e.target.value,
-                                              )
-                                            }
-                                            onKeyDown={(e) => {
-                                              if (e.key === "Enter") {
-                                                setShowGenderDropdown(false);
-                                              }
-                                            }}
-                                            onBlur={() => {
-                                              setShowGenderDropdown(false);
-                                            }}
-                                            autoFocus
-                                            className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 mt-2 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
-                                          />
-                                        )}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Bio */}
-                        <div>
-                          <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
-                            Bio
-                          </label>
-                          <textarea
-                            value={profile.bio}
-                            onChange={(e) =>
-                              handleProfileChange("bio", e.target.value)
-                            }
-                            placeholder="Tell us about yourself..."
-                            rows="4"
-                            className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all resize-none"
-                          />
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={saveProfile}
-                        disabled={isSaving}
-                        className="w-full px-6 py-3 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 disabled:opacity-50 transition-all"
-                      >
-                        {isSaving ? "Saving..." : "Save Changes"}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {/* PASSWORD & SECURITY TAB */}
-                {(activeTab === "password" ||
-                  activeTab === "email" ||
-                  activeTab === "recovery") && (
-                  <PasswordAndSecurity
-                    defaultTab={
-                      activeTab === "recovery" ? "forgot-password" : activeTab
-                    }
-                  />
-                )}
-
-                {/* TEAM MANAGEMENT TAB - Admin Only */}
-                {activeTab === "admin" && isAdmin && (
-                  <div className="space-y-8 animate-in fade-in duration-300">
-                    <div>
-                      <h2 className="text-2xl font-light text-black dark:text-white mb-8">
-                        Team Management
-                      </h2>
-
-                      {/* Coming Soon Card */}
-                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-16 text-center">
-                        <div className="max-w-md mx-auto">
-                          <div className="w-16 h-16 mx-auto mb-6 rounded-full border-2 border-zinc-200 dark:border-zinc-800 flex items-center justify-center">
-                            <Users className="w-8 h-8 text-zinc-400 dark:text-zinc-600" />
-                          </div>
-                          <h3 className="text-xl font-light text-black dark:text-white mb-3">
-                            Coming Soon
-                          </h3>
-                          <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
-                            Team management features are currently under
-                            development. Stay tuned for updates!
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === "notifications" && (
-                  <div className="space-y-8 animate-in fade-in duration-300">
-                    <div>
-                      <h2 className="text-2xl font-light text-black dark:text-white mb-8">
-                        Notifications
-                      </h2>
-
-                      {/* In-App Notifications Card */}
-                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 mb-8">
-                        <h3 className="text-lg font-light text-black dark:text-white mb-2">
-                          In-App Notifications
-                        </h3>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-8 uppercase tracking-wide">
-                          {isAdmin ? "Admin Alerts" : "Activity Alerts"}
-                        </p>
-
-                        <div className="space-y-6">
-                          {(isAdmin
-                            ? [
-                                {
-                                  key: "messageNotifications",
-                                  label: "Message Alerts",
-                                  icon: MessageSquare,
-                                  desc: "Get notified when you receive new messages",
-                                },
-                                {
-                                  key: "likeNotifications",
-                                  label: "Like Notifications",
-                                  icon: Bell,
-                                  desc: "Get notified when someone likes a post",
-                                },
-                                {
-                                  key: "saveNotifications",
-                                  label: "Save Notifications",
-                                  icon: Bell,
-                                  desc: "Get notified when someone saves a post",
-                                },
-                              ]
-                            : [
-                                {
-                                  key: "messageNotifications",
-                                  label: "Message Alerts",
-                                  icon: MessageSquare,
-                                  desc: "Get notified when you receive new messages",
-                                },
-                                {
-                                  key: "newPostNotifications",
-                                  label: "New Post Alerts",
-                                  icon: FileText,
-                                  desc: "Get notified when new posts are published",
-                                },
-                                {
-                                  key: "featuredPostNotifications",
-                                  label: "Featured Post Alerts",
-                                  icon: Bell,
-                                  desc: "Get notified when a post gets featured",
-                                },
-                                {
-                                  key: "postUpdateNotifications",
-                                  label: "Post Update Alerts",
-                                  icon: FileText,
-                                  desc: "Get notified when posts are updated",
-                                },
-                              ]
-                          ).map((item) => {
-                            const ItemIcon = item.icon;
-                            return (
-                              <div
-                                key={item.key}
-                                className="flex items-center justify-between"
-                              >
-                                <div className="flex items-start gap-4">
-                                  <ItemIcon className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
-                                  <div>
-                                    <p className="text-sm font-medium text-black dark:text-white">
-                                      {item.label}
-                                    </p>
-                                    <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-                                      {item.desc}
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  onClick={async () => {
-                                    const newValue = !notifications[item.key];
-                                    setNotifications((prev) => ({
-                                      ...prev,
-                                      [item.key]: newValue,
-                                    }));
-                                    try {
-                                      await updatePreference({
-                                        [preferenceKeyMap[item.key]]: newValue,
-                                      });
-                                    } catch (err) {
-                                      // Revert on failure
-                                      setNotifications((prev) => ({
-                                        ...prev,
-                                        [item.key]: !newValue,
-                                      }));
-                                      showError("Failed to update preference");
-                                    }
-                                  }}
-                                  className={`relative w-12 h-6 rounded-full transition-all duration-300 border border-zinc-600 dark:border-zinc-600 shrink-0 ${
-                                    notifications[item.key]
-                                      ? "bg-zinc-700 dark:bg-zinc-700"
-                                      : "bg-zinc-200 dark:bg-zinc-800"
-                                  }`}
-                                >
-                                  <div
-                                    className={`absolute top-0.5 w-5 h-5 border border-zinc-200 dark:border-zinc-800 rounded-full transition-transform duration-300 bg-white dark:bg-black ${
-                                      notifications[item.key]
-                                        ? "translate-x-6"
-                                        : "translate-x-0.5"
-                                    }`}
-                                  />
-                                </button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Email Preferences Card */}
-                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
-                        <h3 className="text-lg font-light text-black dark:text-white mb-2">
-                          Email Preferences
-                        </h3>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-8 uppercase tracking-wide">
-                          Email Delivery
-                        </p>
-
-                        <div className="space-y-6">
-                          {(isAdmin
-                            ? [
-                                {
-                                  key: "emailNotifications",
-                                  label: "General Notifications",
-                                  icon: Mail,
-                                  desc: "Receive important updates via email",
-                                },
-                                {
-                                  key: "emailMessages",
-                                  label: "Message Emails",
-                                  icon: MessageSquare,
-                                  desc: "Get an email when you receive new messages",
-                                },
-                                {
-                                  key: "emailLikes",
-                                  label: "Like Emails",
-                                  icon: Bell,
-                                  desc: "Get an email when someone likes a post",
-                                },
-                                {
-                                  key: "emailSaves",
-                                  label: "Save Emails",
-                                  icon: Bell,
-                                  desc: "Get an email when someone saves a post",
-                                },
-                                {
-                                  key: "weeklyDigest",
-                                  label: "Weekly Summary",
-                                  icon: Mail,
-                                  desc: "Receive a summary of activities every week",
-                                },
-                              ]
-                            : [
-                                {
-                                  key: "emailNotifications",
-                                  label: "General Notifications",
-                                  icon: Mail,
-                                  desc: "Receive important updates via email",
-                                },
-                                {
-                                  key: "emailMessages",
-                                  label: "Message Emails",
-                                  icon: MessageSquare,
-                                  desc: "Get an email when you receive new messages",
-                                },
-                                {
-                                  key: "emailNewPosts",
-                                  label: "New Post Emails",
-                                  icon: FileText,
-                                  desc: "Get an email when new posts are published",
-                                },
-                                {
-                                  key: "emailFeatured",
-                                  label: "Featured Post Emails",
-                                  icon: Bell,
-                                  desc: "Get an email when a post gets featured",
-                                },
-                                {
-                                  key: "emailPostUpdates",
-                                  label: "Post Update Emails",
-                                  icon: FileText,
-                                  desc: "Get an email when posts are updated",
-                                },
-                                {
-                                  key: "weeklyDigest",
-                                  label: "Weekly Summary",
-                                  icon: Mail,
-                                  desc: "Receive a summary of activities every week",
-                                },
-                              ]
-                          ).map((item) => {
-                            const ItemIcon = item.icon;
-                            return (
-                              <div
-                                key={item.key}
-                                className="flex items-center justify-between"
-                              >
-                                <div className="flex items-start gap-4">
-                                  <ItemIcon className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
-                                  <div>
-                                    <p className="text-sm font-medium text-black dark:text-white">
-                                      {item.label}
-                                    </p>
-                                    <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-                                      {item.desc}
-                                    </p>
-                                  </div>
-                                </div>
-                                <button
-                                  onClick={() =>
-                                    setNotifications((prev) => ({
-                                      ...prev,
-                                      [item.key]: !prev[item.key],
-                                    }))
-                                  }
-                                  className={`relative w-12 h-6 rounded-full transition-all duration-300 border border-zinc-600 dark:border-zinc-600 shrink-0 ${
-                                    notifications[item.key]
-                                      ? "bg-zinc-700 dark:bg-zinc-700"
-                                      : "bg-zinc-200 dark:bg-zinc-800"
-                                  }`}
-                                >
-                                  <div
-                                    className={`absolute top-0.5 w-5 h-5 border border-zinc-200 dark:border-zinc-800 rounded-full transition-transform duration-300 bg-white dark:bg-black ${
-                                      notifications[item.key]
-                                        ? "translate-x-6"
-                                        : "translate-x-0.5"
-                                    }`}
-                                  />
-                                </button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* BLOCKED ACCOUNTS TAB */}
-                {activeTab === "blocked" && (
-                  <div className="space-y-8 animate-in fade-in duration-300">
-                    <div>
-                      <h2 className="text-2xl font-light text-black dark:text-white mb-8">
-                        Blocked Accounts
-                      </h2>
-
-                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-8 leading-relaxed">
-                          {isAdmin
-                            ? "Manage accounts you have blocked or that have been blocked by you"
-                            : "Manage accounts you have blocked"}
-                        </p>
-
-                        <div className="space-y-3">
-                          {isAdmin ? (
-                            blockedAccounts.length > 0 ? (
-                              blockedAccounts.map((block) => (
-                                <div
-                                  key={block.blockId}
-                                  className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5 flex items-center justify-between transition-all hover:bg-zinc-50 dark:hover:bg-zinc-900"
-                                >
-                                  <div className="flex items-center gap-4 flex-1 min-w-0">
-                                    <div className="w-12 h-12 border border-zinc-200 dark:border-zinc-800 rounded-lg flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900 overflow-hidden">
-                                      {block.user?.avatar ? (
-                                        <img
-                                          src={block.user.avatar}
-                                          alt={block.user?.name || "User"}
-                                          className="w-full h-full object-cover rounded-lg"
                                         />
-                                      ) : (
-                                        <User className="w-5 h-5 text-black dark:text-white" />
-                                      )}
+                                      </button>
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                      <p className="text-sm font-medium text-black dark:text-white">
-                                        {block.user?.name || "Unknown"}
+                                  );
+                                })}
+                              </div>
+                            </div>
+
+                            {/* Email Preferences Card */}
+                            <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
+                              <h3 className="text-lg font-light text-black dark:text-white mb-2">
+                                Email Preferences
+                              </h3>
+                              <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-8 uppercase tracking-wide">
+                                Email Delivery
+                              </p>
+
+                              <div className="space-y-6">
+                                {(isAdmin
+                                  ? [
+                                      {
+                                        key: "emailNotifications",
+                                        label: "General Notifications",
+                                        icon: Mail,
+                                        desc: "Receive important updates via email",
+                                      },
+                                      {
+                                        key: "emailMessages",
+                                        label: "Message Emails",
+                                        icon: MessageSquare,
+                                        desc: "Get an email when you receive new messages",
+                                      },
+                                      {
+                                        key: "emailLikes",
+                                        label: "Like Emails",
+                                        icon: Bell,
+                                        desc: "Get an email when someone likes a post",
+                                      },
+                                      {
+                                        key: "emailSaves",
+                                        label: "Save Emails",
+                                        icon: Bell,
+                                        desc: "Get an email when someone saves a post",
+                                      },
+                                      {
+                                        key: "weeklyDigest",
+                                        label: "Weekly Summary",
+                                        icon: Mail,
+                                        desc: "Receive a summary of activities every week",
+                                      },
+                                    ]
+                                  : [
+                                      {
+                                        key: "emailNotifications",
+                                        label: "General Notifications",
+                                        icon: Mail,
+                                        desc: "Receive important updates via email",
+                                      },
+                                      {
+                                        key: "emailMessages",
+                                        label: "Message Emails",
+                                        icon: MessageSquare,
+                                        desc: "Get an email when you receive new messages",
+                                      },
+                                      {
+                                        key: "emailNewPosts",
+                                        label: "New Post Emails",
+                                        icon: FileText,
+                                        desc: "Get an email when new posts are published",
+                                      },
+                                      {
+                                        key: "emailFeatured",
+                                        label: "Featured Post Emails",
+                                        icon: Bell,
+                                        desc: "Get an email when a post gets featured",
+                                      },
+                                      {
+                                        key: "emailPostUpdates",
+                                        label: "Post Update Emails",
+                                        icon: FileText,
+                                        desc: "Get an email when posts are updated",
+                                      },
+                                      {
+                                        key: "weeklyDigest",
+                                        label: "Weekly Summary",
+                                        icon: Mail,
+                                        desc: "Receive a summary of activities every week",
+                                      },
+                                    ]
+                                ).map((item) => {
+                                  const ItemIcon = item.icon;
+                                  return (
+                                    <div
+                                      key={item.key}
+                                      className="flex items-center justify-between"
+                                    >
+                                      <div className="flex items-start gap-4">
+                                        <ItemIcon className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
+                                        <div>
+                                          <p className="text-sm font-medium text-black dark:text-white">
+                                            {item.label}
+                                          </p>
+                                          <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                            {item.desc}
+                                          </p>
+                                        </div>
+                                      </div>
+                                      <button
+                                        onClick={() =>
+                                          setNotifications((prev) => ({
+                                            ...prev,
+                                            [item.key]: !prev[item.key],
+                                          }))
+                                        }
+                                        className={`relative w-12 h-6 rounded-full transition-all duration-300 border border-zinc-600 dark:border-zinc-600 shrink-0 ${
+                                          notifications[item.key]
+                                            ? "bg-zinc-700 dark:bg-zinc-700"
+                                            : "bg-zinc-200 dark:bg-zinc-800"
+                                        }`}
+                                      >
+                                        <div
+                                          className={`absolute top-0.5 w-5 h-5 border border-zinc-200 dark:border-zinc-800 rounded-full transition-transform duration-300 bg-white dark:bg-black ${
+                                            notifications[item.key]
+                                              ? "translate-x-6"
+                                              : "translate-x-0.5"
+                                          }`}
+                                        />
+                                      </button>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* BLOCKED ACCOUNTS TAB */}
+                      {activeTab === "blocked" && (
+                        <div className="space-y-8 animate-in fade-in duration-300">
+                          <div>
+                            <h2 className="text-2xl font-light text-black dark:text-white mb-8">
+                              Blocked Accounts
+                            </h2>
+
+                            <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
+                              <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-8 leading-relaxed">
+                                {isAdmin
+                                  ? "Manage accounts you have blocked or that have been blocked by you"
+                                  : "Manage accounts you have blocked"}
+                              </p>
+
+                              <div className="space-y-3">
+                                {isAdmin ? (
+                                  blockedAccounts.length > 0 ? (
+                                    blockedAccounts.map((block) => (
+                                      <div
+                                        key={block.blockId}
+                                        className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5 flex items-center justify-between transition-all hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                                      >
+                                        <div className="flex items-center gap-4 flex-1 min-w-0">
+                                          <div className="w-12 h-12 border border-zinc-200 dark:border-zinc-800 rounded-lg flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900 overflow-hidden">
+                                            {block.user?.avatar ? (
+                                              <img
+                                                src={block.user.avatar}
+                                                alt={block.user?.name || "User"}
+                                                className="w-full h-full object-cover rounded-lg"
+                                              />
+                                            ) : (
+                                              <User className="w-5 h-5 text-black dark:text-white" />
+                                            )}
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-black dark:text-white">
+                                              {block.user?.name || "Unknown"}
+                                            </p>
+                                            <p className="text-xs text-zinc-600 dark:text-zinc-400 truncate">
+                                              {block.user?.email || ""}
+                                            </p>
+                                          </div>
+                                        </div>
+                                        <button
+                                          onClick={() =>
+                                            unblockUser(block.userId)
+                                          }
+                                          className="px-3 py-2 text-xs font-medium border border-zinc-200 dark:border-zinc-600 text-black dark:text-white rounded-lg transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                        >
+                                          Unblock
+                                        </button>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <div className="text-center py-8">
+                                      <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                                        No blocked accounts
                                       </p>
-                                      <p className="text-xs text-zinc-600 dark:text-zinc-400 truncate">
-                                        {block.user?.email || ""}
+                                    </div>
+                                  )
+                                ) : (
+                                  <div className="text-center py-8">
+                                    <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                                      No blocked accounts
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* PRIVACY & HELP TAB */}
+                      {activeTab === "privacy" && (
+                        <div className="space-y-8 animate-in fade-in duration-300">
+                          <div>
+                            <h2 className="text-2xl font-light text-black dark:text-white mb-8">
+                              Privacy & Help
+                            </h2>
+
+                            {/* Privacy Settings Card */}
+                            <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 mb-8">
+                              <h3 className="text-lg font-light text-black dark:text-white mb-2">
+                                Privacy Settings
+                              </h3>
+                              <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-8">
+                                ACTIVITY & PRESENCE
+                              </p>
+
+                              <div className="space-y-6">
+                                {/* Show Activity Status */}
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-start gap-4">
+                                    <Eye className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
+                                    <div>
+                                      <p className="text-sm font-medium text-black dark:text-white">
+                                        Show Activity Status
+                                      </p>
+                                      <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                        Let others see when you're active on the
+                                        platform
                                       </p>
                                     </div>
                                   </div>
                                   <button
-                                    onClick={() => unblockUser(block.userId)}
-                                    className="px-3 py-2 text-xs font-medium border border-zinc-200 dark:border-zinc-600 text-black dark:text-white rounded-lg transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                    onClick={() =>
+                                      setPrivacy((prev) => ({
+                                        ...prev,
+                                        showActivity: !prev.showActivity,
+                                      }))
+                                    }
+                                    className={`relative w-12 h-6 rounded-full transition-all duration-300 border border-zinc-600 dark:border-zinc-600 shrink-0 ${
+                                      privacy.showActivity
+                                        ? "bg-zinc-700 dark:bg-zinc-700"
+                                        : "bg-zinc-200 dark:bg-zinc-800"
+                                    }`}
                                   >
-                                    Unblock
+                                    <div
+                                      className={`absolute top-0.5 w-5 h-5 border border-zinc-200 dark:border-zinc-800 rounded-full transition-transform duration-300 bg-white dark:bg-black ${
+                                        privacy.showActivity
+                                          ? "translate-x-6"
+                                          : "translate-x-0.5"
+                                      }`}
+                                    />
                                   </button>
                                 </div>
-                              ))
+
+                                {/* Divider */}
+                                <div className="border-t border-zinc-200 dark:border-zinc-800 my-6"></div>
+
+                                <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-4">
+                                  DATA & ANALYTICS
+                                </p>
+
+                                {/* Analytics Collection */}
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-start gap-4">
+                                    <BarChart3 className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
+                                    <div>
+                                      <p className="text-sm font-medium text-black dark:text-white">
+                                        Analytics Collection
+                                      </p>
+                                      <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                        Help us improve by sharing anonymous
+                                        usage data
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={() =>
+                                      setPrivacy((prev) => ({
+                                        ...prev,
+                                        analyticsCollection:
+                                          !prev.analyticsCollection,
+                                      }))
+                                    }
+                                    className={`relative w-12 h-6 rounded-full transition-all duration-300 border border-zinc-600 dark:border-zinc-600 shrink-0 ${
+                                      privacy.analyticsCollection
+                                        ? "bg-zinc-700 dark:bg-zinc-700"
+                                        : "bg-zinc-200 dark:bg-zinc-800"
+                                    }`}
+                                  >
+                                    <div
+                                      className={`absolute top-0.5 w-5 h-5 border border-zinc-200 dark:border-zinc-800 rounded-full transition-transform duration-300 bg-white dark:bg-black ${
+                                        privacy.analyticsCollection
+                                          ? "translate-x-6"
+                                          : "translate-x-0.5"
+                                      }`}
+                                    />
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Help & Documentation Card */}
+                            <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
+                              <h3 className="text-lg font-light text-black dark:text-white mb-6">
+                                Help & Documentation
+                              </h3>
+                              <div className="space-y-3">
+                                {[
+                                  {
+                                    title: "Privacy Policy",
+                                    url: "/privacy-policy",
+                                    desc: "Learn how we protect your data",
+                                    icon: Shield,
+                                  },
+                                  {
+                                    title: "Terms of Service",
+                                    url: "/terms-services",
+                                    desc: "Understand our terms and conditions",
+                                    icon: FileText,
+                                  },
+                                  {
+                                    title: "Cookie Policy",
+                                    url: "/cookie-policy",
+                                    desc: "How we use cookies",
+                                    icon: Cookie,
+                                  },
+                                  {
+                                    title: "Developer Documentation",
+                                    url: "/developer-docs",
+                                    desc: "API guides and integration",
+                                    icon: Code,
+                                  },
+                                  {
+                                    title: "Contact Support",
+                                    url: "/contact-support",
+                                    desc: "Get help from our team",
+                                    icon: Headphones,
+                                  },
+                                ].map((link, idx) => (
+                                  <a
+                                    key={idx}
+                                    href={link.url}
+                                    className="flex items-start gap-4 p-4 rounded-lg transition-all border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 group"
+                                  >
+                                    <link.icon className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-0.5 shrink-0 group-hover:text-black dark:group-hover:text-white transition-colors" />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm font-medium text-black dark:text-white">
+                                        {link.title}
+                                      </p>
+                                      <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                        {link.desc}
+                                      </p>
+                                    </div>
+                                    <svg
+                                      className="w-4 h-4 text-zinc-400 dark:text-zinc-600 group-hover:translate-x-0.5 transition-transform shrink-0 mt-1"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M9 5l7 7-7 7"
+                                      />
+                                    </svg>
+                                  </a>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {(activeTab === "accounts" ||
+                        activeTab === "ownership") && (
+                        <AccountCenter
+                          defaultTab={
+                            activeTab === "ownership" ? "ownership" : "switch"
+                          }
+                        />
+                      )}
+                    </div>
+                  </div>{" "}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="flex">
+              {" "}
+              {/* Left Sidebar Navigation */}
+              <div className="hidden xl:flex flex-col w-72 bg-zinc-50 dark:bg-zinc-950 border-r border-zinc-200 dark:border-zinc-800 px-6 py-8 sticky top-0 h-screen overflow-y-auto">
+                {/* Settings Header */}
+                <div className="mb-8">
+                  <h2 className="text-lg font-semibold text-black dark:text-white">
+                    Settings
+                  </h2>
+                </div>
+
+                {/* Navigation Items */}
+                <div className="flex-1 space-y-1">
+                  {sections.map((section) => {
+                    const Icon = section.icon;
+                    const isExpanded = expandedSections[section.id];
+                    const isActive =
+                      activeTab === section.id ||
+                      section.subsections.some(
+                        (sub) => sub.contentId === activeTab,
+                      );
+                    return (
+                      <div key={section.id}>
+                        <div
+                          className={`w-full flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-200 group cursor-pointer ${
+                            isActive
+                              ? "bg-zinc-200 dark:bg-zinc-800 text-black dark:text-white"
+                              : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                          }`}
+                        >
+                          <button
+                            onClick={() => {
+                              setActiveTab(section.subsections[0].contentId);
+                            }}
+                            className="flex items-center gap-3 flex-1 text-left"
+                          >
+                            <Icon className="w-5 h-5" />
+                            <span className="text-sm font-medium">
+                              {section.label}
+                            </span>
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleSection(section.id, e);
+                            }}
+                            className="text-black dark:text-white transition-transform duration-300 hover:opacity-70 ml-2"
+                          >
+                            {isExpanded ? (
+                              <ChevronUp className="w-4 h-4" />
+                            ) : (
+                              <ChevronDown className="w-4 h-4" />
+                            )}
+                          </button>
+                        </div>
+
+                        {/* Expanded Subsections */}
+                        <div
+                          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                            isExpanded ? "max-h-96" : "max-h-0"
+                          }`}
+                        >
+                          <div className="ml-4 mt-1 space-y-1 border-l border-zinc-200 dark:border-zinc-800 pl-3">
+                            {section.subsections.map((subsection) => (
+                              <button
+                                key={subsection.id}
+                                onClick={() =>
+                                  handleSubsectionClick(subsection.contentId)
+                                }
+                                className={`w-full text-left text-xs px-3 py-2 rounded transition-colors hover:bg-zinc-100 dark:hover:bg-zinc-900 ${
+                                  isActive
+                                    ? "text-black dark:text-white font-medium"
+                                    : "text-zinc-600 dark:text-zinc-400"
+                                }`}
+                              >
+                                {subsection.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              {/* Main Content */}
+              <div className="flex-1 px-8 py-12 max-w-5xl mx-auto w-full overflow-y-auto">
+                {/* Content Sections */}
+                <div className="space-y-8">
+                  {/* EDIT PROFILE TAB */}
+                  {activeTab === "profile" && (
+                    <div className="space-y-8 animate-in fade-in duration-300">
+                      <div>
+                        <h2 className="text-2xl font-light text-black dark:text-white mb-8">
+                          Edit Profile
+                        </h2>
+
+                        {/* Profile Picture Card */}
+                        <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 mb-8">
+                          <div className="flex items-start gap-8">
+                            <div className="relative">
+                              <div className="w-32 h-32 border-2 border-zinc-200 dark:border-zinc-800 rounded-full flex items-center justify-center overflow-hidden shrink-0 bg-white dark:bg-zinc-900">
+                                {isUploadingPicture ? (
+                                  <div className="w-6 h-6 border-2 border-zinc-300 dark:border-zinc-700 border-t-black dark:border-t-white rounded-full animate-spin" />
+                                ) : profile.profilePicturePreview ? (
+                                  <img
+                                    src={profile.profilePicturePreview}
+                                    alt="Profile"
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  <User className="w-8 h-8 text-black dark:text-white" />
+                                )}
+                              </div>
+                              <button
+                                onClick={() => setShowProfilePictureModal(true)}
+                                disabled={isUploadingPicture}
+                                className="absolute -bottom-2 -right-2 w-10 h-10 rounded-lg border-2 border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black flex items-center justify-center hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all text-black dark:text-white disabled:opacity-50"
+                              >
+                                <svg
+                                  className="w-5 h-5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                                  />
+                                </svg>
+                              </button>
+                            </div>
+                            <div className="flex-1 pt-2">
+                              <p className="text-sm text-black dark:text-white font-medium">
+                                {profile.username || "username"}
+                              </p>
+                              <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                {profile.name || "name"}
+                              </p>
+                            </div>
+                          </div>
+                          <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                          />
+                        </div>
+
+                        {/* Profile Fields */}
+                        <div className="space-y-6 mb-8">
+                          {/* Username and Name in one row */}
+                          <div className="grid grid-cols-2 gap-8">
+                            <div>
+                              <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
+                                Username
+                              </label>
+                              <input
+                                type="text"
+                                value={profile.username || ""}
+                                onChange={(e) =>
+                                  handleProfileChange(
+                                    "username",
+                                    e.target.value,
+                                  )
+                                }
+                                placeholder="Enter your username"
+                                className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
+                                Name
+                              </label>
+                              <input
+                                type="text"
+                                value={profile.name}
+                                onChange={(e) =>
+                                  handleProfileChange("name", e.target.value)
+                                }
+                                placeholder="Enter your name"
+                                className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
+                              />
+                            </div>
+                          </div>
+
+                          {/* Gender Section */}
+                          <div className="grid grid-cols-2 gap-8">
+                            <div className="relative">
+                              <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
+                                Gender
+                              </label>
+                              <button
+                                onClick={() =>
+                                  setShowGenderDropdown(!showGenderDropdown)
+                                }
+                                className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all text-left flex items-center justify-between"
+                              >
+                                <span>
+                                  {profile.gender === "custom" &&
+                                  profile.customGender
+                                    ? profile.customGender
+                                    : profile.gender
+                                      ? profile.gender.charAt(0).toUpperCase() +
+                                        profile.gender
+                                          .slice(1)
+                                          .replace(/_/g, " ")
+                                      : "Select Gender"}
+                                </span>
+                                {showGenderDropdown ? (
+                                  <ChevronUp className="w-4 h-4" />
+                                ) : (
+                                  <ChevronDown className="w-4 h-4" />
+                                )}
+                              </button>
+
+                              {/* Gender Dropdown */}
+                              {showGenderDropdown && (
+                                <div className="absolute top-full mt-1 w-full border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 rounded-lg shadow-lg z-10">
+                                  <div className="p-4 space-y-4">
+                                    {[
+                                      { value: "female", label: "Female" },
+                                      { value: "male", label: "Male" },
+                                      { value: "custom", label: "Custom" },
+                                      {
+                                        value: "prefer_not_to_say",
+                                        label: "Prefer not to say",
+                                      },
+                                    ].map((option) => (
+                                      <div key={option.value}>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleProfileChange(
+                                              "gender",
+                                              option.value,
+                                            );
+                                            if (option.value !== "custom") {
+                                              setShowGenderDropdown(false);
+                                            }
+                                          }}
+                                          className="w-full flex items-center justify-between px-3 py-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all text-left"
+                                        >
+                                          <label className="text-sm text-black dark:text-white cursor-pointer">
+                                            {option.label}
+                                          </label>
+                                          <div
+                                            className={`w-6 h-6 rounded-full border-2 transition-all flex items-center justify-center shrink-0 ${
+                                              profile.gender === option.value
+                                                ? "border-black dark:border-white"
+                                                : "border-zinc-300 dark:border-zinc-700"
+                                            }`}
+                                          >
+                                            {profile.gender ===
+                                              option.value && (
+                                              <div className="w-3 h-3 rounded-full bg-black dark:bg-white" />
+                                            )}
+                                          </div>
+                                        </button>
+
+                                        {/* Custom Gender Input - appears right after custom button */}
+                                        {option.value === "custom" &&
+                                          profile.gender === "custom" && (
+                                            <input
+                                              type="text"
+                                              value={profile.customGender || ""}
+                                              onChange={(e) =>
+                                                handleProfileChange(
+                                                  "customGender",
+                                                  e.target.value,
+                                                )
+                                              }
+                                              onKeyDown={(e) => {
+                                                if (e.key === "Enter") {
+                                                  setShowGenderDropdown(false);
+                                                }
+                                              }}
+                                              onBlur={() => {
+                                                setShowGenderDropdown(false);
+                                              }}
+                                              autoFocus
+                                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 mt-2 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all"
+                                            />
+                                          )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Bio */}
+                          <div>
+                            <label className="block text-xs text-zinc-600 dark:text-zinc-400 mb-3 uppercase tracking-wide font-medium">
+                              Bio
+                            </label>
+                            <textarea
+                              value={profile.bio}
+                              onChange={(e) =>
+                                handleProfileChange("bio", e.target.value)
+                              }
+                              placeholder="Tell us about yourself..."
+                              rows="4"
+                              className="w-full text-sm border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600 rounded-lg px-4 py-3 focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all resize-none"
+                            />
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={saveProfile}
+                          disabled={isSaving}
+                          className="w-full px-6 py-3 border border-zinc-200 dark:border-zinc-800 rounded-lg text-sm font-medium text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 disabled:opacity-50 transition-all"
+                        >
+                          {isSaving ? "Saving..." : "Save Changes"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* PASSWORD & SECURITY TAB */}
+                  {(activeTab === "password" ||
+                    activeTab === "email" ||
+                    activeTab === "recovery") && (
+                    <PasswordAndSecurity
+                      defaultTab={
+                        activeTab === "recovery" ? "forgot-password" : activeTab
+                      }
+                    />
+                  )}
+
+                  {/* TEAM MANAGEMENT TAB - Admin Only */}
+                  {activeTab === "admin" && isAdmin && (
+                    <div className="space-y-8 animate-in fade-in duration-300">
+                      <div>
+                        <h2 className="text-2xl font-light text-black dark:text-white mb-8">
+                          Team Management
+                        </h2>
+
+                        {/* Coming Soon Card */}
+                        <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-16 text-center">
+                          <div className="max-w-md mx-auto">
+                            <div className="w-16 h-16 mx-auto mb-6 rounded-full border-2 border-zinc-200 dark:border-zinc-800 flex items-center justify-center">
+                              <Users className="w-8 h-8 text-zinc-400 dark:text-zinc-600" />
+                            </div>
+                            <h3 className="text-xl font-light text-black dark:text-white mb-3">
+                              Coming Soon
+                            </h3>
+                            <p className="text-sm text-zinc-600 dark:text-zinc-400 leading-relaxed">
+                              Team management features are currently under
+                              development. Stay tuned for updates!
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab === "notifications" && (
+                    <div className="space-y-8 animate-in fade-in duration-300">
+                      <div>
+                        <h2 className="text-2xl font-light text-black dark:text-white mb-8">
+                          Notifications
+                        </h2>
+
+                        {/* In-App Notifications Card */}
+                        <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 mb-8">
+                          <h3 className="text-lg font-light text-black dark:text-white mb-2">
+                            In-App Notifications
+                          </h3>
+                          <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-8 uppercase tracking-wide">
+                            {isAdmin ? "Admin Alerts" : "Activity Alerts"}
+                          </p>
+
+                          <div className="space-y-6">
+                            {(isAdmin
+                              ? [
+                                  {
+                                    key: "messageNotifications",
+                                    label: "Message Alerts",
+                                    icon: MessageSquare,
+                                    desc: "Get notified when you receive new messages",
+                                  },
+                                  {
+                                    key: "likeNotifications",
+                                    label: "Like Notifications",
+                                    icon: Bell,
+                                    desc: "Get notified when someone likes a post",
+                                  },
+                                  {
+                                    key: "saveNotifications",
+                                    label: "Save Notifications",
+                                    icon: Bell,
+                                    desc: "Get notified when someone saves a post",
+                                  },
+                                ]
+                              : [
+                                  {
+                                    key: "messageNotifications",
+                                    label: "Message Alerts",
+                                    icon: MessageSquare,
+                                    desc: "Get notified when you receive new messages",
+                                  },
+                                  {
+                                    key: "newPostNotifications",
+                                    label: "New Post Alerts",
+                                    icon: FileText,
+                                    desc: "Get notified when new posts are published",
+                                  },
+                                  {
+                                    key: "featuredPostNotifications",
+                                    label: "Featured Post Alerts",
+                                    icon: Bell,
+                                    desc: "Get notified when a post gets featured",
+                                  },
+                                  {
+                                    key: "postUpdateNotifications",
+                                    label: "Post Update Alerts",
+                                    icon: FileText,
+                                    desc: "Get notified when posts are updated",
+                                  },
+                                ]
+                            ).map((item) => {
+                              const ItemIcon = item.icon;
+                              return (
+                                <div
+                                  key={item.key}
+                                  className="flex items-center justify-between"
+                                >
+                                  <div className="flex items-start gap-4">
+                                    <ItemIcon className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
+                                    <div>
+                                      <p className="text-sm font-medium text-black dark:text-white">
+                                        {item.label}
+                                      </p>
+                                      <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                        {item.desc}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={async () => {
+                                      const newValue = !notifications[item.key];
+                                      setNotifications((prev) => ({
+                                        ...prev,
+                                        [item.key]: newValue,
+                                      }));
+                                      try {
+                                        await updatePreference({
+                                          [preferenceKeyMap[item.key]]:
+                                            newValue,
+                                        });
+                                      } catch (err) {
+                                        // Revert on failure
+                                        setNotifications((prev) => ({
+                                          ...prev,
+                                          [item.key]: !newValue,
+                                        }));
+                                        showError(
+                                          "Failed to update preference",
+                                        );
+                                      }
+                                    }}
+                                    className={`relative w-12 h-6 rounded-full transition-all duration-300 border border-zinc-600 dark:border-zinc-600 shrink-0 ${
+                                      notifications[item.key]
+                                        ? "bg-zinc-700 dark:bg-zinc-700"
+                                        : "bg-zinc-200 dark:bg-zinc-800"
+                                    }`}
+                                  >
+                                    <div
+                                      className={`absolute top-0.5 w-5 h-5 border border-zinc-200 dark:border-zinc-800 rounded-full transition-transform duration-300 bg-white dark:bg-black ${
+                                        notifications[item.key]
+                                          ? "translate-x-6"
+                                          : "translate-x-0.5"
+                                      }`}
+                                    />
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Email Preferences Card */}
+                        <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
+                          <h3 className="text-lg font-light text-black dark:text-white mb-2">
+                            Email Preferences
+                          </h3>
+                          <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-8 uppercase tracking-wide">
+                            Email Delivery
+                          </p>
+
+                          <div className="space-y-6">
+                            {(isAdmin
+                              ? [
+                                  {
+                                    key: "emailNotifications",
+                                    label: "General Notifications",
+                                    icon: Mail,
+                                    desc: "Receive important updates via email",
+                                  },
+                                  {
+                                    key: "emailMessages",
+                                    label: "Message Emails",
+                                    icon: MessageSquare,
+                                    desc: "Get an email when you receive new messages",
+                                  },
+                                  {
+                                    key: "emailLikes",
+                                    label: "Like Emails",
+                                    icon: Bell,
+                                    desc: "Get an email when someone likes a post",
+                                  },
+                                  {
+                                    key: "emailSaves",
+                                    label: "Save Emails",
+                                    icon: Bell,
+                                    desc: "Get an email when someone saves a post",
+                                  },
+                                  {
+                                    key: "weeklyDigest",
+                                    label: "Weekly Summary",
+                                    icon: Mail,
+                                    desc: "Receive a summary of activities every week",
+                                  },
+                                ]
+                              : [
+                                  {
+                                    key: "emailNotifications",
+                                    label: "General Notifications",
+                                    icon: Mail,
+                                    desc: "Receive important updates via email",
+                                  },
+                                  {
+                                    key: "emailMessages",
+                                    label: "Message Emails",
+                                    icon: MessageSquare,
+                                    desc: "Get an email when you receive new messages",
+                                  },
+                                  {
+                                    key: "emailNewPosts",
+                                    label: "New Post Emails",
+                                    icon: FileText,
+                                    desc: "Get an email when new posts are published",
+                                  },
+                                  {
+                                    key: "emailFeatured",
+                                    label: "Featured Post Emails",
+                                    icon: Bell,
+                                    desc: "Get an email when a post gets featured",
+                                  },
+                                  {
+                                    key: "emailPostUpdates",
+                                    label: "Post Update Emails",
+                                    icon: FileText,
+                                    desc: "Get an email when posts are updated",
+                                  },
+                                  {
+                                    key: "weeklyDigest",
+                                    label: "Weekly Summary",
+                                    icon: Mail,
+                                    desc: "Receive a summary of activities every week",
+                                  },
+                                ]
+                            ).map((item) => {
+                              const ItemIcon = item.icon;
+                              return (
+                                <div
+                                  key={item.key}
+                                  className="flex items-center justify-between"
+                                >
+                                  <div className="flex items-start gap-4">
+                                    <ItemIcon className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
+                                    <div>
+                                      <p className="text-sm font-medium text-black dark:text-white">
+                                        {item.label}
+                                      </p>
+                                      <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                        {item.desc}
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={() =>
+                                      setNotifications((prev) => ({
+                                        ...prev,
+                                        [item.key]: !prev[item.key],
+                                      }))
+                                    }
+                                    className={`relative w-12 h-6 rounded-full transition-all duration-300 border border-zinc-600 dark:border-zinc-600 shrink-0 ${
+                                      notifications[item.key]
+                                        ? "bg-zinc-700 dark:bg-zinc-700"
+                                        : "bg-zinc-200 dark:bg-zinc-800"
+                                    }`}
+                                  >
+                                    <div
+                                      className={`absolute top-0.5 w-5 h-5 border border-zinc-200 dark:border-zinc-800 rounded-full transition-transform duration-300 bg-white dark:bg-black ${
+                                        notifications[item.key]
+                                          ? "translate-x-6"
+                                          : "translate-x-0.5"
+                                      }`}
+                                    />
+                                  </button>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* BLOCKED ACCOUNTS TAB */}
+                  {activeTab === "blocked" && (
+                    <div className="space-y-8 animate-in fade-in duration-300">
+                      <div>
+                        <h2 className="text-2xl font-light text-black dark:text-white mb-8">
+                          Blocked Accounts
+                        </h2>
+
+                        <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
+                          <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-8 leading-relaxed">
+                            {isAdmin
+                              ? "Manage accounts you have blocked or that have been blocked by you"
+                              : "Manage accounts you have blocked"}
+                          </p>
+
+                          <div className="space-y-3">
+                            {isAdmin ? (
+                              blockedAccounts.length > 0 ? (
+                                blockedAccounts.map((block) => (
+                                  <div
+                                    key={block.blockId}
+                                    className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-5 flex items-center justify-between transition-all hover:bg-zinc-50 dark:hover:bg-zinc-900"
+                                  >
+                                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                                      <div className="w-12 h-12 border border-zinc-200 dark:border-zinc-800 rounded-lg flex items-center justify-center shrink-0 bg-white dark:bg-zinc-900 overflow-hidden">
+                                        {block.user?.avatar ? (
+                                          <img
+                                            src={block.user.avatar}
+                                            alt={block.user?.name || "User"}
+                                            className="w-full h-full object-cover rounded-lg"
+                                          />
+                                        ) : (
+                                          <User className="w-5 h-5 text-black dark:text-white" />
+                                        )}
+                                      </div>
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-medium text-black dark:text-white">
+                                          {block.user?.name || "Unknown"}
+                                        </p>
+                                        <p className="text-xs text-zinc-600 dark:text-zinc-400 truncate">
+                                          {block.user?.email || ""}
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <button
+                                      onClick={() => unblockUser(block.userId)}
+                                      className="px-3 py-2 text-xs font-medium border border-zinc-200 dark:border-zinc-600 text-black dark:text-white rounded-lg transition-all hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                                    >
+                                      Unblock
+                                    </button>
+                                  </div>
+                                ))
+                              ) : (
+                                <div className="text-center py-8">
+                                  <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                                    No blocked accounts
+                                  </p>
+                                </div>
+                              )
                             ) : (
                               <div className="text-center py-8">
                                 <p className="text-xs text-zinc-600 dark:text-zinc-400">
                                   No blocked accounts
                                 </p>
                               </div>
-                            )
-                          ) : (
-                            <div className="text-center py-8">
-                              <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                                No blocked accounts
-                              </p>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* PRIVACY & HELP TAB */}
-                {activeTab === "privacy" && (
-                  <div className="space-y-8 animate-in fade-in duration-300">
-                    <div>
-                      <h2 className="text-2xl font-light text-black dark:text-white mb-8">
-                        Privacy & Help
-                      </h2>
+                  {/* PRIVACY & HELP TAB */}
+                  {activeTab === "privacy" && (
+                    <div className="space-y-8 animate-in fade-in duration-300">
+                      <div>
+                        <h2 className="text-2xl font-light text-black dark:text-white mb-8">
+                          Privacy & Help
+                        </h2>
 
-                      {/* Privacy Settings Card */}
-                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 mb-8">
-                        <h3 className="text-lg font-light text-black dark:text-white mb-2">
-                          Privacy Settings
-                        </h3>
-                        <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-8">
-                          ACTIVITY & PRESENCE
-                        </p>
-
-                        <div className="space-y-6">
-                          {/* Show Activity Status */}
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-start gap-4">
-                              <Eye className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
-                              <div>
-                                <p className="text-sm font-medium text-black dark:text-white">
-                                  Show Activity Status
-                                </p>
-                                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-                                  Let others see when you're active on the
-                                  platform
-                                </p>
-                              </div>
-                            </div>
-                            <button
-                              onClick={() =>
-                                setPrivacy((prev) => ({
-                                  ...prev,
-                                  showActivity: !prev.showActivity,
-                                }))
-                              }
-                              className={`relative w-12 h-6 rounded-full transition-all duration-300 border border-zinc-600 dark:border-zinc-600 shrink-0 ${
-                                privacy.showActivity
-                                  ? "bg-zinc-700 dark:bg-zinc-700"
-                                  : "bg-zinc-200 dark:bg-zinc-800"
-                              }`}
-                            >
-                              <div
-                                className={`absolute top-0.5 w-5 h-5 border border-zinc-200 dark:border-zinc-800 rounded-full transition-transform duration-300 bg-white dark:bg-black ${
-                                  privacy.showActivity
-                                    ? "translate-x-6"
-                                    : "translate-x-0.5"
-                                }`}
-                              />
-                            </button>
-                          </div>
-
-                          {/* Divider */}
-                          <div className="border-t border-zinc-200 dark:border-zinc-800 my-6"></div>
-
-                          <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-4">
-                            DATA & ANALYTICS
+                        {/* Privacy Settings Card */}
+                        <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 mb-8">
+                          <h3 className="text-lg font-light text-black dark:text-white mb-2">
+                            Privacy Settings
+                          </h3>
+                          <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-8">
+                            ACTIVITY & PRESENCE
                           </p>
 
-                          {/* Analytics Collection */}
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-start gap-4">
-                              <BarChart3 className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
-                              <div>
-                                <p className="text-sm font-medium text-black dark:text-white">
-                                  Analytics Collection
-                                </p>
-                                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-                                  Help us improve by sharing anonymous usage
-                                  data
-                                </p>
+                          <div className="space-y-6">
+                            {/* Show Activity Status */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-start gap-4">
+                                <Eye className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
+                                <div>
+                                  <p className="text-sm font-medium text-black dark:text-white">
+                                    Show Activity Status
+                                  </p>
+                                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                    Let others see when you're active on the
+                                    platform
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                            <button
-                              onClick={() =>
-                                setPrivacy((prev) => ({
-                                  ...prev,
-                                  analyticsCollection:
-                                    !prev.analyticsCollection,
-                                }))
-                              }
-                              className={`relative w-12 h-6 rounded-full transition-all duration-300 border border-zinc-600 dark:border-zinc-600 shrink-0 ${
-                                privacy.analyticsCollection
-                                  ? "bg-zinc-700 dark:bg-zinc-700"
-                                  : "bg-zinc-200 dark:bg-zinc-800"
-                              }`}
-                            >
-                              <div
-                                className={`absolute top-0.5 w-5 h-5 border border-zinc-200 dark:border-zinc-800 rounded-full transition-transform duration-300 bg-white dark:bg-black ${
-                                  privacy.analyticsCollection
-                                    ? "translate-x-6"
-                                    : "translate-x-0.5"
+                              <button
+                                onClick={() =>
+                                  setPrivacy((prev) => ({
+                                    ...prev,
+                                    showActivity: !prev.showActivity,
+                                  }))
+                                }
+                                className={`relative w-12 h-6 rounded-full transition-all duration-300 border border-zinc-600 dark:border-zinc-600 shrink-0 ${
+                                  privacy.showActivity
+                                    ? "bg-zinc-700 dark:bg-zinc-700"
+                                    : "bg-zinc-200 dark:bg-zinc-800"
                                 }`}
-                              />
-                            </button>
+                              >
+                                <div
+                                  className={`absolute top-0.5 w-5 h-5 border border-zinc-200 dark:border-zinc-800 rounded-full transition-transform duration-300 bg-white dark:bg-black ${
+                                    privacy.showActivity
+                                      ? "translate-x-6"
+                                      : "translate-x-0.5"
+                                  }`}
+                                />
+                              </button>
+                            </div>
+
+                            {/* Divider */}
+                            <div className="border-t border-zinc-200 dark:border-zinc-800 my-6"></div>
+
+                            <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-4">
+                              DATA & ANALYTICS
+                            </p>
+
+                            {/* Analytics Collection */}
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-start gap-4">
+                                <BarChart3 className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-1 shrink-0" />
+                                <div>
+                                  <p className="text-sm font-medium text-black dark:text-white">
+                                    Analytics Collection
+                                  </p>
+                                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                    Help us improve by sharing anonymous usage
+                                    data
+                                  </p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() =>
+                                  setPrivacy((prev) => ({
+                                    ...prev,
+                                    analyticsCollection:
+                                      !prev.analyticsCollection,
+                                  }))
+                                }
+                                className={`relative w-12 h-6 rounded-full transition-all duration-300 border border-zinc-600 dark:border-zinc-600 shrink-0 ${
+                                  privacy.analyticsCollection
+                                    ? "bg-zinc-700 dark:bg-zinc-700"
+                                    : "bg-zinc-200 dark:bg-zinc-800"
+                                }`}
+                              >
+                                <div
+                                  className={`absolute top-0.5 w-5 h-5 border border-zinc-200 dark:border-zinc-800 rounded-full transition-transform duration-300 bg-white dark:bg-black ${
+                                    privacy.analyticsCollection
+                                      ? "translate-x-6"
+                                      : "translate-x-0.5"
+                                  }`}
+                                />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Help & Documentation Card */}
+                        <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
+                          <h3 className="text-lg font-light text-black dark:text-white mb-6">
+                            Help & Documentation
+                          </h3>
+                          <div className="space-y-3">
+                            {[
+                              {
+                                title: "Privacy Policy",
+                                url: "/privacy-policy",
+                                desc: "Learn how we protect your data",
+                                icon: Shield,
+                              },
+                              {
+                                title: "Terms of Service",
+                                url: "/terms-services",
+                                desc: "Understand our terms and conditions",
+                                icon: FileText,
+                              },
+                              {
+                                title: "Cookie Policy",
+                                url: "/cookie-policy",
+                                desc: "How we use cookies",
+                                icon: Cookie,
+                              },
+                              {
+                                title: "Developer Documentation",
+                                url: "/developer-docs",
+                                desc: "API guides and integration",
+                                icon: Code,
+                              },
+                              {
+                                title: "Contact Support",
+                                url: "/contact-support",
+                                desc: "Get help from our team",
+                                icon: Headphones,
+                              },
+                            ].map((link, idx) => (
+                              <a
+                                key={idx}
+                                href={link.url}
+                                className="flex items-start gap-4 p-4 rounded-lg transition-all border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 group"
+                              >
+                                <link.icon className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-0.5 shrink-0 group-hover:text-black dark:group-hover:text-white transition-colors" />
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-black dark:text-white">
+                                    {link.title}
+                                  </p>
+                                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
+                                    {link.desc}
+                                  </p>
+                                </div>
+                                <svg
+                                  className="w-4 h-4 text-zinc-400 dark:text-zinc-600 group-hover:translate-x-0.5 transition-transform shrink-0 mt-1"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 5l7 7-7 7"
+                                  />
+                                </svg>
+                              </a>
+                            ))}
                           </div>
                         </div>
                       </div>
-
-                      {/* Help & Documentation Card */}
-                      <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8">
-                        <h3 className="text-lg font-light text-black dark:text-white mb-6">
-                          Help & Documentation
-                        </h3>
-                        <div className="space-y-3">
-                          {[
-                            {
-                              title: "Privacy Policy",
-                              url: "/privacy-policy",
-                              desc: "Learn how we protect your data",
-                              icon: Shield,
-                            },
-                            {
-                              title: "Terms of Service",
-                              url: "/terms-services",
-                              desc: "Understand our terms and conditions",
-                              icon: FileText,
-                            },
-                            {
-                              title: "Cookie Policy",
-                              url: "/cookie-policy",
-                              desc: "How we use cookies",
-                              icon: Cookie,
-                            },
-                            {
-                              title: "Developer Documentation",
-                              url: "/developer-docs",
-                              desc: "API guides and integration",
-                              icon: Code,
-                            },
-                            {
-                              title: "Contact Support",
-                              url: "/contact-support",
-                              desc: "Get help from our team",
-                              icon: Headphones,
-                            },
-                          ].map((link, idx) => (
-                            <a
-                              key={idx}
-                              href={link.url}
-                              className="flex items-start gap-4 p-4 rounded-lg transition-all border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 group"
-                            >
-                              <link.icon className="w-5 h-5 text-zinc-600 dark:text-zinc-400 mt-0.5 shrink-0 group-hover:text-black dark:group-hover:text-white transition-colors" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-black dark:text-white">
-                                  {link.title}
-                                </p>
-                                <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-                                  {link.desc}
-                                </p>
-                              </div>
-                              <svg
-                                className="w-4 h-4 text-zinc-400 dark:text-zinc-600 group-hover:translate-x-0.5 transition-transform shrink-0 mt-1"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M9 5l7 7-7 7"
-                                />
-                              </svg>
-                            </a>
-                          ))}
-                        </div>
-                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {(activeTab === "accounts" || activeTab === "ownership") && (
-                  <AccountCenter
-                    defaultTab={
-                      activeTab === "ownership" ? "ownership" : "switch"
-                    }
-                  />
-                )}
+                  {(activeTab === "accounts" || activeTab === "ownership") && (
+                    <AccountCenter
+                      defaultTab={
+                        activeTab === "ownership" ? "ownership" : "switch"
+                      }
+                    />
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Profile Picture Modal - Instagram Style */}
           {showProfilePictureModal && (
