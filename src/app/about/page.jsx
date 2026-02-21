@@ -186,7 +186,8 @@ const AboutPage = () => {
                 variants={itemVariants}
                 className="rounded-3xl p-12 md:p-16 bg-linear-to-br from-gray-50 to-gray-100 dark:from-neutral-900/50 dark:to-neutral-800/50 border border-gray-200 dark:border-gray-800 backdrop-blur-sm"
               >
-                <div className="flex items-start gap-6 mb-8">
+                <div className="flex flex-col sm:flex-row items-start gap-6 mb-8">
+                  {" "}
                   <div className="w-16 h-16 rounded-2xl bg-white dark:bg-neutral-900 border border-gray-200 dark:border-gray-800 flex items-center justify-center shrink-0">
                     <Target className="w-8 h-8 text-red-500" />
                   </div>

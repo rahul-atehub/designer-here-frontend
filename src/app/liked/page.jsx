@@ -149,9 +149,10 @@ const LikedPostsPage = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between mb-8">
+          <div className="flex flex-col gap-4 items-start lg:flex-row lg:items-center justify-between mb-8">
+            {" "}
             {/* Search */}
-            <div className="relative flex-1 max-w-md">
+            <div className="relative w-full flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 w-4 h-4" />
               <input
                 type="text"
@@ -161,11 +162,11 @@ const LikedPostsPage = () => {
                 className="w-full pl-10 pr-4 py-3 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all text-black dark:text-white placeholder-zinc-400 dark:placeholder-zinc-600"
               />
             </div>
-
             {/* Filters and Controls */}
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-3 w-full lg:w-auto">
+              {" "}
               {/* Category Filter */}
-              <div className="relative">
+              <div className="relative flex-1">
                 <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-zinc-400 w-4 h-4" />
                 <select
                   value={filterCategory}
@@ -179,20 +180,18 @@ const LikedPostsPage = () => {
                   ))}
                 </select>
               </div>
-
               {/* Sort */}
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-4 py-3 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all text-black dark:text-white appearance-none cursor-pointer"
+                className="flex-1 px-4 py-3 text-sm bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg focus:outline-none focus:ring-1 focus:ring-zinc-400 transition-all text-black dark:text-white appearance-none cursor-pointer"
               >
                 <option value="recent">Most Recent</option>
                 <option value="likes">Most Liked</option>
                 <option value="views">Most Viewed</option>
               </select>
-
               {/* View Mode Toggle */}
-              <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded-lg p-1">
+              <div className="flex bg-zinc-100 dark:bg-zinc-800 rounded-lg p-1 shrink-0">
                 <button
                   onClick={() => setViewMode("grid")}
                   className={`p-2 rounded transition-all duration-200 ${
