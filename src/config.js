@@ -88,8 +88,8 @@ export const API = {
 
     ARCHIVE: (id) => `${BASE_URL}/api/portfolio/${id}/archive`, // GET archived + POST toggle
     FEATURE: (id) => `${BASE_URL}/api/portfolio/${id}/feature`, // GET featured + POST  toggle
-    FEATURED: `${BASE_URL}/api/portfolio/_/feature`,
-    ARCHIVED: `${BASE_URL}/api/portfolio/_/archive`,
+    FEATURED: `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_FEATURED_ENDPOINT}`,
+    ARCHIVED: `${BASE_URL}${process.env.NEXT_PUBLIC_PORTFOLIO_ARCHIVED_ENDPOINT}`,
     // delete and toggle visiblity are handled by the same file, but they're still written separately for clarity like this.
   },
 

@@ -31,6 +31,7 @@ export default function MessagePage() {
   const [showAccountDropdown, setShowAccountDropdown] = useState(false);
   const [linkedAccounts, setLinkedAccounts] = useState([]);
   const [switchingUserId, setSwitchingUserId] = useState(null);
+  const [activeTab, setActiveTab] = useState("messages");
   const dropdownRef = useRef(null);
 
   if (!viewerType) {
@@ -257,7 +258,7 @@ export default function MessagePage() {
         transition={{ delay: 0.1 }}
         className={`${
           isMobile && selectedChatId ? "hidden" : "flex"
-        } w-80 bg-gray-100/50 dark:bg-neutral-900/50 backdrop-blur-md border-r border-gray-300 dark:border-neutral-800 flex-col z-20 relative`}
+        } ${isMobile ? "w-full" : "w-80"} bg-gray-100/50 dark:bg-neutral-900/50 backdrop-blur-md border-r border-gray-300 dark:border-neutral-800 flex-col z-20 relative`}
       >
         {/* Header */}
         <div className="p-4 border-b border-gray-300 dark:border-neutral-800">
@@ -345,8 +346,30 @@ export default function MessagePage() {
               </div>
             </div>
           </div>
-
-          {/* Search */}
+          {/* Tabs */}
+          <div className="flex items-center justify-between gap-6 mb-3">
+            <button
+              onClick={() => setActiveTab("messages")}
+              className={`text-sm font-semibold ml-3 transition-colors ${
+                activeTab === "messages"
+                  ? "text-black dark:text-white"
+                  : "text-gray-400 dark:text-neutral-500"
+              }`}
+            >
+              Messages
+            </button>
+            <button
+              onClick={() => setActiveTab("archives")}
+              className={`text-sm font-semibold mr-3 transition-colors ${
+                activeTab === "archives"
+                  ? "text-black dark:text-white"
+                  : "text-gray-400 dark:text-neutral-500"
+              }`}
+            >
+              Archives
+            </button>
+          </div>
+          {/* Search */}{" "}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500 dark:text-neutral-500" />
             <input
@@ -364,6 +387,10 @@ export default function MessagePage() {
           {loading ? (
             <div className="p-4 text-gray-400 dark:text-neutral-400 text-center">
               Loading...
+            </div>
+          ) : activeTab === "archives" ? (
+            <div className="p-4 text-gray-400 dark:text-neutral-400 text-center">
+              No archived chats
             </div>
           ) : filteredConversations.length > 0 ? (
             filteredConversations.map((conv) => {

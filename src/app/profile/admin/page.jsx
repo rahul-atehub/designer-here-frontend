@@ -88,12 +88,8 @@ export default function AdminProfile() {
 
       const [portfolioRes, featuredRes, archivedRes] = await Promise.all([
         axios.get(API.PORTFOLIO.LIST, { withCredentials: true }),
-        axios.get(`${API.BASE_URL}/api/portfolio/list/feature`, {
-          withCredentials: true,
-        }),
-        axios.get(`${API.BASE_URL}/api/portfolio/list/archive`, {
-          withCredentials: true,
-        }),
+        axios.get(API.PORTFOLIO.FEATURED, { withCredentials: true }),
+        axios.get(API.PORTFOLIO.ARCHIVED, { withCredentials: true }),
       ]);
 
       setPortfolioData({

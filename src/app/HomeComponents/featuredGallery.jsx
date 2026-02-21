@@ -15,10 +15,9 @@ export default function FeaturedGallery() {
     const fetchFeatured = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(
-          `${API.BASE_URL}/api/portfolio/list/feature`,
-          { withCredentials: true },
-        );
+        const response = await axios.get(API.PORTFOLIO.FEATURED, {
+          withCredentials: true,
+        });
 
         setFeaturedArtworks(response.data.data || []);
         setError(null);
