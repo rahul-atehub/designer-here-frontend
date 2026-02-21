@@ -100,6 +100,7 @@ export default function Navbar() {
         }`}
       >
         <div className="w-full px-4 sm:px-6 lg:px-8">
+          {" "}
           <div className="flex items-center justify-between h-16">
             {/* Left Section: Logo */}
             <div className="flex items-center space-x-3 shrink-0">
@@ -179,7 +180,7 @@ export default function Navbar() {
               {/* Search Icon */}
               <button
                 onClick={() => setIsSearchOpen(true)}
-                className="p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] rounded-xl transition-all duration-200"
+                className="hidden sm:flex p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] dark:hover:text-[#F97316] rounded-xl transition-all duration-200"
               >
                 <Search className="w-5 h-5" />
               </button>
@@ -381,12 +382,19 @@ export default function Navbar() {
         >
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between gap-2">
-              <div className="flex-1">
-                <SearchBar />
-              </div>
+              <button
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsSearchOpen(true);
+                }}
+                className="sm:hidden flex-1 flex items-center gap-3 bg-gray-100 dark:bg-neutral-800 rounded-xl px-4 py-2.5 text-gray-400 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-neutral-700 transition-all duration-200"
+              >
+                <Search size={16} />
+                <span className="text-sm">Search posts...</span>
+              </button>
               <button
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 shrink-0"
+                className="sm:ml-auto p-2 text-gray-600 dark:text-gray-300 hover:text-[#F97316] rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 shrink-0"
               >
                 <X size={24} />
               </button>
@@ -394,6 +402,7 @@ export default function Navbar() {
           </div>
 
           <div className="flex-1 px-6 py-4 overflow-y-auto">
+            {" "}
             <div className="space-y-6">
               <div>
                 <p className="px-3 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
