@@ -528,14 +528,14 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
 
       {/* Main Input Area */}
       <div
-        className={`p-6 transition-colors ${dragOver ? "bg-blue-500/10" : ""}`}
+        className={`p-3 md:p-6 transition-colors ${dragOver ? "bg-blue-500/10" : ""}`}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
         <div className="flex items-end gap-3">
           {/* 3-DOT MENU */}
-          <div ref={menuRef} className="relative">
+          <div ref={menuRef} className="relative hidden lg:flex">
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -556,7 +556,7 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute bottom-full left-0 mb-10 bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border border-gray-300 dark:border-neutral-700 overflow-hidden w-64 z-50"
+                  className="absolute bottom-full left-0 md:left-0 mb-10 bg-white dark:bg-neutral-900 rounded-2xl shadow-xl border border-gray-300 dark:border-neutral-700 overflow-hidden w-auto md:w-48 z-50 flex flex-row md:flex-col"
                 >
                   {/* Attachment Option */}
                   <motion.button
@@ -581,11 +581,12 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
                         d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
                       />
                     </svg>
-                    <span className="font-medium">Photo or video</span>
+                    <span className="font-medium hidden md:inline">
+                      Photo or video
+                    </span>{" "}
                   </motion.button>
 
-                  <div className="h-px bg-gray-200 dark:bg-neutral-800" />
-
+                  <div className="w-px md:w-full md:h-px bg-gray-200 dark:bg-neutral-800" />
                   {/* Emoji Option */}
                   <motion.button
                     whileHover={{ backgroundColor: "rgba(0,0,0,0.05)" }}
@@ -597,7 +598,9 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
                     className="w-full px-4 py-3 flex items-center gap-3 text-left text-black dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors disabled:opacity-50"
                   >
                     <span className="text-lg">😊</span>
-                    <span className="font-medium">Emoji</span>
+                    <span className="font-medium hidden md:inline">
+                      Emoji
+                    </span>{" "}
                   </motion.button>
                 </motion.div>
               )}
@@ -617,6 +620,25 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
               </AnimatePresence>
             </div>
           </div>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={sending}
+            className="flex lg:hidden p-2 text-gray-400 dark:text-neutral-400 hover:text-gray-600 dark:hover:text-neutral-300 hover:bg-gray-200 dark:hover:bg-neutral-800 rounded-lg transition-all disabled:opacity-50 shrink-0"
+          >
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"
+              />
+            </svg>
+          </button>
 
           {/* Text Input */}
           <div className="flex-1 relative">

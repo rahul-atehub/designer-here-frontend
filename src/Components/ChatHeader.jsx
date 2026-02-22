@@ -211,7 +211,7 @@ export default function ChatHeader({
       <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-gray-100/50 dark:bg-neutral-900/50 border-b border-gray-300 dark:border-neutral-800 px-6 py-4 flex items-center space-x-3 relative"
+        className="bg-gray-100/50 dark:bg-neutral-900/50 border-b border-gray-300 dark:border-neutral-800 px-3 py-3 md:px-6 md:py-4 flex items-center space-x-3 relative"
       >
         {isMobile && onBack && (
           <button

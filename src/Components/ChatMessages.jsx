@@ -15,6 +15,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [hoverMenuId, setHoverMenuId] = useState(null);
   const hoverTimerRef = useRef(null);
+  const [bottomSheetMessage, setBottomSheetMessage] = useState(null);
 
   // ✅ Helper function to calculate message status
   const getMessageStatus = (message) => {
@@ -551,18 +552,15 @@ export default function ChatMessages({ chatId, currentUserId }) {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95, height: 0 }}
         transition={{ duration: 0.3, delay: index * 0.05 }}
-        className={`flex ${
-          isOwn ? "justify-end" : "justify-start"
-        } mb-4 group relative`}
+        className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-4 group relative`}
         onContextMenu={(e) => {
-          if (!isOwn) return;
           e.preventDefault();
-          setOpenMenuId(message.id);
+          setBottomSheetMessage(message);
         }}
       >
         {isOwn && (
           <div
-            className={`relative mr-2 self-start transition-opacity duration-200 flex items-center gap-2
+            className={`relative mr-2 self-start transition-opacity duration-200 hidden lg:flex items-center gap-2
                          ${
                            openMenuId === message.id
                              ? "opacity-100"
@@ -685,7 +683,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
             </motion.div>
           </div>
 
-          {/* ✅ INSTAGRAM-STYLE READ RECEIPT */}
+          {/* READ RECEIPT */}
           {isLatestOwnMessage && messageStatus && (
             <div className="mt-1 ml-2 text-xs text-gray-500 dark:text-neutral-400 flex items-center gap-1.5">
               {messageStatus === "sending" && (
@@ -782,7 +780,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
     <div
       ref={messagesContainerRef}
       onScroll={handleScroll}
-      className="flex-1 overflow-y-auto px-6 py-6 bg-white dark:bg-neutral-950 flex flex-col-reverse space-y-reverse space-y-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-neutral-800 scrollbar-track-transparent [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-400 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-600 [&::-webkit-scrollbar-thumb]:rounded-full"
+      className="flex-1 overflow-y-auto px-3 py-3 md:px-6 md:py-6 bg-white dark:bg-neutral-950 flex flex-col-reverse space-y-reverse space-y-4 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-neutral-800 scrollbar-track-transparent [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-400 dark:[&::-webkit-scrollbar-thumb]:bg-neutral-600 [&::-webkit-scrollbar-thumb]:rounded-full"
     >
       {messages.length === 0 ? (
         <motion.div
@@ -834,6 +832,50 @@ export default function ChatMessages({ chatId, currentUserId }) {
       )}
 
       <div ref={messagesEndRef} />
+      {bottomSheetMessage && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/20 lg:hidden"
+          onClick={() => setBottomSheetMessage(null)}
+        >
+          <div
+            className="w-full bg-white dark:bg-neutral-900 rounded-t-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="w-10 h-1 bg-gray-300 dark:bg-neutral-700 rounded-full mx-auto mt-3 mb-4" />
+
+            {bottomSheetMessage.text && (
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(bottomSheetMessage.text);
+                  setBottomSheetMessage(null);
+                }}
+                className="w-full px-6 py-4 text-left text-black dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors border-b border-gray-200 dark:border-neutral-800 text-sm font-medium"
+              >
+                Copy
+              </button>
+            )}
+
+            {bottomSheetMessage.senderId === currentUserId && (
+              <button
+                onClick={() => {
+                  handleUnsendMessage(bottomSheetMessage.id);
+                  setBottomSheetMessage(null);
+                }}
+                className="w-full px-6 py-4 text-left text-red-500 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors text-sm font-medium"
+              >
+                Unsend
+              </button>
+            )}
+
+            <button
+              onClick={() => setBottomSheetMessage(null)}
+              className="w-full px-6 py-4 text-left text-gray-500 dark:text-neutral-400 hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors text-sm font-medium border-t border-gray-200 dark:border-neutral-800"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
