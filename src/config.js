@@ -119,7 +119,9 @@ export const API = {
     MESSAGES: (chatID) =>
       `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_CHAT_ENDPOINT}/${chatID}`, // for fetch a chat, send a message, delete a message, can used in chat header.
     MESSAGES_ARCHIVE: (chatID) =>
-      `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_CHAT_ENDPOINT}/${chatID}/archieve`, // for archieve/unarchieve a chat
+      `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_CHAT_ENDPOINT}/${chatID}/archive`, // for archive/unarchive a chat
+    MESSAGES_DELETE: (chatID) =>
+      `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_CHAT_ENDPOINT}/${chatID}/delete`, // for deleting an entire chat.
     MESSAGES_BLOCK: (chatID) =>
       `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_CHAT_ENDPOINT}/${chatID}/block`, // for block/unblock a chat
     MESSAGES_ADMIN: `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_ADMIN_ENDPOINT}`, // Fetch admin dashboard data, chats, users, analytics

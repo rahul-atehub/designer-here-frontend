@@ -15,11 +15,13 @@ import { API } from "@/config";
 export default function ChatHeader({
   participant,
   chatId,
+  isArchived = false,
   onChatDeleted,
   onChatBlocked,
   onChatArchived,
   onBack,
   isMobile = false,
+  viewerType,
 }) {
   const [showMenu, setShowMenu] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(
@@ -37,6 +39,8 @@ export default function ChatHeader({
   const [showBlockModal, setShowBlockModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showArchiveModal, setShowArchiveModal] = useState(false);
+  const [showUnarchiveModal, setShowUnarchiveModal] = useState(false);
+  const [showUnblockModal, setShowUnblockModal] = useState(false);
 
   // Toast helper functions
   const showSuccess = (message) => {
@@ -186,7 +190,7 @@ export default function ChatHeader({
 
     setIsLoading(true);
     try {
-      const response = await axios.post(
+      const response = await axios.patch(
         API.CHAT.MESSAGES_ARCHIVE(chatId),
         {},
         { withCredentials: true },
@@ -201,6 +205,23 @@ export default function ChatHeader({
     } catch (error) {
       console.error("Error archiving chat:", error);
       showError("Failed to archive chat. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUnarchiveChat = async () => {
+    if (!chatId) return;
+    setIsLoading(true);
+    try {
+      await axios.delete(API.CHAT.MESSAGES_ARCHIVE(chatId), {
+        withCredentials: true,
+      });
+      showSuccess("Chat unarchived successfully");
+      if (onChatArchived) onChatArchived(participant);
+    } catch (error) {
+      console.error("Error unarchiving chat:", error);
+      showError("Failed to unarchive chat");
     } finally {
       setIsLoading(false);
     }
@@ -287,33 +308,41 @@ export default function ChatHeader({
                 transition={{ duration: 0.15 }}
                 className="absolute right-0 mt-2 w-48 bg-white dark:bg-neutral-800 rounded-lg shadow-lg border border-gray-200 dark:border-neutral-700 overflow-hidden z-50"
               >
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    setShowArchiveModal(true);
-                  }}
-                  disabled={isLoading}
-                  className="w-full px-4 py-3 text-left flex items-center space-x-3 hover:bg-gray-50  dark:hover:bg-neutral-700 transition-colors duration-150 text-gray-700 dark:text-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Archive className="w-5 h-5" />
-                  <span className="text-sm font-medium">Archive Chat</span>
-                </button>
+                {viewerType === "admin" && (
+                  <button
+                    onClick={() => {
+                      setShowMenu(false);
+                      isArchived
+                        ? setShowUnarchiveModal(true)
+                        : setShowArchiveModal(true);
+                    }}
+                    disabled={isLoading}
+                    className="w-full px-4 py-3 text-left flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors duration-150 text-gray-700 dark:text-neutral-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Archive className="w-5 h-5" />
+                    <span className="text-sm font-medium">
+                      {isArchived ? "Unarchive Chat" : "Archive Chat"}
+                    </span>
+                  </button>
+                )}
 
-                <button
-                  onClick={() => {
-                    setShowMenu(false);
-                    participant.isBlockedByMe
-                      ? handleUnblockUser()
-                      : setShowBlockModal(true);
-                  }}
-                  disabled={isLoading}
-                  className="w-full px-4 py-3 text-left flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors duration-150 text-red-600 dark:text-red-400 border-t border-gray-200 dark:border-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Ban className="w-5 h-5" />
-                  <span className="text-sm font-medium">
-                    {participant.isBlockedByMe ? "Unblock" : "Block"}
-                  </span>
-                </button>
+                {viewerType === "admin" && (
+                  <button
+                    onClick={() => {
+                      setShowMenu(false);
+                      participant.isBlockedByMe
+                        ? setShowUnblockModal(true)
+                        : setShowBlockModal(true);
+                    }}
+                    disabled={isLoading}
+                    className="w-full px-4 py-3 text-left flex items-center space-x-3 hover:bg-gray-50 dark:hover:bg-neutral-700 transition-colors duration-150 text-red-600 dark:text-red-400 border-t border-gray-200 dark:border-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Ban className="w-5 h-5" />
+                    <span className="text-sm font-medium">
+                      {participant.isBlockedByMe ? "Unblock" : "Block"}
+                    </span>
+                  </button>
+                )}
 
                 <button
                   onClick={() => {
@@ -374,30 +403,64 @@ export default function ChatHeader({
         </div>
       )}
 
-      {/* Delete Modal - Instagram Style */}
-      {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 max-w-md w-full mx-4 bg-white dark:bg-black">
-            <h2 className="text-xl font-light text-black dark:text-white mb-3">
-              Delete Chat?
-            </h2>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed">
-              This action cannot be undone. All messages in this chat will be
-              permanently deleted.
-            </p>
-
-            <div className="flex gap-3">
+      {/* Unblock Modal - Instagram Style */}
+      {showUnblockModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-2xl">
+            <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700">
+              <h2 className="text-lg font-semibold text-black dark:text-white text-center">
+                Unblock {participant.name || "this user"}?
+              </h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2 text-center leading-relaxed">
+                They will be able to send you messages again.
+              </p>
+            </div>
+            <div className="flex flex-col">
               <button
-                onClick={() => setShowDeleteModal(false)}
-                className="flex-1 px-4 py-3 rounded-lg text-xs font-medium border border-zinc-200 dark:border-zinc-800 text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all"
+                onClick={() => {
+                  setShowUnblockModal(false);
+                  handleUnblockUser();
+                }}
+                className="w-full px-6 py-4 text-sm font-medium text-black dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors border-b border-zinc-200 dark:border-zinc-700"
+              >
+                Unblock
+              </button>
+              <button
+                onClick={() => setShowUnblockModal(false)}
+                className="w-full px-6 py-4 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
               >
                 Cancel
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Modal - Instagram Style */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-2xl">
+            <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700">
+              <h2 className="text-lg font-semibold text-black dark:text-white text-center">
+                Delete Chat?
+              </h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2 text-center leading-relaxed">
+                This action cannot be undone. All messages will be permanently
+                deleted.
+              </p>
+            </div>
+            <div className="flex flex-col">
               <button
                 onClick={handleDeleteChat}
-                className="flex-1 px-4 py-3 rounded-lg text-xs font-medium bg-red-600 text-white hover:bg-red-700 transition-all"
+                className="w-full px-6 py-4 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors border-b border-zinc-200 dark:border-zinc-700"
               >
                 Delete
+              </button>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="w-full px-6 py-4 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+              >
+                Cancel
               </button>
             </div>
           </div>
@@ -406,28 +469,62 @@ export default function ChatHeader({
 
       {/* Archive Modal - Instagram Style */}
       {showArchiveModal && (
-        <div className="fixed inset-0 bg-black/40 dark:bg-black/60 flex items-center justify-center z-50 backdrop-blur-sm">
-          <div className="border border-zinc-200 dark:border-zinc-800 rounded-lg p-8 max-w-md w-full mx-4 bg-white dark:bg-black">
-            <h2 className="text-xl font-light text-black dark:text-white mb-3">
-              Archive Chat?
-            </h2>
-            <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-6 leading-relaxed">
-              This chat will be moved to your archived chats. You can unarchive
-              it anytime.
-            </p>
-
-            <div className="flex gap-3">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-2xl">
+            <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700">
+              <h2 className="text-lg font-semibold text-black dark:text-white text-center">
+                Archive Chat?
+              </h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2 text-center leading-relaxed">
+                This chat will be moved to your archived chats. You can
+                unarchive it anytime.
+              </p>
+            </div>
+            <div className="flex flex-col">
+              <button
+                onClick={handleArchiveChat}
+                className="w-full px-6 py-4 text-sm font-medium text-black dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors border-b border-zinc-200 dark:border-zinc-700"
+              >
+                Archive
+              </button>
               <button
                 onClick={() => setShowArchiveModal(false)}
-                className="flex-1 px-4 py-3 rounded-lg text-xs font-medium border border-zinc-200 dark:border-zinc-800 text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all"
+                className="w-full px-6 py-4 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
               >
                 Cancel
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Unarchive Modal - Instagram Style */}
+      {showUnarchiveModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-sm mx-4 overflow-hidden shadow-2xl">
+            <div className="px-6 py-5 border-b border-zinc-200 dark:border-zinc-700">
+              <h2 className="text-lg font-semibold text-black dark:text-white text-center">
+                Unarchive Chat?
+              </h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2 text-center leading-relaxed">
+                This chat will be moved back to your messages.
+              </p>
+            </div>
+            <div className="flex flex-col">
               <button
-                onClick={handleArchiveChat}
-                className="flex-1 px-4 py-3 rounded-lg text-xs font-medium border border-zinc-200 dark:border-zinc-800 text-black dark:text-white hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all"
+                onClick={() => {
+                  setShowUnarchiveModal(false);
+                  handleUnarchiveChat();
+                }}
+                className="w-full px-6 py-4 text-sm font-medium text-black dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors border-b border-zinc-200 dark:border-zinc-700"
               >
-                Archive
+                Unarchive
+              </button>
+              <button
+                onClick={() => setShowUnarchiveModal(false)}
+                className="w-full px-6 py-4 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
+              >
+                Cancel
               </button>
             </div>
           </div>

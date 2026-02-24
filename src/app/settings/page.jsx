@@ -63,6 +63,7 @@ function SettingsContent() {
   const [isUploadingPicture, setIsUploadingPicture] = useState(false);
   const [mobileView, setMobileView] = useState("menu");
   const [isMobile, setIsMobile] = useState(false);
+
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 1280);
     checkMobile();
