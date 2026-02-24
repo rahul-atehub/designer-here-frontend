@@ -59,6 +59,12 @@ export default function ArtworkCard({
   const [archived, setArchived] = useState(artwork?.archived ?? false);
   const [featured, setFeatured] = useState(artwork?.featured ?? 0);
   const [isArchiving, setIsArchiving] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
 
   const artworkData = artwork
     ? {
@@ -263,23 +269,21 @@ export default function ArtworkCard({
 
   const handleLike = async (e) => {
     e.stopPropagation();
+
+    if (!user && !loading) {
+      showToast("Log in to like posts");
+      return;
+    }
+
     const wasLiked = isLiked;
-
-    // Optimistic UI update
     setLikes((prev) => (wasLiked ? prev - 1 : prev + 1));
-
-    // Update global liked posts context
     toggleLike(artworkData);
 
     try {
-      // Use single toggle endpoint for like/unlike
       const endpoint = API.LIKES.ADD_LIKE.replace("{postId}", artworkData._id);
       await axios.post(endpoint, {}, { withCredentials: true });
-
-      console.log("Like saved on server");
     } catch (err) {
       console.error("Error liking post:", err);
-      // Rollback UI if backend fails
       setLikes((prev) => (wasLiked ? prev + 1 : prev - 1));
     }
   };
@@ -287,17 +291,19 @@ export default function ArtworkCard({
   const handleBookmark = async (e) => {
     e.stopPropagation();
 
-    // Optimistic UI update
+    if (!user && !loading) {
+      showToast("Log in to save posts");
+      return;
+    }
+
     toggleSave(artworkData);
 
     try {
       const endpoint = API.SAVED.SAVE_POST.replace("{postId}", artworkData._id);
       await axios.post(endpoint, {}, { withCredentials: true });
-
-      console.log("Save/Unsave updated on server");
     } catch (err) {
       console.error("Error updating saved post:", err);
-      toggleSave(artworkData); // rollback UI if backend fails
+      toggleSave(artworkData);
     }
   };
 
@@ -846,6 +852,16 @@ export default function ArtworkCard({
           onClose={() => setShowEditModal(false)}
           onSuccess={handleEditSuccess}
         />
+        {toast &&
+          typeof document !== "undefined" &&
+          createPortal(
+            <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-9999 animate-in fade-in slide-in-from-bottom-4 duration-300">
+              <div className="bg-white dark:bg-neutral-950 text-black dark:text-white px-6 py-3 rounded-full shadow-lg border border-zinc-200 dark:border-zinc-800 flex items-center gap-2 whitespace-nowrap">
+                <span className="text-sm font-medium">{toast}</span>
+              </div>
+            </div>,
+            document.body,
+          )}
       </>
     );
   }
@@ -1361,6 +1377,16 @@ export default function ArtworkCard({
         onClose={() => setShowEditModal(false)}
         onSuccess={handleEditSuccess}
       />
+      {toast &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-9999 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="bg-white dark:bg-neutral-950 text-black dark:text-white px-6 py-3 rounded-full shadow-lg border border-zinc-200 dark:border-zinc-800 flex items-center gap-2 whitespace-nowrap">
+              <span className="text-sm font-medium">{toast}</span>
+            </div>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }
