@@ -23,6 +23,7 @@ export default function MessagePage() {
   const [activeChatParticipant, setActiveChatParticipant] = useState(null);
   const [typing, setTyping] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [archiveSearchQuery, setArchiveSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const { user } = useUser();
   const viewerType = user?.role;
@@ -284,11 +285,25 @@ export default function MessagePage() {
     setActiveChatParticipant(null);
   };
 
-  const filteredConversations = conversations.filter(
-    (conv) =>
-      conv &&
-      (conv.name || "").toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredConversations = conversations.filter((conv) => {
+    if (!conv) return false;
+    const other = getOtherParticipant(conv);
+    const query = searchQuery.toLowerCase();
+    return (
+      (other?.name || "").toLowerCase().includes(query) ||
+      (other?.username || "").toLowerCase().includes(query)
+    );
+  });
+
+  const filteredArchivedConversations = archivedConversations.filter((conv) => {
+    if (!conv) return false;
+    const other = getOtherParticipant(conv);
+    const query = archiveSearchQuery.toLowerCase();
+    return (
+      (other?.name || "").toLowerCase().includes(query) ||
+      (other?.username || "").toLowerCase().includes(query)
+    );
+  });
 
   const getRelativeTime = (timestamp) => {
     if (!timestamp) return "";
@@ -568,8 +583,14 @@ export default function MessagePage() {
               <input
                 type="text"
                 placeholder="Search conversations"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                value={
+                  activeTab === "archives" ? archiveSearchQuery : searchQuery
+                }
+                onChange={(e) =>
+                  activeTab === "archives"
+                    ? setArchiveSearchQuery(e.target.value)
+                    : setSearchQuery(e.target.value)
+                }
                 className="w-full bg-gray-200 dark:bg-neutral-800 rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black dark:text-white placeholder-gray-500 dark:placeholder-neutral-500"
               />
             </div>
@@ -586,8 +607,8 @@ export default function MessagePage() {
                 <div className="p-4 text-gray-400 dark:text-neutral-400 text-center">
                   Loading...
                 </div>
-              ) : archivedConversations.length > 0 ? (
-                archivedConversations.map((conv) => {
+              ) : filteredArchivedConversations.length > 0 ? (
+                filteredArchivedConversations.map((conv) => {
                   const other = getOtherParticipant(conv);
                   return (
                     <motion.div

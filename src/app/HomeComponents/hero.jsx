@@ -1,3 +1,5 @@
+// src/app/HomeComponents/hero.jsx
+
 "use client";
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -155,9 +157,8 @@ export default function Hero() {
             variants={itemVariants}
             className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 leading-relaxed max-w-3xl mx-auto font-light"
           >
-            We transform ideas into exceptional digital experiences. From
-            concept to execution, every pixel is crafted with purpose and
-            passion.
+            From concept to full-stack implementation, crafting modern digital
+            products for performance and scale.
           </motion.p>
 
           {/* CTA Buttons */}
