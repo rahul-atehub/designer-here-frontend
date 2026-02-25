@@ -184,22 +184,6 @@ export default function MessagePage() {
       const chats = data?.data?.chats || [];
 
       setConversations(chats);
-
-      // sync activeChatParticipant if a chat is open
-      if (selectedChatId) {
-        const activeChat = chats.find((c) => c._id === selectedChatId);
-        if (activeChat) {
-          const otherParticipant = getOtherParticipant(activeChat);
-          if (otherParticipant) {
-            setActiveChatParticipant({
-              ...otherParticipant,
-              isBlockedByMe: activeChat.isBlockedByMe || false,
-              isBlockedByAdmin: activeChat.isBlockedByAdmin || false,
-            });
-          }
-        }
-      }
-      // END OF ADDED BLOCK
     } catch (error) {
       console.error("Failed to fetch conversations:", error);
     } finally {
@@ -617,7 +601,7 @@ export default function MessagePage() {
                       onTouchStart={() => handleLongPressStart(conv)}
                       onTouchEnd={handleLongPressEnd}
                       onTouchMove={handleLongPressEnd}
-                      whileHover={{ backgroundColor: "rgba(64, 64, 64, 0.5)" }}
+                      whileHover={{ backgroundColor: "rgba(64, 64, 64, 0.15)" }}
                       className={`w-full p-4 border-b border-gray-300 dark:border-neutral-800 text-left transition-colors group relative ${
                         selectedChatId === conv._id
                           ? "bg-gray-200 dark:bg-neutral-800"
@@ -733,7 +717,7 @@ export default function MessagePage() {
                     onTouchStart={() => handleLongPressStart(conv)}
                     onTouchEnd={handleLongPressEnd}
                     onTouchMove={handleLongPressEnd}
-                    whileHover={{ backgroundColor: "rgba(64, 64, 64, 0.5)" }}
+                    whileHover={{ backgroundColor: "rgba(64, 64, 64, 0.15)" }}
                     className={`w-full p-4 border-b border-gray-300 dark:border-neutral-800 text-left transition-colors group relative ${
                       selectedChatId === conv._id
                         ? "bg-gray-200 dark:bg-neutral-800"
@@ -917,7 +901,7 @@ export default function MessagePage() {
             isMobile && !selectedChatId ? "hidden" : "flex"
           } flex-1 flex-col relative z-10`}
         >
-          {activeChatParticipant ? (
+          {activeChatParticipant && selectedChatId ? (
             <>
               <ChatHeader
                 participant={activeChatParticipant}
@@ -939,7 +923,10 @@ export default function MessagePage() {
                   fetchConversations();
                 }}
                 onChatArchived={() => {
+                  setSelectedChatId(null);
+                  setActiveChatParticipant(null);
                   fetchConversations();
+                  fetchArchivedConversations();
                 }}
               />
               <TypingIndicator

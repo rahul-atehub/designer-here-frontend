@@ -182,12 +182,10 @@ export default function ChatHeader({
   };
 
   const handleArchiveChat = async () => {
-    setShowArchiveModal(false);
     if (!chatId) {
       showError("Chat ID is required to archive chat");
       return;
     }
-
     setIsLoading(true);
     try {
       const response = await axios.patch(
@@ -197,6 +195,7 @@ export default function ChatHeader({
       );
 
       if (response.status === 200) {
+        setShowArchiveModal(false);
         showSuccess("Chat archived successfully");
         if (onChatArchived) {
           onChatArchived(participant);
@@ -217,6 +216,7 @@ export default function ChatHeader({
       await axios.delete(API.CHAT.MESSAGES_ARCHIVE(chatId), {
         withCredentials: true,
       });
+      setShowUnarchiveModal(false);
       showSuccess("Chat unarchived successfully");
       if (onChatArchived) onChatArchived(participant);
     } catch (error) {
@@ -268,7 +268,7 @@ export default function ChatHeader({
         />
         <div className="flex-1 min-w-0">
           <h2
-            className={`text-lg font-semibold truncate ${
+            className={`text-lg font-semibold truncate leading-tight ${
               !participant.isActive ||
               participant.isDeleted ||
               participant.isBlockedByMe ||
@@ -285,6 +285,11 @@ export default function ChatHeader({
                   ? "User"
                   : participant.name}
           </h2>
+          {participant.username && (
+            <p className="text-xs text-black dark:text-neutral-400 truncate">
+              {participant.username}
+            </p>
+          )}
         </div>
 
         {/* Three-dot menu button */}
@@ -359,13 +364,6 @@ export default function ChatHeader({
             )}
           </AnimatePresence>
         </div>
-
-        {/* Loading overlay */}
-        {isLoading && (
-          <div className="absolute inset-0 bg-black/20 dark:bg-black/40 flex items-center justify-center backdrop-blur-sm z-40">
-            <div className="w-6 h-6 border-2 border-gray-300 dark:border-neutral-600 border-t-gray-700 dark:border-t-neutral-300 rounded-full animate-spin" />
-          </div>
-        )}
       </motion.div>
 
       {/* Block Modal - Instagram Style */}
@@ -483,9 +481,10 @@ export default function ChatHeader({
             <div className="flex flex-col">
               <button
                 onClick={handleArchiveChat}
-                className="w-full px-6 py-4 text-sm font-medium text-black dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors border-b border-zinc-200 dark:border-zinc-700"
+                disabled={isLoading}
+                className="w-full px-6 py-4 text-sm font-medium text-black dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors border-b border-zinc-200 dark:border-zinc-700 disabled:opacity-50"
               >
-                Archive
+                {isLoading ? "Archiving..." : "Archive"}
               </button>
               <button
                 onClick={() => setShowArchiveModal(false)}
@@ -512,13 +511,11 @@ export default function ChatHeader({
             </div>
             <div className="flex flex-col">
               <button
-                onClick={() => {
-                  setShowUnarchiveModal(false);
-                  handleUnarchiveChat();
-                }}
-                className="w-full px-6 py-4 text-sm font-medium text-black dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors border-b border-zinc-200 dark:border-zinc-700"
+                onClick={handleUnarchiveChat}
+                disabled={isLoading}
+                className="w-full px-6 py-4 text-sm font-medium text-black dark:text-white hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors border-b border-zinc-200 dark:border-zinc-700 disabled:opacity-50"
               >
-                Unarchive
+                {isLoading ? "Unarchiving..." : "Unarchive"}
               </button>
               <button
                 onClick={() => setShowUnarchiveModal(false)}
