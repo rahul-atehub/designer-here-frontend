@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -46,6 +47,12 @@ export default function Navbar() {
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const isAdmin = user?.role === "admin";
   const { unreadCount, markTabAsRead } = useNotifications();
+  const [toast, setToast] = useState(null);
+
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
   // Scroll effect
   useEffect(() => {
     const handleScroll = () => {
@@ -269,6 +276,7 @@ export default function Navbar() {
                           onClick={async () => {
                             await logout();
                             closeMenus();
+                            showToast("Logged out successfully");
                           }}
                           className="flex items-center space-x-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 w-full text-left transition-colors duration-200"
                         >
@@ -519,6 +527,16 @@ export default function Navbar() {
             className="fixed inset-0 z-30"
             onClick={() => setIsProfileOpen(false)}
           />
+        )}
+      {toast &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-9999 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="bg-white dark:bg-neutral-950 text-black dark:text-white px-6 py-3 rounded-full shadow-lg border border-zinc-200 dark:border-zinc-800 flex items-center gap-2 whitespace-nowrap">
+              <span className="text-sm font-medium">{toast}</span>
+            </div>
+          </div>,
+          document.body,
         )}
     </>
   );

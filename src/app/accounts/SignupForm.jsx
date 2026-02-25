@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -15,12 +17,18 @@ export default function SignupForm({ mode = "signup", onSuccess }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const { refetchProfile } = useUser();
+  const router = useRouter();
+  const [toast, setToast] = useState(null);
 
   // State management
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: "", text: "" });
 
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
   // Animation variants
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -49,20 +57,6 @@ export default function SignupForm({ mode = "signup", onSuccess }) {
     },
   };
 
-  const messageVariants = {
-    hidden: { opacity: 0, y: -10 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.3 },
-    },
-    exit: {
-      opacity: 0,
-      y: -10,
-      transition: { duration: 0.2 },
-    },
-  };
-
   const buttonVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { duration: 0.4 } },
@@ -70,30 +64,15 @@ export default function SignupForm({ mode = "signup", onSuccess }) {
     tap: { scale: 0.98 },
   };
 
-  const checkmarkVariants = {
-    hidden: { scale: 0, opacity: 0 },
-    visible: {
-      scale: 1,
-      opacity: 1,
-      transition: {
-        type: "spring",
-        stiffness: 100,
-        damping: 15,
-        duration: 0.5,
-      },
-    },
-  };
-
   // Step 1: Send verification code to email
   const handleSendCode = async (e) => {
     e.preventDefault();
     if (!email.trim()) {
-      setMessage({ type: "error", text: "Please enter your email" });
+      showToast("Please enter your email");
       return;
     }
 
     setLoading(true);
-    setMessage({ type: "", text: "" });
 
     try {
       await axios.post(
@@ -101,13 +80,14 @@ export default function SignupForm({ mode = "signup", onSuccess }) {
         { email },
         { withCredentials: true },
       );
+      showToast("Verification code sent to your email");
       setMessage({
         type: "success",
         text: "Verification code sent to your email",
       });
     } catch (error) {
       const errorMsg = error.response?.data?.message || "Failed to send code";
-      setMessage({ type: "error", text: errorMsg });
+      showToast(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -117,12 +97,11 @@ export default function SignupForm({ mode = "signup", onSuccess }) {
   const handleVerifyCode = async (e) => {
     e.preventDefault();
     if (!verificationCode.trim()) {
-      setMessage({ type: "error", text: "Please enter the verification code" });
+      showToast("Please enter the verification code");
       return;
     }
 
     setLoading(true);
-    setMessage({ type: "", text: "" });
 
     try {
       await axios.post(
@@ -131,15 +110,14 @@ export default function SignupForm({ mode = "signup", onSuccess }) {
         { withCredentials: true },
       );
 
-      setMessage({ type: "success", text: "Email verified successfully" });
+      showToast("Email verified successfully");
       setTimeout(() => {
         setStep(2);
-        setMessage({ type: "", text: "" });
       }, 500);
     } catch (error) {
       const errorMsg =
         error.response?.data?.message || "Invalid verification code";
-      setMessage({ type: "error", text: errorMsg });
+      showToast(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -149,12 +127,11 @@ export default function SignupForm({ mode = "signup", onSuccess }) {
   const handleSignup = async (e) => {
     e.preventDefault();
     if (!name.trim() || !username.trim() || !password.trim()) {
-      setMessage({ type: "error", text: "Please fill in all fields" });
+      showToast("Please fill in all fields");
       return;
     }
 
     setLoading(true);
-    setMessage({ type: "", text: "" });
 
     try {
       // Use different endpoint based on mode
@@ -169,18 +146,21 @@ export default function SignupForm({ mode = "signup", onSuccess }) {
 
       if (mode === "add-account") {
         // For add account mode, call success callback
-        setMessage({ type: "success", text: "Account added successfully!" });
+        showToast("Account added successfully!");
         setTimeout(() => {
           if (onSuccess) onSuccess();
         }, 1000);
       } else {
         // For normal signup, refetch profile and show success
         await refetchProfile();
-        setMessage({ type: "success", text: "Account created successfully!" });
+        showToast("Account created successfully!");
+        setTimeout(() => {
+          router.push("/");
+        }, 1500);
       }
     } catch (error) {
       const errorMsg = error.response?.data?.message || "Signup failed";
-      setMessage({ type: "error", text: errorMsg });
+      showToast(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -188,45 +168,20 @@ export default function SignupForm({ mode = "signup", onSuccess }) {
 
   return (
     <div>
-      {/* Header */}
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-bold bg-linear-to-r from-red-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mb-2">
+        <h1 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
           {mode === "add-account" ? "Add Account" : "Create Account"}
-        </h2>
-        <motion.p
-          key={step}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-          className="text-sm text-gray-600 dark:text-gray-400"
-        >
-          {step === 1 ? "Step 1: Verify Email" : "Step 2: Complete Signup"}
-        </motion.p>
+        </h1>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          {mode === "add-account"
+            ? "Link another account"
+            : "Get started for free"}
+        </p>
       </div>
-
-      {/* Message Alert */}
-      <AnimatePresence mode="wait">
-        {message.text && (
-          <motion.div
-            key={message.text}
-            variants={messageVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            className={`mb-6 p-3 rounded-lg text-sm font-medium ${
-              message.type === "success"
-                ? "bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                : "bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-            }`}
-          >
-            {message.text}
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* Step 1: Email Verification */}
       <AnimatePresence mode="wait">
-        {step === 1 && (
+        {step === 1 && message.type !== "success" && (
           <motion.div
             key="step1-email"
             variants={containerVariants}
@@ -404,60 +359,16 @@ export default function SignupForm({ mode = "signup", onSuccess }) {
           </motion.form>
         )}
       </AnimatePresence>
-
-      {/* Success State - Only for normal signup */}
-      <AnimatePresence mode="wait">
-        {step === 2 && message.type === "success" && mode === "signup" && (
-          <motion.div
-            key="success-screen"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.5 }}
-            className="text-center space-y-6"
-          >
-            <motion.div
-              initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{
-                type: "spring",
-                stiffness: 100,
-                damping: 15,
-                duration: 0.5,
-              }}
-              className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full"
-            >
-              <motion.svg
-                variants={checkmarkVariants}
-                initial="hidden"
-                animate="visible"
-                className="w-8 h-8 text-green-600 dark:text-green-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </motion.svg>
-            </motion.div>
-
-            <p className="text-gray-600 dark:text-gray-400">
-              Your account has been created successfully!
-            </p>
-
-            <Link
-              href="/profile"
-              className="inline-block py-2 px-6 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition"
-            >
-              Go to Profile
-            </Link>
-          </motion.div>
+      {toast &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-9999 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="bg-white dark:bg-neutral-950 text-black dark:text-white px-6 py-3 rounded-full shadow-lg border border-zinc-200 dark:border-zinc-800 flex items-center gap-2 whitespace-nowrap">
+              <span className="text-sm font-medium">{toast}</span>
+            </div>
+          </div>,
+          document.body,
         )}
-      </AnimatePresence>
     </div>
   );
 }

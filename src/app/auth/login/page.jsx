@@ -3,6 +3,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import axios from "axios";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,13 +21,18 @@ export default function LoginPage() {
 
   // State management
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ type: "", text: "" });
+  const [toast, setToast] = useState(null);
 
   // Validation state
   const [loginError, setLoginError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-  const { refetchProfile, user } = useUser();
+  const { refetchProfile } = useUser();
   const router = useRouter();
+
+  const showToast = (message) => {
+    setToast(message);
+    setTimeout(() => setToast(null), 3000);
+  };
 
   // Animation variants
   const containerVariants = {
@@ -56,47 +62,11 @@ export default function LoginPage() {
     },
   };
 
-  const messageVariants = {
-    hidden: { opacity: 0, y: -10 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.3 },
-    },
-    exit: {
-      opacity: 0,
-      y: -10,
-      transition: { duration: 0.2 },
-    },
-  };
-
   const buttonVariants = {
     hidden: { opacity: 0 },
     visible: { opacity: 1, transition: { duration: 0.4 } },
     hover: { scale: 1.02 },
     tap: { scale: 0.98 },
-  };
-
-  const successScreenVariants = {
-    hidden: { opacity: 0, scale: 0.95 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.5,
-        staggerChildren: 0.15,
-        delayChildren: 0.1,
-      },
-    },
-  };
-
-  const successItemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.4 },
-    },
   };
 
   // Validation functions
@@ -165,7 +135,6 @@ export default function LoginPage() {
     }
 
     setLoading(true);
-    setMessage({ type: "", text: "" });
 
     try {
       const response = await axios.post(
@@ -173,22 +142,19 @@ export default function LoginPage() {
         {
           login,
           password,
+          rememberMe,
         },
         { withCredentials: true },
       );
 
-      setMessage({ type: "success", text: "Login successful!" });
-
-      // Refresh user context after login
+      showToast("Logged in successfully");
       await refetchProfile();
-
-      // Redirect to the profile page after a short delay
       setTimeout(() => {
-        router.push("/profile");
+        router.push("/");
       }, 1500);
     } catch (error) {
       const errorMsg = error.response?.data?.message || "Login failed";
-      setMessage({ type: "error", text: errorMsg });
+      showToast(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -209,39 +175,14 @@ export default function LoginPage() {
           className="w-full max-w-md"
         >
           {/* Header */}
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="text-center mb-8"
-          >
-            <h1 className="text-3xl font-bold bg-linear-to-r from-red-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mb-2">
-              Welcome Back
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">
+              Welcome back
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
-              Sign in to your account
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Log in to your account
             </p>
-          </motion.div>
-
-          {/* Message Alert */}
-          <AnimatePresence mode="wait">
-            {message.text && (
-              <motion.div
-                key={message.text}
-                variants={messageVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className={`mb-6 p-3 rounded-lg text-sm font-medium ${
-                  message.type === "success"
-                    ? "bg-green-50 text-green-800 dark:bg-green-900/30 dark:text-green-300"
-                    : "bg-red-50 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-                }`}
-              >
-                {message.text}
-              </motion.div>
-            )}
-          </AnimatePresence>
+          </div>
 
           {/* Login Form */}
           <AnimatePresence mode="wait">
@@ -403,57 +344,18 @@ export default function LoginPage() {
               </motion.p>
             </motion.form>
           </AnimatePresence>
-
-          {/* Success State */}
-          <AnimatePresence mode="wait">
-            {user && (
-              <motion.div
-                key="success-screen"
-                variants={successScreenVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                className="text-center space-y-6"
-              >
-                <motion.div
-                  variants={successItemVariants}
-                  className="inline-flex items-center justify-center w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full"
-                >
-                  <motion.svg
-                    className="w-8 h-8 text-green-600 dark:text-green-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </motion.svg>
-                </motion.div>
-
-                <motion.div variants={successItemVariants}>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    Welcome back!
-                  </p>
-                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {user.name}
-                  </p>
-                </motion.div>
-
-                <motion.p
-                  variants={successItemVariants}
-                  className="text-sm text-gray-500 dark:text-gray-500"
-                >
-                  Redirecting to your profile...
-                </motion.p>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </motion.div>
       </motion.div>
+      {toast &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-9999 animate-in fade-in slide-in-from-bottom-4 duration-300">
+            <div className="bg-white dark:bg-neutral-950 text-black dark:text-white px-6 py-3 rounded-full shadow-lg border border-zinc-200 dark:border-zinc-800 flex items-center gap-2 whitespace-nowrap">
+              <span className="text-sm font-medium">{toast}</span>
+            </div>
+          </div>,
+          document.body,
+        )}
     </LayoutWrapper>
   );
 }
