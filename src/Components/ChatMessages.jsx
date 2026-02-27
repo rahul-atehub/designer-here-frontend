@@ -7,7 +7,7 @@ import { API } from "@/config";
 import { createPortal } from "react-dom";
 import axios from "axios";
 
-export default function ChatMessages({ chatId, currentUserId }) {
+export default function ChatMessages({ chatId, currentUserId, onReply }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
@@ -82,6 +82,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
           readBy: msg.readBy || [],
           deliveredTo: msg.deliveredTo || [],
           status: msg.status,
+          replyTo: msg.replyTo || null,
         }));
 
         setMessages((prev) => [...prev, ...olderMessages]);
@@ -321,6 +322,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
             status: msg.status || "sent",
             readBy: msg.readBy || [],
             deliveredTo: msg.deliveredTo || [],
+            replyTo: msg.replyTo || null,
           });
         });
 
@@ -473,6 +475,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
             readBy: msg.readBy || [],
             deliveredTo: msg.deliveredTo || [],
             status: msg.status,
+            replyTo: msg.replyTo || null,
           }));
 
           setMessages(
@@ -867,22 +870,12 @@ export default function ChatMessages({ chatId, currentUserId }) {
                 onClick={() =>
                   setOpenMenuId(openMenuId === message.id ? null : message.id)
                 }
-                className="w-8 h-8 flex items-center justify-center rounded-full
-    text-gray-400 dark:text-neutral-400
-    hover:text-black dark:hover:text-white
-    hover:bg-black/10 dark:hover:bg-white/10
-    transition-colors duration-150"
+                className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10transition-colors duration-150"
               >
                 ⋮
               </button>
               {hoverMenuId === message.id && openMenuId !== message.id && (
-                <div
-                  className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2
-    bg-gray-200 dark:bg-neutral-900
-    text-gray-700 dark:text-neutral-200
-    text-xs px-2 py-1 rounded-md
-    shadow-lg whitespace-nowrap pointer-events-none"
-                >
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-200 dark:bg-neutral-900 text-gray-700 dark:text-neutral-200 text-xs px-2 py-1 rounded-md shadow-lg whitespace-nowrap pointer-events-none">
                   More
                 </div>
               )}
@@ -918,6 +911,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
 
             <div className="relative group/reply">
               <button
+                onClick={() => onReply(message)}
                 className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-colors duration-150"
                 aria-label="Reply"
               >
@@ -942,6 +936,61 @@ export default function ChatMessages({ chatId, currentUserId }) {
             </div>
           </div>
         )}
+        {!isOwn && (
+          <div className="relative ml-2 self-center transition-opacity duration-200 hidden lg:flex items-center gap-2 order-2 opacity-0 group-hover:opacity-100">
+            <div className="relative group/reply">
+              <button
+                onClick={() => onReply(message)}
+                className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-colors duration-150"
+                aria-label="Reply"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 17l-5-5 5-5M4 12h11a4 4 0 014 4v1"
+                  />
+                </svg>
+              </button>
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-200 dark:bg-neutral-900 text-gray-700 dark:text-neutral-200 text-xs px-2 py-1 rounded-md shadow-lg opacity-0 group-hover/reply:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none">
+                Reply
+              </div>
+            </div>
+
+            <div className="relative group/copy">
+              <button
+                onClick={() =>
+                  navigator.clipboard.writeText(message.text || "")
+                }
+                className="w-8 h-8 flex items-center justify-center rounded-full text-gray-400 dark:text-neutral-400 hover:text-black dark:hover:text-white hover:bg-black/10 dark:hover:bg-white/10 transition-colors duration-150"
+                aria-label="Copy"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+              </button>
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-gray-200 dark:bg-neutral-900 text-gray-700 dark:text-neutral-200 text-xs px-2 py-1 rounded-md shadow-lg opacity-0 group-hover/copy:opacity-100 transition-opacity duration-150 whitespace-nowrap pointer-events-none">
+                Copy
+              </div>
+            </div>
+          </div>
+        )}
 
         <div
           className={`flex flex-col ${
@@ -959,6 +1008,29 @@ export default function ChatMessages({ chatId, currentUserId }) {
                   : "bg-gray-200 dark:bg-[#1F1F1F] text-black dark:text-white border-gray-300 dark:border-neutral-600"
               }`}
             >
+              {message.replyTo && (
+                <div
+                  className={`mx-2 mt-2 mb-1 px-3 py-2 rounded-xl border-l-4 ${
+                    isOwn
+                      ? "bg-blue-600/40 border-white/50"
+                      : "bg-gray-300/60 dark:bg-neutral-700/60 border-gray-500 dark:border-neutral-500"
+                  }`}
+                >
+                  {message.replyTo.images?.length > 0 && (
+                    <img
+                      src={message.replyTo.images[0].url}
+                      className="w-10 h-10 rounded object-cover mb-1"
+                      alt="replied image"
+                    />
+                  )}
+                  <p
+                    className={`text-xs truncate ${isOwn ? "text-white/80" : "text-gray-600 dark:text-neutral-400"}`}
+                  >
+                    {message.replyTo.text || "Image"}
+                  </p>
+                </div>
+              )}
+
               {message.images?.length > 0 && (
                 <div className={`-m-2 ${message.text ? "pb-2" : ""}`}>
                   <ImageGrid images={message.images} isOwn={isOwn} />
@@ -1144,6 +1216,16 @@ export default function ChatMessages({ chatId, currentUserId }) {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="w-10 h-1 bg-gray-300 dark:bg-neutral-700 rounded-full mx-auto mt-3 mb-4" />
+
+            <button
+              onClick={() => {
+                onReply(bottomSheetMessage);
+                setBottomSheetMessage(null);
+              }}
+              className="w-full px-6 py-4 text-left text-black dark:text-white hover:bg-gray-100 dark:hover:bg-neutral-800 transition-colors border-b border-gray-200 dark:border-neutral-800 text-sm font-medium"
+            >
+              Reply
+            </button>
 
             {bottomSheetMessage.text && (
               <button

@@ -7,7 +7,14 @@ import EmojiPicker from "@/components/ui/EmojiPicker";
 import socketClient from "@/lib/socket-client";
 import { useUser } from "@/context/UserContext";
 
-export default function ChatInput({ chatId, participant, onUserUnblocked }) {
+export default function ChatInput({
+  chatId,
+  participant,
+  onUserUnblocked,
+  replyingTo,
+  onCancelReply,
+  onReplySent,
+}) {
   const [message, setMessage] = useState("");
   const [selectedImages, setSelectedImages] = useState([]);
   const [sending, setSending] = useState(false);
@@ -110,6 +117,7 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
         {
           text: textToSend,
           images: uploadedImages,
+          replyTo: replyingTo?.id || null,
         },
         {
           withCredentials: true,
@@ -118,6 +126,7 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
       );
 
       socketClient.stopTyping(chatId);
+      if (onReplySent) onReplySent();
 
       if (response.data?.messageId) {
         window.dispatchEvent(
@@ -511,6 +520,52 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
   // ✅ Normal input for non-admin or non-blocked users
   return (
     <div className="bg-white dark:bg-neutral-950 border-t border-gray-300 dark:border-neutral-800">
+      <AnimatePresence>
+        {replyingTo && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="px-4 pt-3 pb-2 flex items-center gap-3"
+          >
+            <div className="flex-1 flex items-center gap-2 bg-white dark:bg-neutral-950 border border-gray-200 dark:border-neutral-700 rounded-xl px-3 py-2">
+              <div className="w-1 h-full min-h-32px bg-blue-500 rounded-full shrink-0" />
+              {replyingTo.images?.length > 0 && (
+                <img
+                  src={replyingTo.images[0].url || replyingTo.images[0].preview}
+                  className="w-8 h-8 rounded object-cover shrink-0"
+                  alt="reply"
+                />
+              )}
+              <div className="flex flex-col min-w-0">
+                <span className="text-xs font-semibold text-blue-500 mb-0.5">
+                  {replyingTo.senderId === user?._id
+                    ? "You"
+                    : replyingTo.sender?.name ||
+                      replyingTo.sender?.username ||
+                      "User"}
+                </span>
+                <p className="text-xs text-gray-600 dark:text-neutral-400 truncate">
+                  {replyingTo.text || "Image"}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onCancelReply}
+              className="p-1 text-gray-400 hover:text-black dark:hover:text-white transition-colors shrink-0"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clipRule="evenodd"
+                />
+              </svg>
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Image Previews */}
       <AnimatePresence>
         {selectedImages.length > 0 && (

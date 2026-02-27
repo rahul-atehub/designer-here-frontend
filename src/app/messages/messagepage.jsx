@@ -50,6 +50,7 @@ export default function MessagePage() {
   const [showErrorToast, setShowErrorToast] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null);
 
   if (!viewerType) {
     return (
@@ -262,6 +263,7 @@ export default function MessagePage() {
       isBlockedByMe: conversation.isBlockedByMe || false,
       isBlockedByAdmin: conversation.isBlockedByAdmin || false,
     });
+    setReplyingTo(null);
   };
 
   const handleBackToList = () => {
@@ -933,15 +935,19 @@ export default function MessagePage() {
                 show={typing}
                 participant={activeChatParticipant}
               />
-              <ChatMessages chatId={selectedChatId} currentUserId={user._id} />
+              <ChatMessages
+                chatId={selectedChatId}
+                currentUserId={user._id}
+                onReply={(message) => setReplyingTo(message)}
+              />
               <ChatInput
                 chatId={selectedChatId}
                 participant={activeChatParticipant}
-                onUserUnblocked={() => {
-                  // Refresh conversations to update blocked status
-                  fetchConversations();
-                }}
-              />{" "}
+                replyingTo={replyingTo}
+                onCancelReply={() => setReplyingTo(null)}
+                onReplySent={() => setReplyingTo(null)}
+                onUserUnblocked={() => fetchConversations()}
+              />
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center">
