@@ -135,6 +135,8 @@ export const API = {
     MESSAGES_SEND: `${BASE_URL}${process.env.NEXT_PUBLIC_MESSAGES_SEND_ENDPOINT}`, // to send a messages through contact form.
   },
 
+  UPLOAD_SIGN: `${BASE_URL}${process.env.NEXT_PUBLIC_UPLOAD_ENDPOINT}`,
+
   NOTIFICATIONS: {
     GET_ALL: `${BASE_URL}${process.env.NEXT_PUBLIC_NOTIFICATIONS_ENDPOINT}`,
     GET_UNREAD_COUNT: `${BASE_URL}${process.env.NEXT_PUBLIC_NOTIFICATIONS_ENDPOINT}?type=unread-count`,

@@ -17,7 +17,7 @@ class SocketClient {
       cookieString.split("; ").map((c) => {
         const [key, ...v] = c.split("=");
         return [key, decodeURIComponent(v.join("="))];
-      })
+      }),
     );
 
     return cookies.auth_token || null;
@@ -50,30 +50,32 @@ class SocketClient {
   // Add this to setupDefaultListeners() in socket-client.js
 
   setupDefaultListeners() {
-    this.socket.on("connect", () => {
-      console.log("✅ Socket connected:", this.socket.id);
+    this.socket.on("connect", () => {});
+
+    // ✅ NEW: Listen for new_message event from Socket.IO server
+    this.socket.on("new_message", (payload) => {
+      // Dispatch custom event so ChatMessages component can update
+      window.dispatchEvent(
+        new CustomEvent("socket-new-message", { detail: payload }),
+      );
     });
 
-    this.socket.on("disconnect", (reason) => {
-      console.log("❌ Socket disconnected:", reason);
-    });
+    this.socket.on("disconnect", (reason) => {});
 
     // GLOBAL LISTENERS
     this.socket.on("messages_delivered", (payload) => {
-      console.log("📦 Messages delivered:", payload);
       window.dispatchEvent(
         new CustomEvent("messages-delivered", {
           detail: payload,
-        })
+        }),
       );
     });
 
     this.socket.on("messages_read", (payload) => {
-      console.log("👁️ Messages read:", payload);
       window.dispatchEvent(
         new CustomEvent("messages-read", {
           detail: payload,
-        })
+        }),
       );
     });
 
@@ -120,7 +122,7 @@ class SocketClient {
           ...messageData,
           tempId: `temp-${Date.now()}-${Math.random()}`,
         },
-      })
+      }),
     );
   }
 
@@ -130,27 +132,24 @@ class SocketClient {
 
     this.socket.on("queued_messages", (payload) => {
       const { messages } = payload;
-      console.log(`Received ${messages.length} queued messages`);
 
       messages.forEach((msgData) => {
         window.dispatchEvent(
           new CustomEvent("queued-message-received", {
             detail: msgData,
-          })
+          }),
         );
       });
     });
 
-    this.socket.on("message_queued", (payload) => {
-      console.log("Message queued on server:", payload);
-    });
+    this.socket.on("message_queued", (payload) => {});
 
     // ✅ ADD THIS - Read receipts from other users
     this.socket.on("messages_read", (payload) => {
       window.dispatchEvent(
         new CustomEvent("messages-read", {
           detail: payload,
-        })
+        }),
       );
     });
 
@@ -159,7 +158,7 @@ class SocketClient {
       window.dispatchEvent(
         new CustomEvent("messages-delivered", {
           detail: payload,
-        })
+        }),
       );
     });
   }

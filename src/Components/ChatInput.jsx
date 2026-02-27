@@ -37,6 +37,7 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
 
   const showError = (message) => {
     setToastMessage(message);
+
     setShowErrorToast(true);
     setTimeout(() => setShowErrorToast(false), 3000);
   };
@@ -44,68 +45,106 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
     if (!message.trim() && selectedImages.length === 0) return;
     if (sending || !chatId) return;
 
-    try {
-      const tempId = `temp-${Date.now()}-${Math.random()}`;
+    setSending(true);
+    const tempId = `temp-${Date.now()}-${Math.random()}`;
+    const textToSend = message.trim();
 
+    try {
+      // Optimistic message — show immediately in chat
       window.dispatchEvent(
         new CustomEvent("optimistic-message", {
           detail: {
             tempId,
             chatId,
             text: message.trim(),
-            imageUrl: null,
+            imageUrl: selectedImages[0]?.preview || null,
             status: "sending",
           },
         }),
       );
 
       setMessage("");
+      const imagesToSend = [...selectedImages];
       setSelectedImages([]);
 
-      const formData = new FormData();
-      formData.append("text", message);
-      selectedImages.forEach((img) => {
-        formData.append("images", img.file);
-      });
+      let uploadedImages = [];
 
-      axios
-        .post(API.CHAT.MESSAGES(chatId), formData, {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })
-        .then((response) => {
-          socketClient.stopTyping(chatId);
+      // Step 1: Upload images directly to Cloudinary if any
+      if (imagesToSend.length > 0) {
+        // Get signed credentials from your backend
+        const signRes = await axios.post(
+          API.UPLOAD_SIGN,
+          { folder: "messages" },
+          { withCredentials: true },
+        );
 
-          if (response.data?.messageId) {
-            window.dispatchEvent(
-              new CustomEvent("message-confirmed", {
-                detail: {
-                  tempId,
-                  messageId: response.data.messageId,
-                  status: "sent",
-                },
-              }),
+        const { signature, timestamp, folder, cloudName, apiKey } =
+          signRes.data.data;
+
+        // Upload each image directly to Cloudinary
+        uploadedImages = await Promise.all(
+          imagesToSend.map(async (img) => {
+            const formData = new FormData();
+            formData.append("file", img.file);
+            formData.append("signature", signature);
+            formData.append("timestamp", timestamp);
+            formData.append("folder", folder);
+            formData.append("api_key", apiKey);
+
+            const res = await axios.post(
+              `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+              formData,
             );
-          }
-        })
-        .catch((error) => {
-          console.error("Message send failed:", error);
 
-          window.dispatchEvent(
-            new CustomEvent("message-failed", {
-              detail: { tempId },
-            }),
-          );
-        });
+            return {
+              url: res.data.secure_url,
+              publicId: res.data.public_id,
+            };
+          }),
+        );
+      }
+
+      // Step 2: Send JSON to your backend with URLs (not files)
+      const response = await axios.post(
+        API.CHAT.MESSAGES(chatId),
+        {
+          text: textToSend,
+          images: uploadedImages,
+        },
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+
+      socketClient.stopTyping(chatId);
+
+      if (response.data?.messageId) {
+        window.dispatchEvent(
+          new CustomEvent("message-confirmed", {
+            detail: {
+              tempId,
+              messageId: response.data.messageId,
+              status: response.data.status || "sent",
+            },
+          }),
+        );
+      } else {
+        window.dispatchEvent(
+          new CustomEvent("message-failed", {
+            detail: { tempId },
+          }),
+        );
+      }
     } catch (error) {
-      console.error("Unexpected error:", error);
+      console.error("Message send failed:", error);
       window.dispatchEvent(
         new CustomEvent("message-failed", {
-          detail: { tempId: `temp-${Date.now()}-${Math.random()}` },
+          detail: { tempId },
         }),
       );
+    } finally {
+      setSending(false);
     }
   };
 
@@ -244,8 +283,8 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
 
     if (validImages.length === 0) return;
 
-    if (selectedImages.length + validImages.length > 5) {
-      alert("You can only upload up to 5 images at once");
+    if (selectedImages.length + validImages.length > 10) {
+      alert("You can only upload up to 10 images at once");
       return;
     }
 
@@ -582,7 +621,7 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
                       />
                     </svg>
                     <span className="font-medium hidden md:inline">
-                      Photo or video
+                      Photos
                     </span>{" "}
                   </motion.button>
 

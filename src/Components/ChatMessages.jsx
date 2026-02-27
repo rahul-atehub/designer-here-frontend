@@ -84,31 +84,30 @@ export default function ChatMessages({ chatId, currentUserId }) {
   useEffect(() => {
     const handler = (e) => {
       if (e.detail.chatId !== chatId) return;
-      addOptimisticMessage(e.detail);
+      setMessages((prev) => {
+        if (prev.some((m) => m.tempId === e.detail.tempId)) return prev;
+        return [
+          {
+            id: e.detail.tempId,
+            tempId: e.detail.tempId,
+            chatId: e.detail.chatId,
+            senderId: currentUserId,
+            text: e.detail.text,
+            images: e.detail.images || [],
+            timestamp: new Date().toISOString(),
+            optimistic: true,
+            status: e.detail.status || "sending",
+            readBy: [],
+            deliveredTo: [],
+          },
+          ...prev,
+        ];
+      });
     };
 
     window.addEventListener("optimistic-message", handler);
     return () => window.removeEventListener("optimistic-message", handler);
   }, [chatId, currentUserId]);
-
-  const addOptimisticMessage = ({ tempId, text, imageUrl, chatId, status }) => {
-    setMessages((prev) => [
-      {
-        id: tempId,
-        tempId,
-        chatId,
-        senderId: currentUserId,
-        text,
-        image: imageUrl,
-        timestamp: new Date().toISOString(),
-        optimistic: true,
-        status: status || "sending",
-        readBy: [],
-        deliveredTo: [],
-      },
-      ...prev,
-    ]);
-  };
 
   useEffect(() => {
     const handler = (e) => {
@@ -138,8 +137,6 @@ export default function ChatMessages({ chatId, currentUserId }) {
     const onMessagesDelivered = (payload) => {
       if (payload.chatId !== chatId) return;
 
-      console.log("📦 Messages delivered:", payload);
-
       setMessages((prev) =>
         prev.map((msg) => {
           if (payload.messageIds.includes(msg.id)) {
@@ -164,12 +161,15 @@ export default function ChatMessages({ chatId, currentUserId }) {
     return () => socketClient.off("messages_delivered", onMessagesDelivered);
   }, [chatId]);
 
-  // ✅ FIXED: Listen to read confirmations
+  // Listen to read confirmations (but only for OTHER users' read receipts)
   useEffect(() => {
     const onMessagesRead = (payload) => {
       if (payload.chatId !== chatId) return;
 
-      console.log("👁️ Messages read:", payload);
+      // ✅ KEY: Only update if the read is from the OTHER user, not from current user
+      if (payload.userId === currentUserId) {
+        return; // Don't update UI for our own read receipts
+      }
 
       setMessages((prev) =>
         prev.map((msg) => {
@@ -193,7 +193,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
 
     socketClient.on("messages_read", onMessagesRead);
     return () => socketClient.off("messages_read", onMessagesRead);
-  }, [chatId]);
+  }, [chatId, currentUserId]);
 
   const prevChatIdRef = useRef(null);
 
@@ -220,29 +220,35 @@ export default function ChatMessages({ chatId, currentUserId }) {
         let next = [...prev];
 
         incomingMessages.forEach((msg) => {
-          if (next.some((m) => m.id === msg._id)) return;
+          // Check if message already exists (dedup)
+          if (next.some((m) => m.id === msg._id)) {
+            return; // Skip if already in list
+          }
 
-          if (msg.senderId && typeof msg.senderId === "object") {
-            const senderId = msg.senderId._id;
-            if (senderId === currentUserId) {
-              next = next.filter((m) => {
-                if (m.optimistic && m.senderId === currentUserId) {
-                  return false;
-                }
-                return true;
-              });
-            }
+          const senderId =
+            typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId;
+
+          // Remove optimistic message from current user
+          if (senderId === currentUserId) {
+            next = next.filter((m) => {
+              if (m.optimistic && m.senderId === currentUserId) {
+                return false;
+              }
+              return true;
+            });
           }
 
           next.unshift({
             id: msg._id,
-            senderId:
-              typeof msg.senderId === "object"
-                ? msg.senderId._id
-                : msg.senderId,
+            senderId: senderId,
             sender: msg.senderId,
             text: msg.text || "",
-            image: msg.imageUrl || null,
+            images:
+              msg.images?.length > 0
+                ? msg.images
+                : msg.imageUrl
+                  ? [{ url: msg.imageUrl }]
+                  : [],
             timestamp: msg.createdAt,
             optimistic: false,
             status: msg.status || "sent",
@@ -254,7 +260,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
         return next;
       });
 
-      // ✅ NEW: Auto-mark received messages as delivered
+      // Auto-mark received messages as delivered
       const otherUserMessages = incomingMessages.filter((msg) => {
         const senderId =
           typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId;
@@ -333,7 +339,12 @@ export default function ChatMessages({ chatId, currentUserId }) {
                 : msg.senderId,
             sender: msg.senderId,
             text: msg.text || "",
-            image: msg.imageUrl || null,
+            images:
+              msg.images?.length > 0
+                ? msg.images
+                : msg.imageUrl
+                  ? [{ url: msg.imageUrl }]
+                  : [],
             timestamp: msg.createdAt,
             optimistic: false,
             readBy: msg.readBy || [],
@@ -354,7 +365,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
       );
   }, [chatId]);
 
-  // ✅ FIXED: Fetch messages with proper status tracking
+  // FIXED: Fetch messages with proper status tracking
   useEffect(() => {
     if (!chatId) return;
     setMessages([]);
@@ -381,7 +392,12 @@ export default function ChatMessages({ chatId, currentUserId }) {
                 : msg.senderId,
             sender: msg.senderId,
             text: msg.text || "",
-            image: msg.imageUrl || null,
+            images:
+              msg.images?.length > 0
+                ? msg.images
+                : msg.imageUrl
+                  ? [{ url: msg.imageUrl }]
+                  : [],
             timestamp: msg.createdAt,
             readBy: msg.readBy || [],
             deliveredTo: msg.deliveredTo || [],
@@ -411,17 +427,13 @@ export default function ChatMessages({ chatId, currentUserId }) {
           }
 
           // ✅ NEW: Mark all other user's messages as read when opening chat
-          const unreadFromOthers = rawMessages
-            .filter(
-              (msg) =>
-                msg.senderId !== currentUserId &&
-                !msg.readBy?.some((r) => r.userId === currentUserId),
-            )
+          const allOtherUserMessages = rawMessages
+            .filter((msg) => msg.senderId !== currentUserId)
             .map((msg) => msg._id);
 
-          if (unreadFromOthers.length > 0) {
+          if (allOtherUserMessages.length > 0) {
             socketClient.emit("mark_as_read", {
-              messageIds: unreadFromOthers,
+              messageIds: allOtherUserMessages,
               chatId,
             });
           }
@@ -508,7 +520,214 @@ export default function ChatMessages({ chatId, currentUserId }) {
     return () => socketClient.off("message_deleted", onDeleted);
   }, [chatId]);
 
-  // ✅ FIXED: Instagram-style MessageBubble with proper status
+  const Lightbox = ({ images, startIndex, onClose }) => {
+    const [current, setCurrent] = useState(startIndex);
+
+    useEffect(() => {
+      const onKey = (e) => {
+        if (e.key === "Escape") onClose();
+        if (e.key === "ArrowRight")
+          setCurrent((p) => Math.min(p + 1, images.length - 1));
+        if (e.key === "ArrowLeft") setCurrent((p) => Math.max(p - 1, 0));
+      };
+      window.addEventListener("keydown", onKey);
+      return () => window.removeEventListener("keydown", onKey);
+    }, [images.length, onClose]);
+
+    return (
+      <div
+        className="fixed inset-0 z-9999 bg-black bg-opacity-95 flex items-center justify-center"
+        onClick={onClose}
+      >
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-white/70 hover:text-white z-10 p-2"
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+
+        {/* Counter */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white/70 text-sm z-10">
+          {current + 1} / {images.length}
+        </div>
+
+        {/* Left arrow */}
+        {current > 0 && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setCurrent((p) => p - 1);
+            }}
+            className="absolute left-4 text-white/70 hover:text-white z-10 p-2"
+          >
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
+            </svg>
+          </button>
+        )}
+
+        {/* Image */}
+        <img
+          src={images[current].url}
+          alt={`Image ${current + 1}`}
+          className="max-h-screen max-w-full object-contain"
+          onClick={(e) => e.stopPropagation()}
+        />
+
+        {/* Right arrow */}
+        {current < images.length - 1 && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setCurrent((p) => p + 1);
+            }}
+            className="absolute right-4 text-white/70 hover:text-white z-10 p-2"
+          >
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </button>
+        )}
+
+        {/* Bottom thumbnail strip */}
+        {images.length > 1 && (
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+            {images.map((img, i) => (
+              <button
+                key={i}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrent(i);
+                }}
+                className={`w-10 h-10 rounded overflow-hidden border-2 transition-all ${
+                  i === current ? "border-white" : "border-white/30"
+                }`}
+              >
+                <img
+                  src={img.url}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const ImageGrid = ({ images, isOwn }) => {
+    const [lightboxIndex, setLightboxIndex] = useState(null);
+    const total = images.length;
+    const visibleImages = images.slice(0, 4);
+    const remaining = total - 4;
+
+    const gap = "gap-0.5";
+
+    const imgClass = "w-full h-full object-cover cursor-pointer";
+
+    const renderCell = (img, index, heightClass) => {
+      const isLastVisible = index === 3 && remaining > 0;
+      return (
+        <div
+          key={index}
+          className={`relative overflow-hidden ${heightClass} ${lightboxIndex !== null ? "pointer-events-none" : ""}`}
+          onClick={() => setLightboxIndex(index)}
+        >
+          <img src={img.url} alt={`Image ${index + 1}`} className={imgClass} />
+          {isLastVisible && (
+            <div className="absolute inset-0 bg-black/60 flex items-center justify-center cursor-pointer">
+              <span className="text-white text-xl font-semibold">
+                +{remaining + 1}
+              </span>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    let gridContent;
+
+    if (total === 1) {
+      gridContent = (
+        <div className="w-full max-h-72 overflow-hidden rounded-md">
+          {renderCell(images[0], 0, "h-72")}
+        </div>
+      );
+    } else if (total === 2) {
+      gridContent = (
+        <div className={`grid grid-cols-2 ${gap} rounded-md overflow-hidden`}>
+          {visibleImages.map((img, i) => renderCell(img, i, "h-40"))}
+        </div>
+      );
+    } else if (total === 3) {
+      gridContent = (
+        <div className={`grid grid-cols-2 ${gap} rounded-md overflow-hidden`}>
+          <div className="row-span-2">
+            {renderCell(images[0], 0, "h-full min-h-[160px]")}
+          </div>
+          {renderCell(images[1], 1, "h-20")}
+          {renderCell(images[2], 2, "h-20")}
+        </div>
+      );
+    } else {
+      // 4 or more — 2x2 grid, 4th slot gets +N overlay
+      gridContent = (
+        <div className={`grid grid-cols-2 ${gap} rounded-md overflow-hidden`}>
+          {visibleImages.map((img, i) => renderCell(img, i, "h-32"))}
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <div className="w-full" data-lightbox-open={lightboxIndex !== null}>
+          {gridContent}
+        </div>
+        {lightboxIndex !== null && (
+          <Lightbox
+            images={images}
+            startIndex={lightboxIndex}
+            onClose={() => setLightboxIndex(null)}
+          />
+        )}
+      </>
+    );
+  };
+  //  MessageBubble with proper status
   const MessageBubble = ({ message, isOwn, index }) => {
     const messageStatus = getMessageStatus(message);
 
@@ -521,7 +740,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
           new Date(m.timestamp) > new Date(message.timestamp),
       );
 
-    // ✅ NEW: Check if this is the latest message from OTHER user
+    // Check if this is the latest message from OTHER user
     const isLatestOtherMessage =
       !isOwn &&
       !messages.some(
@@ -530,7 +749,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
           new Date(m.timestamp) > new Date(message.timestamp),
       );
 
-    // ✅ NEW: Check if current user has read this message
+    // Check if current user has read this message
     const isReadByCurrentUser = message.readBy?.some(
       (r) => r.userId === currentUserId,
     );
@@ -560,12 +779,11 @@ export default function ChatMessages({ chatId, currentUserId }) {
       >
         {isOwn && (
           <div
-            className={`relative mr-2 self-start transition-opacity duration-200 hidden lg:flex items-center gap-2
-                         ${
-                           openMenuId === message.id
-                             ? "opacity-100"
-                             : "opacity-0 group-hover:opacity-100"
-                         }
+            className={`relative mr-2 self-center transition-opacity duration-200 hidden lg:flex items-center gap-2                         ${
+              openMenuId === message.id
+                ? "opacity-100"
+                : "opacity-0 group-hover:opacity-100"
+            }
                     `}
           >
             <div data-message-menu className="relative">
@@ -656,30 +874,30 @@ export default function ChatMessages({ chatId, currentUserId }) {
             isOwn ? "order-2 items-end" : "order-1 items-start"
           }`}
         >
-          <div className={`max-w-xs lg:max-w-md xl:max-w-lg`}>
+          <div
+            className={`${message.images?.length > 0 ? "max-w-xs lg:max-w-md xl:max-w-lg" : "max-w-xs lg:max-w-md xl:max-w-lg"}`}
+          >
             <motion.div
-              whileHover={{ scale: 1.02 }}
-              className={`relative px-4 py-2 rounded-2xl wrap-break-word ${
+              whileHover={false}
+              className={`relative rounded-2xl wrap-break-word overflow-hidden border ${
                 isOwn
-                  ? "bg-[#3797F0] text-white rounded-br-none"
-                  : "bg-gray-200 dark:bg-[#1F1F1F] text-black dark:text-white rounded-bl-none"
+                  ? "bg-[#3797F0] text-white border-blue-500"
+                  : "bg-gray-200 dark:bg-[#1F1F1F] text-black dark:text-white rounded-bl-none border-gray-300 dark:border-neutral-600"
               }`}
             >
+              {message.images?.length > 0 && (
+                <div className={`-m-2 ${message.text ? "pb-2" : ""}`}>
+                  <ImageGrid images={message.images} isOwn={isOwn} />
+                </div>
+              )}
+
               {message.text && (
-                <p className="whitespace-pre-wrap text-sm leading-relaxed wrap-break-word">
+                <p
+                  className={`whitespace-pre-wrap text-sm leading-relaxed wrap-break-words px-4 py-2`}
+                >
                   {message.text}
                 </p>
               )}
-
-              {message.image && (
-                <img
-                  src={message.image}
-                  alt="Shared"
-                  className="mt-2 rounded-lg cursor-pointer"
-                />
-              )}
-
-              {message.emoji && <div className="text-3xl">{message.emoji}</div>}
             </motion.div>
           </div>
 
