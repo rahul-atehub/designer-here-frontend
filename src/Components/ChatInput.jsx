@@ -271,20 +271,21 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
   const handleImageFiles = (files) => {
     const validImages = Array.from(files).filter((file) => {
       if (!file.type.startsWith("image/")) {
-        alert("Please select only image files");
+        showError("Please select only image files");
         return false;
       }
       if (file.size > 10 * 1024 * 1024) {
-        alert(`${file.name} is too large. Please select images under 10MB.`);
+        showError(
+          `${file.name} is too large. Please select images under 10MB.`,
+        );
         return false;
       }
       return true;
     });
 
     if (validImages.length === 0) return;
-
     if (selectedImages.length + validImages.length > 10) {
-      alert("You can only upload up to 10 images at once");
+      showError("You can only upload up to 10 images at once");
       return;
     }
 
@@ -750,6 +751,22 @@ export default function ChatInput({ chatId, participant, onUserUnblocked }) {
         onChange={handleImageSelect}
         className="hidden"
       />
+
+      <AnimatePresence>
+        {showErrorToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50"
+          >
+            <div className="bg-white dark:bg-neutral-950 text-black dark:text-white px-6 py-3 rounded-full shadow-lg border border-zinc-200 dark:border-zinc-800 flex items-center gap-2">
+              <span className="text-sm font-medium">{toastMessage}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

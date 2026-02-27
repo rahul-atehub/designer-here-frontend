@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import socketClient from "@/lib/socket-client";
 import { API } from "@/config";
+import { createPortal } from "react-dom";
 import axios from "axios";
 
 export default function ChatMessages({ chatId, currentUserId }) {
@@ -16,6 +17,10 @@ export default function ChatMessages({ chatId, currentUserId }) {
   const [hoverMenuId, setHoverMenuId] = useState(null);
   const hoverTimerRef = useRef(null);
   const [bottomSheetMessage, setBottomSheetMessage] = useState(null);
+  const [nextCursor, setNextCursor] = useState(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const isFetchingMoreRef = useRef(false);
 
   // ✅ Helper function to calculate message status
   const getMessageStatus = (message) => {
@@ -42,12 +47,74 @@ export default function ChatMessages({ chatId, currentUserId }) {
     return message.status || "sent";
   };
 
+  const fetchOlderMessages = async () => {
+    if (!nextCursor || !hasMore || isFetchingMoreRef.current) return;
+
+    isFetchingMoreRef.current = true;
+    setIsFetchingMore(true);
+
+    const container = messagesContainerRef.current;
+    const prevScrollHeight = container?.scrollHeight ?? 0;
+
+    try {
+      const { data } = await axios.get(
+        `${API.CHAT.MESSAGES(chatId)}?cursor=${nextCursor}&limit=20`,
+        { withCredentials: true },
+      );
+
+      const messagesPayload = data?.messages ?? data?.data?.messages ?? [];
+      const rawMessages = Array.isArray(messagesPayload) ? messagesPayload : [];
+
+      if (rawMessages.length > 0) {
+        const olderMessages = rawMessages.map((msg) => ({
+          id: msg._id,
+          senderId:
+            typeof msg.senderId === "object" ? msg.senderId._id : msg.senderId,
+          sender: msg.senderId,
+          text: msg.text || "",
+          images:
+            msg.images?.length > 0
+              ? msg.images
+              : msg.imageUrl
+                ? [{ url: msg.imageUrl }]
+                : [],
+          timestamp: msg.createdAt,
+          readBy: msg.readBy || [],
+          deliveredTo: msg.deliveredTo || [],
+          status: msg.status,
+        }));
+
+        setMessages((prev) => [...prev, ...olderMessages]);
+
+        // Restore scroll position so viewport doesn't jump
+        requestAnimationFrame(() => {
+          if (container) {
+            container.scrollTop += container.scrollHeight - prevScrollHeight;
+          }
+        });
+      }
+
+      setNextCursor(data?.nextCursor ?? null);
+      setHasMore(data?.hasMore ?? false);
+    } catch (error) {
+      console.error("Failed to fetch older messages:", error);
+    } finally {
+      isFetchingMoreRef.current = false;
+      setIsFetchingMore(false);
+    }
+  };
+
   const handleScroll = () => {
     if (messagesContainerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } =
         messagesContainerRef.current;
       const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
       setUserScrolled(!isNearBottom);
+
+      // Top detection — fetch older messages
+      if (scrollTop < 100 && hasMore && !isFetchingMoreRef.current) {
+        fetchOlderMessages();
+      }
     }
   };
 
@@ -369,6 +436,10 @@ export default function ChatMessages({ chatId, currentUserId }) {
   useEffect(() => {
     if (!chatId) return;
     setMessages([]);
+    setNextCursor(null);
+    setHasMore(false);
+    setIsFetchingMore(false);
+    isFetchingMoreRef.current = false;
     setLoading(true);
 
     const fetchMessages = async () => {
@@ -409,6 +480,8 @@ export default function ChatMessages({ chatId, currentUserId }) {
               (a, b) => new Date(b.timestamp) - new Date(a.timestamp),
             ),
           );
+          setNextCursor(data?.nextCursor ?? null);
+          setHasMore(data?.hasMore ?? false);
 
           // ✅ Mark unread messages as delivered
           const unreadMessageIds = rawMessages
@@ -534,7 +607,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
       return () => window.removeEventListener("keydown", onKey);
     }, [images.length, onClose]);
 
-    return (
+    return createPortal(
       <div
         className="fixed inset-0 z-9999 bg-black bg-opacity-95 flex items-center justify-center"
         onClick={onClose}
@@ -645,7 +718,8 @@ export default function ChatMessages({ chatId, currentUserId }) {
             ))}
           </div>
         )}
-      </div>
+      </div>,
+      document.body,
     );
   };
 
@@ -882,7 +956,7 @@ export default function ChatMessages({ chatId, currentUserId }) {
               className={`relative rounded-2xl wrap-break-word overflow-hidden border ${
                 isOwn
                   ? "bg-[#3797F0] text-white border-blue-500"
-                  : "bg-gray-200 dark:bg-[#1F1F1F] text-black dark:text-white rounded-bl-none border-gray-300 dark:border-neutral-600"
+                  : "bg-gray-200 dark:bg-[#1F1F1F] text-black dark:text-white border-gray-300 dark:border-neutral-600"
               }`}
             >
               {message.images?.length > 0 && (
@@ -1047,6 +1121,16 @@ export default function ChatMessages({ chatId, currentUserId }) {
             );
           })}
         </>
+      )}
+
+      {isFetchingMore && (
+        <div className="flex justify-center py-3">
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full"
+          />
+        </div>
       )}
 
       <div ref={messagesEndRef} />
